@@ -34,14 +34,12 @@ Password for `UofA-Guest`:
 
 - Food and drinks are allowed in the room. *Please take any rubbish with you or use the bins provided*
 
-[Back To Top](#introduction_to_r)
-
 
 # Day 1
 
-| Session | Topic | Slides | RMarkdown | Data |
-| ------- |:----- |:------ |:--------- |:---- |
-| 9:00 - 10:30      | 1. Introduction To RStudio |  | | |
+| Session | Topic | RMarkdown | Data |
+| ------- |:----- |:--------- |:---- |
+| 9:00 - 10:30 | [1. Introduction To RStudio](Day_1/01_IntroRStudio.html) |  | |
 
 
 # Day 2

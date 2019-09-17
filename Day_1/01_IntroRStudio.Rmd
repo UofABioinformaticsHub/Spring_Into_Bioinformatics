@@ -1,6 +1,6 @@
 ---
 title: "Fall Into Bioinformatics"
-subtitle: "Introduction to R & RStudio"
+subtitle: "Introduction to R & R Studio"
 author: "Steve Pederson"
 date: "17/09/2019"
 output: html_document
@@ -11,7 +11,8 @@ knitr::opts_chunk$set(
     echo = TRUE,
     message = FALSE,
     warning = FALSE,
-    fig.align = "center"
+    fig.align = "center",
+    results = "hide"
 )
 if (interactive()) setwd(here::here("Day_1"))
 ```
@@ -41,7 +42,7 @@ This course was primarily written by members of the Bioinformatics Hub and the t
 - Melanie Smith (PhD Candidate, Robinson Research Institute)
 - Terry Bertozzi (SA Museum)
 
-## Introduction to R & RStudio
+## Introduction to R & R Studio
 
 ### What is R?
 
@@ -66,7 +67,7 @@ Instead, all of the code that runs R is publicly visible, and maintained by what
 
 Some examples of trivial R code might be:
 
-```{r firstExamples}
+```{r firstExamples, results='asis'}
 x <- 1:5
 print(x)
 sqrt(x)
@@ -80,25 +81,85 @@ Again, we'll come back to this very soon.
 
 ### What is R Studio?
 
-Whilst R itself is the language we use, we mostly interact with R using an Integrated Developmen Environment (IDE) called RStudio.
-We can almost think of RStudio as being like the cabin of a car, whilst R itself is the engine.
-Whilst we can tell the engine (R) exactly what to do from the cabin (RStudio), RStudio also has many features that don't directly interact with R, but that our make our lives more safe & convenient, just like a cabin will usually have a radio, air-conditioning & seatbelts.
-We can use RStudio as a file browser, text editor & bash interface as well as running version control software.
+Whilst R itself is the language we use, we mostly interact with R using an Integrated Development Environment (IDE) called R Studio.
+We can almost think of R Studio as being like the cabin of a car, whilst R itself is the engine.
+Whilst we can tell the engine (R) exactly what to do from the cabin (R Studio), R Studio also has many features that don't directly interact with R, but that our make our lives more safe & convenient, just like a cabin will usually have a radio, air-conditioning & seatbelts.
+We can use R Studio as a file browser, text editor & bash interface as well as running version control software.
 For today, we'll stick to the text editor (where we write our code) and file browser, although we will use `bash` more & more as the course progresses.
 
-Interestingly, RStudio is produced by a company (called RStudio) and as such doesn't have some of the same open source features.
+Interestingly, R Studio is produced by a company (called R Studio) and as such doesn't have some of the same open source features.
 However, it is still free software.
-You will have lready been through the login process, and this is the point where you will first see what RStudio looks like to a user.
+You will have already been through the login process, and this is the point where you will first see what R Studio looks like to a user.
 
-```{r, echo = FALSE, fig.width=10, fig.cap="*The main RStudio interface*"}
+```{r, echo = FALSE, out.width='100%', fig.cap="*The main RStudio interface*", results='asis'}
 knitr::include_graphics("images/RStudio_VM.png")
 ```
 
 The main window you can see on the left has a few tabs available so ensure the tab with the word **Console** is active.
 This is where we can interact directly with R itself.
-At the top you'll see the R Version listed along with a few other pieces of information, whislt underneath this you'll see the `>` symbol.
+At the top you'll see the R Version listed along with a few other pieces of information, whilst underneath this you'll see the `>` symbol.
 This is the R prompt & us where can type our code to be executed.
 
 On the top right you'll see another pane with three tabs.
 We won't explore all of these, but the **Environment** & **History** tabs can be very useful.
+
+On the bottom right you'll see another pane with tabs for **Files**, **Plots**, **Help** and a few other things.
+We'll definitely use those three, but the other two won't get much of a run.
+
+### The R Console
+
+Just to get a feel for how R works, let's try typing a few things directly into the R Console.
+At the `>` prompt, type the following:
+
+```{r}
+x <- 1:5
+```
+
+As we discussed earlier, we've now created an object called `x` which contains the numbers `1` to `5`.
+This is an R object, known as a *vector*.
+We won't really spend much time talking about vectors in this course, but here it's a string of numbers, which you can think of as being like a single column in a spreadsheet.
+
+We can view the contents of this R object either by typing it's name, or by using the function `print()`.
+Mostly we don't need the `print()` function but it does come in handy sometimes.
+
+```{r}
+x
+print(x)
+```
+
+Just like you might call the Excel function `AVERAGE()` and select a range of values to find the mean, we can do this in R using the equivalent function `mean()`.
+
+```{r}
+mean(x)
+```
+
+We can use all sorts of mathematical functions like `sum()`, `max()`, `min()`, `sqrt()`, `median()`, `var()` or `sd()` on our vector.
+The important point to notice is that when we call the function, we pass the R object to the function by including the object between the brackets `()`, just like we did with our calls to `print()` and `mean()`.
+This is very similar to how the Excel functions work, but instead of passing a range of cells, we pass an R object to the function.
+Try a few of the above commands to see how you go.
+
+We can also perform mathematical operations directly on our R object, which, as you can see, is much easier than highlighting a range of cells in Excel.
+
+```{r}
+x + 1
+x*2
+x^2
+```
+
+
+### The R Environment
+
+When working with Excel and calling a function on a range of cells, we would usually write the output to another cell in the spreadsheet.
+However, in the above we just wrote the output of each function directly to the console without modifying `x`, or without saving the output anywhere.
+
+Have a look at your **Environment** Tab in the top right pane, and note that you can see the object `x` there.
+The R Environment is where we created the object `x` and this is like our workspace where we can store any R objects.
+As an example, let's save our output from that last mathematical operation where we calculated $x^2$.
+
+```{r}
+x_sq <- x^2
+```
+
+Notice that the results of `x^2` were no longer printed to the console, and we now have two objects in our R Environment (both `x` & `x_sq`).
+**How would we view the contents of `x_sq`?**
 

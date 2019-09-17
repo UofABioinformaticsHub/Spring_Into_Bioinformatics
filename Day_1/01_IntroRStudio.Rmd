@@ -163,3 +163,16 @@ x_sq <- x^2
 Notice that the results of `x^2` were no longer printed to the console, and we now have two objects in our R Environment (both `x` & `x_sq`).
 **How would we view the contents of `x_sq`?**
 
+### Getting Help
+
+If you're not sure how a function works, the easiest way to call up the help page is to type the name of the function into the R Console, but with a `?` beforehand.
+As an example, try typing `?sd` into the console.
+This will call up the help page for `sd()` (which calculates the standard deviation of a vector).
+
+This function takes two arguments.
+
+1. Any numeric vector (referred to as `x` by the function)
+2. Instructions on how to handling missing values (`na.rm = FALSE`).
+
+Some help pages can be a little harder to understand than this one but the more you use `R`, the clearer they become.
+We'll check a few more throughout the day.

@@ -1,0 +1,104 @@
+---
+title: "Fall Into Bioinformatics"
+subtitle: "Introduction to R & RStudio"
+author: "Steve Pederson"
+date: "17/09/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    message = FALSE,
+    warning = FALSE,
+    fig.align = "center"
+)
+if (interactive()) setwd(here::here("Day_1"))
+```
+
+## Welcome
+
+Welcome to Spring Into Bioinformatics for 2019.
+Over this 3 day course we'll hopefully cover enough concepts to get you started with your data and analyses.
+This course will provide the most benefit if you continue to use the skills in the weeks directly after the course, and is aimed at those with minimal to no prior bioinformatics expertise.
+Course material will be available at this URL indefinitely.
+
+Most of the sessions will be self-guided, with key direction provided sporadically at important times.
+Please ask as many questions as you'd like.
+The tutors are specifically here to help you understand & develop your skills, so please ensure you take full advantage of their availability.
+
+We strongly encourage you to a) read all of the notes, and b) manually type **all of the code** (unless directed otherwise).
+This will provide you with the the most benefit.
+
+
+### Tutors
+
+This course was primarily written by members of the Bioinformatics Hub and the tutors across the three days will be:
+
+- Nathan Watson-Haigh, Dan Kortschak & Mark Armstrong (Bioinformatics Hub Staff)
+- Jimmy Breen (Bioinformatics Hub / SAHMRI)
+- Nhi Hin (PhD Candidate, Bioinformatics Hub)
+- Melanie Smith (PhD Candidate, Robinson Research Institute)
+- Terry Bertozzi (SA Museum)
+
+## Introduction to R & RStudio
+
+### What is R?
+
+As you will no doubt be aware, R is one of the most commonly used languages/environments in modern biological research.
+Whilst originally developed as a statistical teaching tool in the 1990s, a large and diverse ecosystem of packages has been developed enabling analysis of everything from financial markets, to election polls to biological research.
+There is truly too much to cover in a 3 day course, but hopefully we'll get you over the initial hurdle of unfamiliarity.
+
+There is no such thing as a perfect programming language, and R has many features (or 'quirks') that are based in it's historical origins.
+However, it can be a very useful tool.
+An important concept to remember from these sessions, is that we write code for two primary reasons.
+
+1. To perform the computational task
+2. To communicate with other people (including yourself!)
+
+A key advantage of R over software like Excel, is that everything you do is recorded as a script.
+Every change you make to your data can be revisited months or years later, and every analysis or figure can also be recreated at a later stage, or easily modified as more data points are collected.
+If you accidentally 'break' or modify your data in Excel, there will literally be no record of this event, with cut & paste errors being essentially invisible.
+In R, these mistakes are (generally) easy to find and correct ensuring reproducible & robust analysis, as well as enabling collaboration between researchers.
+
+R is an *open source language*, meaning there is no software giant like Microsoft or Apple forcing you to buy their software, and hiding all the code so you don't really know what it's doing.
+Instead, all of the code that runs R is publicly visible, and maintained by what is essentially a volunteer community, consisting mainly of academics spread throughout the world.
+
+Some examples of trivial R code might be:
+
+```{r firstExamples}
+x <- 1:5
+print(x)
+sqrt(x)
+x + 1
+```
+
+We'll come back and actually run these examples later, but for now you may be able to see that in the first line `x <- 1:5` we've created an object called `x` which has the values `1:5`.
+We used the `<-` symbol, which was specifically designed to look like an arrow, to put those values *into* `x`.
+After that we performed a few operations on `x` such as showing what values are in `x` (`print(x)`), finding the square root of all of the values in `x` (`sqrt(x)`), or adding one to all of the values `x + 1`.
+Again, we'll come back to this very soon.
+
+### What is R Studio?
+
+Whilst R itself is the language we use, we mostly interact with R using an Integrated Developmen Environment (IDE) called RStudio.
+We can almost think of RStudio as being like the cabin of a car, whilst R itself is the engine.
+Whilst we can tell the engine (R) exactly what to do from the cabin (RStudio), RStudio also has many features that don't directly interact with R, but that our make our lives more safe & convenient, just like a cabin will usually have a radio, air-conditioning & seatbelts.
+We can use RStudio as a file browser, text editor & bash interface as well as running version control software.
+For today, we'll stick to the text editor (where we write our code) and file browser, although we will use `bash` more & more as the course progresses.
+
+Interestingly, RStudio is produced by a company (called RStudio) and as such doesn't have some of the same open source features.
+However, it is still free software.
+You will have lready been through the login process, and this is the point where you will first see what RStudio looks like to a user.
+
+```{r, echo = FALSE, fig.width=10, fig.cap="*The main RStudio interface*"}
+knitr::include_graphics("images/RStudio_VM.png")
+```
+
+The main window you can see on the left has a few tabs available so ensure the tab with the word **Console** is active.
+This is where we can interact directly with R itself.
+At the top you'll see the R Version listed along with a few other pieces of information, whislt underneath this you'll see the `>` symbol.
+This is the R prompt & us where can type our code to be executed.
+
+On the top right you'll see another pane with three tabs.
+We won't explore all of these, but the **Environment** & **History** tabs can be very useful.
+

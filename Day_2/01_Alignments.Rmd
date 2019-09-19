@@ -1,0 +1,92 @@
+---
+title: "Fall Into Bioinformatics"
+subtitle: "Alignment Quality Control"
+author: "Jimmy Breen"
+date: "17/09/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    message = FALSE,
+    warning = FALSE,
+    fig.align = "center",
+    results = "hide"
+)
+if (interactive()) setwd(here::here("Day_1"))
+```
+
+* TOC
+{:toc}
+
+## Welcome
+
+Welcome to Spring Into Bioinformatics for 2019.
+Over this 3 day course we'll hopefully cover enough concepts to get you started with your data and analyses.
+This course will provide the most benefit if you continue to use the skills in the weeks directly after the course, and is aimed at those with minimal to no prior bioinformatics expertise.
+Course material will be available at this URL indefinitely.
+
+Most of the sessions will be self-guided, with key direction provided sporadically at important times.
+Please ask as many questions as you'd like.
+The tutors are specifically here to help you understand & develop your skills, so please ensure you take full advantage of their availability.
+
+We strongly encourage you to a) read all of the notes, and b) manually type **all of the code** (unless directed otherwise).
+This will provide you with the the most benefit.
+
+
+### Tutors
+
+This course was primarily written by members of the Bioinformatics Hub and the tutors across the three days will be:
+
+- Nathan Watson-Haigh, Dan Kortschak & Mark Armstrong (Bioinformatics Hub Staff)
+- Jimmy Breen (Bioinformatics Hub / SAHMRI)
+- Nhi Hin (PhD Candidate, Bioinformatics Hub)
+- Melanie Smith (PhD Candidate, Robinson Research Institute)
+- Terry Bertozzi (SA Museum)
+
+## Day 2: Working with alignments and differential expression
+
+```{r loadPackages, echo=FALSE, eval=TRUE}
+library(tidyverse)
+library(limma)
+library(ggrepel)
+library(pander)
+library(RColorBrewer)
+library(reshape2)
+library(scales)
+library(pheatmap)
+library(VennDiagram)
+library(edgeR)
+library(DiagrammeR)
+theme_set(theme_bw())
+```
+
+In keeping with the format of this course where we essentially started at the end and worked our way forward, the the last Day we are going to learn the initial steps needed to process high-throughput sequencing data. 
+In Day 1 we learnt how to analyse and organise data in `R`, use important data processing packages contained in the `tidyverse` ecosystem, and perform plots that you would commonly create for Transcriptome sequencing projects (e.g. Volcano plot, Mean-difference plot etc). 
+Today we are going learn how to quantify aligned data and create a gene counts table, run common functions to assess sample and project quality (unsupervised clustering and estimation of library sizes) and perform differential expression analyses.
+
+## Today's Schedule
+
+- Session 1: Working with Alignments
+  - Quality control of alignment data
+  - Duplication/Deduplication with Picard
+  - Assessment of alignment rate and multi-mapping
+
+- Session 2: Gene quantification and counts
+  - Summarisation of aligned data to counts
+  - Quality control of samples based on mapping counts
+  - Estimation of library sizes
+  - PCA/MDS assessment of outliers and batch effects
+
+- Session 3: Differential Expression
+  - Choosing count distribution model: voom vs edgeR
+  
+## Session 1: Working with Alignments
+
+### Quality control of alignment data
+### Duplication/Deduplication with Picard
+### Assessment of alignment rate and multi-mapping
+
+
+

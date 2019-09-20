@@ -40,7 +40,8 @@ Password for `UofA-Guest`:
 | Session | Topic | RMarkdown | Data |
 | ------- |:----- |:--------- |:---- |
 | 9:00 - 10:30 | [1. Introduction To RStudio](Day_1/01_IntroRStudio.html) |  | |
-|              | [2. Introduction to R Markdown](Day_1/02_IntroRMarkdown.html) | | |
+|              | [2. Introduction To R Markdown](Day_1/02_IntroRMarkdown.html) | | |
+| 11:00 - 12:30 | [3. Importing Data](Day_1/03_DataImport.html)
 
 
 # Day 2

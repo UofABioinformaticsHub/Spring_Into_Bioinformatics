@@ -40,10 +40,10 @@ Bioinformatics is very much like that.
 Near enough is never good enough, and commands need to be typed exactly.
 Laziness leads to confusion.
 
-1 - Go to the `File` menu at the top of RStudio & select `New Project...`.
+1 - Go to the `File` menu at the top of R Studio & select `New Project...`.
 The following dialog will appear:
 
-```{r, echo=FALSE, out.width='70%', results='asis'}
+```{r, echo=FALSE, out.width='50%', results='asis'}
 knitr::include_graphics("images/RProject.png")
 ```
 
@@ -60,13 +60,13 @@ They are really nothing more than a wrapper to your directory, but they do make 
 
 ### Getting today's data
 
-Now we have our directorys organised, we can get today's data.
+Now we have our directories organised, we can get today's data.
 We'll put it inside a directory called `data` within our R Project, so let's first create this directory.
 In your **Files** Tab, click the ![](images/NewFolder.png) icon, and call the directory `data`.
 
 We've already placed the data for today on your VM in a general directory called `data`, so using the **Files** tab, navigate to your Home directory by clicking the ![](images/home.png) icon.
-Inside this directory you'll see another one called `data`, so let's enter that and select the checkbox next to the file `DGE_results.tsv`.
-Now click the `More` dropbox next to the cog in the **Files** pane, then choose `Move...`, and move this file into your R Project subdirectory data (i.e. in `~/Day_1/data`).
+Inside this directory you'll see another one called `data`, so let's enter that and select the check-box next to the file `DGE_results.tsv`.
+Now click the `More` drop-box next to the cog in the **Files** pane, then choose `Move...`, and move this file into your R Project subdirectory data (i.e. in `~/Day_1/data`).
 Call a tutor over if you're not sure.
 
 Once we've got that all setup the same for everyone, we'll be off & running!
@@ -129,7 +129,7 @@ R uses the first row in the file to guess the number of columns, and as it has f
 Fortunately, this is a sensible option for this file, but sometimes we may end up with slightly more challenging files.
 
 Notice that under each column name, we have a description of what type of data we have in that column.
-In Excel, we generally don't pay any attention to this, but in R i can be quite important.
+In Excel, we generally don't pay any attention to this, but in R it can be quite important.
 The first column is classed as `character`, meaning it's plain text, whilst the rest have been classed as `double`.
 
 In R we can have to main types of number, these being an `integer` and a `double`.
@@ -150,8 +150,8 @@ You may have also noticed that when we changed the Delimiter to `Tab` that in th
 This is the code that R is executing when we import the file and there are three lines here.
 
 1. `library(readr)` loads the package `readr`.
-Packages are collections of functions (`sum()`, `mean()` etc are actually part of a package called `base` which is always loaded with your R Session), and `readr` has a collection of functions which enable you to read (or import) data into R.
-2. `DGE_Results <- read_delim("data/DGE_Results.tsv", "\t", escape_double = FALSE, trim_ws = TRUE)` is the actual command we'll use to load the data. We'll sep through this in detail in the next paragraph
+Packages are collections of functions (`sum()`, `mean()` etc. are actually part of a package called `base` which is always loaded with your R Session), and `readr` has a collection of functions which enable you to read (or import) data into R.
+2. `DGE_Results <- read_delim("data/DGE_Results.tsv", "\t", escape_double = FALSE, trim_ws = TRUE)` is the actual command we'll use to load the data. We'll step through this in detail in the next paragraph
 3. `View(DGE_Results)` will open a data preview window after the data has been imported.
 
 Returning to that second line, we have some really important points to understand.
@@ -163,8 +163,8 @@ Here we are going to place the results from `read_delim(...)` into an R object c
 After the file path, you'll see `"\t"` which is how we specify a tab delimiter.
 **Try changing the delimiter to a semi-colon using the drop-down menu and see what happens to this field and to the file preview.**
 Make sure you reset it to `Tab` once you're done though.
-3. The two remaining arguments (`escape_double = FALSE, trim_ws = TRUE`) are not super-important, but these can be set by the other checkboxes and drop-down menus.
-The argument `trim_ws = TRUE` tells R to remove any whitespace around the values in each 'cell'.
+3. The two remaining arguments (`escape_double = FALSE, trim_ws = TRUE`) are not super-important, but these can be set by the other check-boxes and drop-down menus.
+The argument `trim_ws = TRUE` tells R to remove any white-space around the values in each 'cell'.
 
 **Using your mouse/touchpad select all of the code in this box and copy it to your clipboard.**
 Once you've done that, click the Import button and see what happens.
@@ -221,4 +221,46 @@ This is why we kept our code, and as you can imagine this step is now easily rep
 
 To go further, add the command `DGE_Results` to the end of this chunk, then **Knit** the R Markdown document.
 
-### Understanding R Functions
+## Understanding R Functions
+
+Let's dig even deeper to make sure we understand what we've done.
+Head to the help page for `read_delim()` by entering `?read_delim` in your R Console.
+At the top of this page you'll see some pretty overwhelming text:
+
+```
+read_delim(file, delim, quote = "\"", escape_backslash = FALSE,
+  escape_double = TRUE, col_names = TRUE, col_types = NULL,
+  locale = default_locale(), na = c("", "NA"), quoted_na = TRUE,
+  comment = "", trim_ws = FALSE, skip = 0, n_max = Inf,
+  guess_max = min(1000, n_max), progress = show_progress(),
+  skip_empty_rows = TRUE)
+```
+
+Each R function comes with a defined set of arguments.
+Although the above looks a little overwhelming we can get ourselves a nice simpler version of this by typing `formals(read_delim)` into the R Console.
+This will give us a list of all the arguments, in order.
+Some of them appear empty, whilst others appear to have values.
+
+The first argument (`file`) is where we told the function to look for the file.
+We placed `"data/DGE_Results.tsv"` here, and because that is the first value we passed to `read_delim()`, we didn't need to specify this argument by name.
+We could also have put `"file = data/DGE_Results.tsv"` into the function call, and this would've had the same effect.
+
+The second argument (`delim`) is where we specified the delimiter as `"\t"`.
+This is the second argument, and because we passed this to the function as the second argument, we again didn't need to specify the argument name.
+
+Notice that the rest of the arguments in the output of `formals()` have values associated with them.
+These are the default values specified by the function authors.
+Most of these are beyond the scope of what we need to know, but a handful of commonly used arguments are:
+
+- `col_names`: The default value of `TRUE` tells R to use the first line in the file as column names. If we set this to `FALSE` the first line would be set as the first row, and default column names of `X1`, `X2` to `X5`.
+- `col_types`: Look at the help page itself to see what the explanation for this is. *Call a tutor if this isn't clear.*
+- `na`: tells R how any missing value are encoded in the file. We don't have any of these today, but sometimes we have data from collaborators with values like `-`, or `#N/A` or `9999` to indicate missing measurements, so this can be very useful.
+- `comment`: can be used to let R know what any comment lines begin with. Sometimes we have to load files where meaningful information is included at the start prefaced by a comment symbol such as `#`
+- `skip`: If we wish to skip an initial number of lines we can tell R to ignore them here.
+
+Also note that there is a function here called `read_tsv()`.
+This is just a wrapper to `read_delim()` but with the `delim` argument set to `"\t"` automatically, as well as `trim_ws = TRUE`.
+Try changing your chunk to use `read_tsv("data/DGE_Results.tsv")`.
+This will be identical to what we originally had, but may be even easier to read back in the future when you're re-reading your code.
+
+

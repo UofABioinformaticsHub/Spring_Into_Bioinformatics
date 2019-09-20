@@ -2,7 +2,7 @@
 title: "Spring Into Bioinformatics"
 subtitle: "Introduction to R & R Studio"
 author: "Steve Pederson"
-date: "17/09/2019"
+date: "02/10/2019"
 output: html_document
 ---
 

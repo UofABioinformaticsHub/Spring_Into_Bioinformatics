@@ -136,7 +136,7 @@ mean(x)
 We can use all sorts of mathematical functions like `sum()`, `max()`, `min()`, `sqrt()`, `median()`, `var()` or `sd()` on our vector.
 The important point to notice is that when we call the function, we pass the R object to the function by including the object between the brackets `()`, just like we did with our calls to `print()` and `mean()`.
 This is very similar to how the Excel functions work, but instead of passing a range of cells, we pass an R object to the function.
-Try a few of the above commands to see how you go.
+**Try a few of the above commands to see how you go.**
 
 We can also perform mathematical operations directly on our R object, which, as you can see, is much easier than highlighting a range of cells in Excel.
 

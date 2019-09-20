@@ -1,0 +1,71 @@
+---
+title: "Spring Into Bioinformatics"
+subtitle: "Importing Data Into R"
+author: "Steve Pederson"
+date: "02/10/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    message = FALSE,
+    warning = FALSE,
+    fig.align = "center",
+    results = "hide"
+)
+if (interactive()) setwd(here::here("Day_1"))
+```
+
+## Introduction
+
+For the rest of today's sessions, we'll be working with the results from an RNA-Seq dataset.
+We're actually going to start with the final results and learn how to import data, manipulate data and visualise data.
+Hopefully you'll see the immediate usefulness of what we're showing you.
+
+
+### R Projects
+
+Before we go any further, we strongly encourage the use of a feature of R Studio called *R Projects*.
+These are just a simple & convenient way of organising your code and your data.
+For this course our analysis will be relatively simple, but as you go, you may see the importance of keeping everything well organised.
+
+If you go to the **Files** tab in the pane at the bottom right, you should notice that you are in your `Home` directory, as is visible with the ![](images/home.png) symbol at the top of this pane.
+We're going to create an R Project in a subdirectory of this called "Day_1".
+Please follow these steps **exactly**, and pay particular attention to capital letters and underscores.
+We'll need to have these all identical to what we tell you otherwise you're just going to make your own life difficult & you'll end up horribly confused.
+Bioinformatics is very much like that.
+Near enough is never good enough, and commands need to be typed exactly.
+Laziness leads to confusion.
+
+1 - Go to the `File` menu at the top of RStudio & select `New Project...`.
+The following dialog will appear:
+
+```{r, echo=FALSE, out.width='70%', results='asis'}
+knitr::include_graphics("images/RProject.png")
+```
+
+2 - Select **New Directory**, then **New Project**  
+3 - Type the name **Day_1** exactly in the first space in the dialog box that appears  
+4 - Click on **Create Project**  
+
+This will have created a new directory called **Day_1** in your home directory, and inside that directory (using the **Files** Tab) you'll see the file `Day_1.Rproj`.
+You'll also notice that at the top right of your R Studio session, you'll see a blue cube with Day_1 next to it.
+This is where R Studio keeps a list of your current and recent projects.
+We strongly encourage using a new R Project for each dataset as it will help you keep your data organised.
+They are really nothing more than a wrapper to your directory, but they do make our lives easier.
+
+
+### Getting today's data
+
+Now we have our directorys organised, we can get today's data.
+We'll put it inside a directory called `data` within our R Project, so let's first create this directory.
+In your **Files** Tab, click the ![](images/NewFolder.png) icon, and call the directory `data`.
+
+We've already placed the data for today on your VM in a general directory called `data`, so using the **Files** tab, navigate to your Home directory by clicking the ![](images/home.png) icon.
+Inside this directory you'll see another one called `data`, so let's enter that and select the checkbox next to the file `DGE_results.tsv`.
+Now click the `More` dropbox next to the cog in the **Files** pane, then choose `Move...`, and move this file into your R Project subdirectory data (i.e. in `~/Day_1/data`).
+Call a tutor over if you're not sure.
+
+Once we've got that all setup the same for everyone, we'll be off & running!
+

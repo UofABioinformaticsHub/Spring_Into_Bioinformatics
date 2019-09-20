@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
     fig.align = "center",
     results = "hide"
 )
-if (interactive()) setwd(here::here("Day_1"))
+if (interactive()) setwd(here::here("Day_2"))
 ```
 
 * TOC
@@ -22,26 +22,36 @@ if (interactive()) setwd(here::here("Day_1"))
 
 ## Session Themes and Outcomes
 
-In today's session we're going to learn a few things for you to use when analysing RNA-seq data. For those of you that don't use RNA sequencing in your own work, this session will still be valuable to learn techniques of using counts. These could be counts of any particular annotation. For example, for people doing metagenomics, you could use counts of bacteria. If you are studying proteomics using Mass Spectromony, you can use counts of bacteria
+In this session we're going to learn a few things for you to use when analysing count data. Counts can be a quantity of any biological process, but generating count data is most commonly applied to RNA sequencing experiments. For those of you that don't use RNA sequencing in your own work, this session will still be valuable to learn techniques. These could be counts of any particular annotation. For example, for people doing metagenomics, you could use counts of bacteria. If you are studying proteomics using Mass Spectromony, you can use counts of bacteria.
+
+At the end of this session, you should be able to do the following tasks:
+
+1. Understand what a GTF file is and what it contains
+2. Quantify gene counts from alignments files generated in the last session
+3. Estimate library sizes of your samples
+4. Assess sample similarity and identify outliers using Unsupervised Clustering
 
 ### Summarisation of aligned data to counts
 ### Quality control of samples based on mapping counts
 ### Estimation of library sizes
 ### PCA/MDS assessment of outliers and batch effects
 
-# Gene quantification
 
-## Annotation
+## Gene Annotation
 
-## GFF/GTF Files
+In the last session we looked at our aligned sample RNA (cDNA) fragments to the Mouse GRCm38/mm10 reference genome which contains the location of each fragment and the quality of each alignment. However the alignment process will only tell you _where_ a RNA fragment has mapped, but not _what_ it has mapped too. The primary of an RNA-seq experiment is to quantify the level of expression of each gene, so in this session we are going to use the reference gene annotation to add context to our previous alignments. 
 
-There can be a little confusion about GFF and GTF files and these share some similarities with BED files.
-GFF (General Feature Format) files have version 2 and version 3 formats, which are slightly different.
-Today, we'll just look at GTF (General Transfer Format) files, which are best considered as GFF2.2, as restrictions are placed on the type of entries that can be placed in some columns.
+If the genome is a road in which you drive on, then the genome annotation would be the map that identifies where everything is located. For example, the Foxp3 (forkhead box P3) gene, an important transcription factor in the regulation of T cells in mice, is located on the X chromosome between 7,579,676bp and 7,595,245bp. We can use this information to count all the reads that align to that region to establish the quantity of RNA we have in our sample. 
 
-While BED files are generally for showing all the locations of a single type of feature, multiple feature types can be specified within one of these files.
-Again, like BED files, fields are tab-separated with no line provided which gives the column names.
-These are fixed by design, and as such explicit column names are not required.
+Genome annotations not only contain information about genes, but all other genomic features across the genome. Locations of things like transposable elements (TEs) and repeats, centromere and telomere locations and non-coding RNAs can all be contained within these files
+
+### GFF/GTF Files
+
+There are many files that can contain gene annotation information however today we will be using [General Feature Format (GFF)](https://en.wikipedia.org/wiki/General_feature_format) or [General Transfer Format (GTF)](http://mblab.wustl.edu/GTF22.html) files.
+GFF files have version 2 and version 3 formats, which are slightly different and today, we'll just look at GTF files, which are best considered as GFF2.2. The differ only by the restrictions that are placed on the type of entries that can be placed in some columns.
+
+GTF files are basically text files with columns that contain standard information. Columns are tab-separated with no line provided that gives the column names.
+These are fixed by design, and as such, explicit column names are not required.
 
 1. **seqname** - name of the chromosome or scaffold; chromosome names can be given with or without the 'chr' prefix. Important note: the seqname must be one used within Ensembl, _i.e._ a standard chromosome name or an Ensembl identifier such as a scaffold ID, without any additional content such as species or assembly. See the example GFF output below.
 2. **source** - name of the program that generated this feature, or the data source (database or project name)
@@ -55,10 +65,8 @@ These are fixed by design, and as such explicit column names are not required.
     + **gene_id** *value*
     + **transcript_id** *value*
 
-Notice that there's *no real way to represent our FOXP3 sites as a GTF file*!
-This format is really designed for gene-centric features as seen in the 3rd column.
 An example is given below.
-Also note that header rows are not controlled, but must start with the comment character `#`
+Note that header rows are not controlled, but must start with the comment character `#`
 
 ```
 # Data taken from http://mblab.wustl.edu/GTF22.html
@@ -71,10 +79,64 @@ Also note that header rows are not controlled, but must start with the comment c
 
 **Note**: People variously use GFF and GTF to talk about GFF version 2, and GFF to talk about GFF version 3. GFF2 is not compatible with GFF3, so make sure you have the correct file format if you are given a GFF file. There are conversion tools available to inter-convert them, they are rarely reliable.
 
+### Mouse Chromosome 1
+
+For today, we’ll need the GTF from MouseChromosome 1. Tomorrow we will also need the Mouse Chromosome 1 sequence, so lets download them all and put them in a location on our VM. We’ll get these from Ensembl, so cut and paste the following code directly into your VM.
+
+**Note**: For those of you that are unfamilar with coding, in bash we can add comments to code to explain what we are doing. This is good practise for anyone working on the command-line, as its open easy to forget why you are running something. Any line starting with a `#` will be ignored by the program. 
+
+```
+cd
+
+# Create a directory for the mouse genome and change into it
+mkdir -p genomes/Mmusculus
+cd genomes/Mmusculus
+
+# Dowload the Chromosome 1 fasta file from a weblink
+wget ftp://ftp.ensembl.org/pub/release-93/fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna.chromosome.1.fa.gz
+
+# Uncompress the file (its gzipped at the moment) so we can use it later
+gunzip Mus_musculus.GRCm38.dna.chromosome.1.fa.gz
+
+# Download the genome annotation (but keep this gzipped up)
+wget ftp://ftp.ensembl.org/pub/release-93/gtf/mus_musculus/Mus_musculus.GRCm38.93.chr.gtf.gz
+```
+
+You may have already realised that this gtf contains all the information for the entire genome, rather than just chromosome 1, so we’ll need to create one containing just the gene information for that sequence.
+
+First we’ll copy the file header.
+
+```
+zcat Mus_musculus.GRCm38.93.chr.gtf.gz | egrep "^#!" > Mus_musculus.GRCm38.93.chr1.gtf
+```
+
+Then we’ll just get the gene information for chr1. The first field in a gtf file is the chromosome, we this will be easy to extract using `egrep`
+
+```
+zcat Mus_musculus.GRCm38.93.chr.gtf.gz | egrep "^1\s" >> Mus_musculus.GRCm38.93.chr1.gtf
+```
+
+To avoid confusing ourselves, let’s delete the full gtf so we only have the one.
+
+```
+rm Mus_musculus.GRCm38.93.chr.gtf.gz
+```
+
+### Tasks
+
+1. 
+
+
+
+
+
+
+
+
+
 ## Read Summarisation
 
-Now that we have bam files with our reads aligned to the genome, the next step in a classic RNA-seq analysis would be to perform differential gene expression.
-This is where we look for genes that have different expression levels between two (or more) treatment groups.
+
 In our data, we have young (6mth) and old (24mth) samples.
 
 Before we do this though, we need to find which reads are aligned to which gene and we will then count how many reads match each gene.

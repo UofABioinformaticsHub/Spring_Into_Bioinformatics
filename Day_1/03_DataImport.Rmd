@@ -25,6 +25,7 @@ For the rest of today's sessions, we'll be working with the results from an RNA-
 We're actually going to start with the final results and learn how to import data, manipulate data and visualise data.
 Hopefully you'll see the immediate usefulness of what we're showing you.
 
+We'll take you through a couple of setup steps first, that are similar to what a profesional bioiformatician would to.
 
 ### R Projects
 
@@ -211,15 +212,17 @@ View(DGE_Results)
 ```
 
 Click the green 'play' arrow on the RHS of the chunk and you'll see all three lines be executed once again.
-We don't really need that final preview line, so close the data preview and remove the third line.
+We don't really need that final preview line as this is only for interactive sessions, and generally only beginners use this.
+Close the data preview and remove the line that says `View(DGE_Results)`.
 
 Now, to really have some fun, in the **Environment** tab, click the broom (![](images/broom.png)) icon.
 (Say yes when you get the next dialog)
 This will clear all objects from your environment and you'll see the object `DGE_Results` disappear from this tab.
 Now it's gone from your R Environment, but we can easily get it back, by just running that chunk again!
-This is why we kept our code, and as you can imagine this step is now easily reproducible.
+This is why we kept our code, and as you can imagine this step is now easily reproducible both now ad into the future.
 
 To go further, add the command `DGE_Results` to the end of this chunk, then **Knit** the R Markdown document.
+This will give you a preview of the object `DGE_Results` and for `tibble` objects, can be just as handy as using the `View()` functionality.
 
 ## Understanding R Functions
 
@@ -236,7 +239,7 @@ read_delim(file, delim, quote = "\"", escape_backslash = FALSE,
   skip_empty_rows = TRUE)
 ```
 
-Each R function comes with a defined set of arguments.
+Each R function comes with a defined set of arguments that we can modify as needed.
 Although the above looks a little overwhelming we can get ourselves a nice simpler version of this by typing `formals(read_delim)` into the R Console.
 This will give us a list of all the arguments, in order.
 Some of them appear empty, whilst others appear to have values.
@@ -249,18 +252,18 @@ The second argument (`delim`) is where we specified the delimiter as `"\t"`.
 This is the second argument, and because we passed this to the function as the second argument, we again didn't need to specify the argument name.
 
 Notice that the rest of the arguments in the output of `formals()` have values associated with them.
-These are the default values specified by the function authors.
+These are the *default values* specified by the function authors.
 Most of these are beyond the scope of what we need to know, but a handful of commonly used arguments are:
 
 - `col_names`: The default value of `TRUE` tells R to use the first line in the file as column names. If we set this to `FALSE` the first line would be set as the first row, and default column names of `X1`, `X2` to `X5`.
 - `col_types`: Look at the help page itself to see what the explanation for this is. *Call a tutor if this isn't clear.*
-- `na`: tells R how any missing value are encoded in the file. We don't have any of these today, but sometimes we have data from collaborators with values like `-`, or `#N/A` or `9999` to indicate missing measurements, so this can be very useful.
-- `comment`: can be used to let R know what any comment lines begin with. Sometimes we have to load files where meaningful information is included at the start prefaced by a comment symbol such as `#`
+- `na`: tells R how any missing value are encoded in the file. We don't have any of these today, but sometimes we have data from collaborators with values like `-`, or `#N/A` or `9999` to indicate missing measurements, so this can be very useful to know about.
+- `comment`: can be used to let R know what any comment lines begin with. Sometimes we have to load files where meaningful information is included at the start (or end) prefaced by a comment symbol such as `#`
 - `skip`: If we wish to skip an initial number of lines we can tell R to ignore them here.
 
-Also note that there is a function here called `read_tsv()`.
+Also note that there is a function described here called `read_tsv()`.
 This is just a wrapper to `read_delim()` but with the `delim` argument set to `"\t"` automatically, as well as `trim_ws = TRUE`.
 Try changing your chunk to use `read_tsv("data/DGE_Results.tsv")`.
-This will be identical to what we originally had, but may be even easier to read back in the future when you're re-reading your code.
+This will be identical to what we originally had, but may be even easier to read back in the future when you're revising your code.
 
 

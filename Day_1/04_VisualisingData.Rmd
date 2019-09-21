@@ -1,0 +1,253 @@
+---
+title: "Spring Into Bioinformatics"
+subtitle: "Manipulating & Visualising Data In R"
+author: "Steve Pederson"
+date: "02/10/2019"
+output: 
+  html_document: 
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    message = FALSE,
+    warning = FALSE,
+    fig.align = "center",
+    results = "hide"
+)
+if (interactive()) setwd(here::here("Day_1"))
+```
+
+## Introduction
+
+Now that we know how to import data into R, we'll start to perform an actual analysis on our dataset.
+It's probably quite important to know what we're working with here.
+
+### Data Description
+
+What we have provided is the results of a gene expression analysis in mice, where we have compared the expression patterns in brain with skeletal muscle.
+The value we have in our file are the Ensembl gene identifiers (`GeneID`), the difference in gene expression between the two cell types (`logFC`) the average expression of each gene (`logCPM`), the p-value for the statistical test comparing expression levels and the expected false discovery rate (`FDR`) if we used that raw p-value as our cutoff threshold for significance.
+In order to keep this dataset manageable over these 3 days, we have restricted our genes to Chromosome 1 only. 
+
+### Setting up our R Markdown Document
+
+In the previous section we just copied & pasted our code from the GUI into our R Markdown document, but let's take a moment know to get this organised a bit better.
+Make sure you're happy with your title (although we can clearly change this at any time).
+
+There are two things commonly done at the start of the actual document (i.e. after the header): 1) We can set the behaviour of all chunks, and 2) We load all packages at the start for convenience.
+
+#### Setting default options for all chunks
+
+Directly under your YAML header, create a new chunk.
+You can do this by either typing \`\`\`{r} then closing it with \`\`\`, or you can insert a new chunk by using the shortcut <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + I.
+This should be consistent across all your VMs, but if you're on MacOS & it doesn't work, call a tutor over.
+
+Name this chunk `chunkOpts` by typing it after the initial `r` (leaving a space), add a comma after the name, then add the argument `include = FALSE` to the chunk header.
+Once this is done, enter the following **inside** the chunk:
+
+```
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This is not terribly mysterious, but what we have done is:
+
+- Named our chunk
+- Hidden the code and any results from the final output (`include = FALSE`)
+- Used the command `opts_chunk$set()` from the `knitr` package to ensure that all code is visible in any following chunks (`echo = TRUE`). If we'd set this to FALSE, all R code would be hidden, but any results would be visible.
+
+As you learn more & more, you'll probably like to set quite a few default behavious here, but this will do for now.
+
+#### Loading all packages
+
+After the `chunkOpts` chunk:
+
+1. Create a new chunk
+2. Name it `loadPackages`
+3. Move the code `library(readr)` to this chunk.
+
+```{r loadPackages}
+library(readr)
+```
+
+
+It's not essential, but loading all packages at the start is good & common practice, as it does make life easier for your collaborators and for your future self.
+
+
+#### Describing your data
+
+Hopefully your chunk where you import our list of genes is still stting there ready to go.
+Let's name this chunk `importData` and make sure that only the line which performs the import is left there.
+
+```{r importData}
+DGE_Results <- read_tsv("data/DGE_Results.tsv")
+```
+
+The next most importat thing to do now would be to describe our data.
+Here we have results for `r nrow(DGE_Results)` genes from Chromosome 1, so a sensible paragraph might be:
+
+> This set of results contains a comparison of gene expression between skeletal muscle brain tissue. 
+Only the `r nrow(DGE_Results)` genes from Chromosome 1 were analysed.
+Data was imported as a `tibble` with the columns `r pander::pander(colnames(DGE_Results))`.
+
+After your chunk which performs the import, write your own paragraph describing our data, making sure you include the number of genes and the column names.
+
+#### Executing R commands in a text paragraph
+
+A super helpful feature of R Markdown is the ability to execute simple R commands within our plain text.
+We can do this by having an inline section of code, starting with a single backtick & the letter r  (\`r), followed by our code, then closed by another single backtick (\`).
+Where you've written the number `r nrow(DGE_Results)`, replace this with \`r` `nrow(DGE_Results)`, and recompile your document.
+
+Here, we've used the function `nrow()` to find the number of rows in our object `DGE_Results`, knowing that we have one row per gene.
+Adding this kind of thing to your data description can be an excellent 'sanity check' that your data has loaded correctly too.
+
+Another function which is useful for `tibble`, `data.frame` and `matrix`-type objects is `colnames()`.
+If you entered `colnames(DGE_Results)` in your Console, this will return your column names.
+There is another function (`pander()`) which lives inside the package `pander` tht we can use to make these look pretty in an R Markdown document.
+
+In your `loadPackages` chunk, add the command `library(pander)` & execute the chunk (hit the green arrow or try using <kbd>Ctrl</kbd>+C).
+Now where you have your manually typed column names in your paragraph, add the inline code `r` `pander(colnames(DGE_Results))`.
+This will automatically format them as italic & place the ampersand (&) before the last one when you compile your document.
+
+## Visualising Data
+
+Now that we've loaded our data & described it, we should actually see what it looks like.
+A very common thing to check might be the distribution of p-values.
+In statistics, when $H_0$ is true (i.e. nothing is happening), these will be drawn from a uniform distribution ranging between 0 & 1.
+If $H_0$ is not true (i.e. something **is** happening), they will be biased towards zero in a manner that somewhat resembles an exponential distribution.
+In our data, we expect to see a combination of these noting that some genes will not be differentially expressed between cell types ($H_0$ is true), whilst others will be differntially expressed ($H_0$ is false).
+We can use the base plotting function `hist()` to inspect our p-values.
+
+```{r histOfP, eval=FALSE}
+hist(DGE_Results$PValue, breaks = 50)
+```
+
+Add the above chunk to your R Markdown document.
+Notice that we have grabbed the `PValue` column from our `tibble` by using the `$` symbol after the obect name.
+In the Console, type the object name followed by the `$` symbol and R Studio will give you the set of column names to choose from.
+This is a helpful feature of R Studio that will help you minimise typos.
+We strongly encourage you to work this way!
+
+You may also notice that each of these columns is very much like our initial object `x` and is in fact a vector.
+We can use all of our mathematical operations on these columns (except for `GeneID`).
+Try a few if you'd like.
+
+Returning to our plot, we might like to add a figure caption to this, and some text explaining what we've done.
+Write some text after the chunk saying something along the lines of:
+
+> After loading our data we inspected the distriution of p-values and noticed a large number of values near zero, indicating the likelihood that e will see many differentially expressed genes.
+
+In the chunk header, add the argument `fig.cap = "Distribution of p-values across all genes"`, then recompile the document.
+
+```{r histOfPActual, echo=FALSE, fig.cap = "Distribution of p-values across all genes"}
+hist(DGE_Results$PValue, breaks = 50)
+```
+
+Another plot we might like to make is to compare our average expression (logCPM) to our differential expression (logFC).
+There is another plotting function called `plot()` where we can just plot to vectors of values against each other.
+This is sometimes known as an MD plot (i.e. a Mean-Difference plot)
+Now add the following chunk:
+
+```{r, results='hide'}
+plot(x = DGE_Results$logCPM, y = DGE_Results$logFC)
+```
+
+Compile the document & have a look.
+
+### Using ggplot2
+
+These two plots both use plotting functions from the package `graphics` which is loaded by default in every R session, and is very old.
+In our opinion (and those of most bioinformaticians) these are fairly crude & ugly plots.
+A far improved plotting package called `ggplot2` was introduced about 10 years ago by Hadley Wickham, and made him a bit of a celebrity amongst R programmers.
+This package was an implementation of the *Grammar of Graphics* and uses a completely different approach to R's basic graphics.
+Let's start exploring.
+
+First, let's add the package `ggplot2` to our `loadPackages` chunk & re-execute this to make sure the `ggplot2` is loaded.
+
+```{r}
+library(ggplot2)
+```
+
+
+(NB: The package is `ggplot2`. There was an initial version that was never released by Hadley, however you may hear both `ggplot` and `ggplot2` used in conversation. Formally, `ggplot2` is the name of the package and this is what must be loaded.
+The primary function we use inside the package is called `ggplot()` so this is the source of the dual language.)
+
+Now we have the package loaded, we can figure out how it all works.
+The first thing we need to do is initialise the plotting area, and then we'll decide what plotting geonetry we'd like to use.
+This is done in a layered approach, which may seem strange at first, but is actually very powerful.
+
+In our first call to `ggplot()`, we first pass the data object then we decide on the plotting aesthetics.
+To make a nicer version of our MD plot, we'd put `logCPM` on the x-axis & `logFC` o the y-axis.
+These are our plotting aesthetics, and we need to wrap these inside the function `aes()`.
+
+```{r, fig.show='hide'}
+ggplot(DGE_Results, aes(x = logCPM, y = logFC))
+```
+
+This will initialise the plotting area and you'll see the axis labels looking alittle nicer than before, but there will be no points shown.
+This is because we haven't defined which geometry we're going to use.
+The most obvious one to use would be points, so the to this we add a layer using the `+` symbol, and call the function `geom_point()`.
+
+```{r, fig.show='hide'}
+ggplot(DGE_Results, aes(x = logCPM, y = logFC)) +
+    geom_point()
+```
+
+Now we have a slightly improved version of our previous plot, but we still have a pesky grey background.
+`ggplot2` comes with a variety of themes that we can add as plotting layers, and a very useful one is `theme_bw()`, which controls numerous plot attributes like the panel background, axis line colour, axis labels, tick marks, legends etc.
+Let's simply add `theme_bw()` as our next plotting layer, and the plot will almost be good enough to publish!
+
+```{r, fig.show='hide'}
+ggplot(DGE_Results, aes(x = logCPM, y = logFC)) +
+    geom_point() +
+    theme_bw()
+```
+
+Let's add another couple of layers!
+
+It's very common to apply a threshold for differential expression where we consider anything with a logFC between $\pm1$ to not be biologically relevant, despite any statistical support.
+This is based on the fact that `logFC` is reported onthe $log_2$ scale so these values correspond to a doubling or halving of the expression levels, which is a common-use threshold.
+This may or may not be realistic, but it is common.
+Let's add horizontal lines indicating this range, using the function `geom_hline()`, which stands for a horizontal line.
+
+```{r, fig.show='hide'}
+ggplot(DGE_Results, aes(x = logCPM, y = logFC)) +
+    geom_point() +
+    geom_hline(yintercept = c(-1, 1), colour = "blue", linetype = 2) +
+    theme_bw()
+```
+
+There are three helpful things to notice here, and one of them is vital for working with R.
+The two easy things to see are how we've set the colour of the lines (`colour = "blue"`), and the type of line to be dashed (`linetype = 2`).
+Notice that we quoted the word "blue".
+In general, if a text string is unquoted in R, R expects to find this as an R object such as a function, general object, or column in a supplied `tibble`.
+As we haven't defined any object called `blue`, we needed to quote this so R knows that this is an actual character string indicating a value.
+R has `r length(colours())` colour values predefined with names and unsurprisingly "blue" is one of them.
+
+#### The function `c()`
+
+The final imprtant concept we just glossed over is how we provided values to the `yintercept` argument.
+Here we used the function `c()` which stands for *combine* or *concatenate*, and we combined the two values -1 and 1 into a single vector.
+In this way we could pass two y-intercepts in a single call to `geom_hline()`.
+Otherwise, we might have had to call this function twice.
+
+This idea of forming vectors using the function `c()` is a fundamental design feature of R and you will see this in almost every R script you ever find.
+This may be a good thing to discuss with the tutors if you're curious!
+
+### Tidying the plot a bit more
+
+Now we've got a pretty good looking plot, we might like to tidy up our x-axis label.
+All we need to do is provide.
+
+
+
+
+
+
+
+
+
+
+
+
+

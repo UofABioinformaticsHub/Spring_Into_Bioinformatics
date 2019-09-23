@@ -25,35 +25,35 @@ For the rest of today's sessions, we'll be working with the results from an RNA-
 We're actually going to start with the final results and learn how to import data, manipulate data and visualise data.
 Hopefully you'll see the immediate usefulness of what we're showing you.
 
-We'll take you through a couple of setup steps first, that are similar to what a profesional bioiformatician would to.
+We'll take you through a couple of setup steps first, that are similar to what a professional bioinformatician would to.
 
 ### R Projects
 
 Before we go any further, we strongly encourage the use of a feature of R Studio called *R Projects*.
-These are just a simple & convenient way of organising your code and your data.
+These are just a simple and convenient way of organising your code and your data.
 For this course our analysis will be relatively simple, but as you go, you may see the importance of keeping everything well organised.
 
 If you go to the **Files** tab in the pane at the bottom right, you should notice that you are in your `Home` directory, as is visible with the ![](images/home.png) symbol at the top of this pane.
 We're going to create an R Project in a subdirectory of this called "Day_1".
 Please follow these steps **exactly**, and pay particular attention to capital letters and underscores.
-We'll need to have these all identical to what we tell you otherwise you're just going to make your own life difficult & you'll end up horribly confused.
+We'll need to have these all identical to what we tell you otherwise you're just going to make your own life difficult and you'll end up horribly confused.
 Bioinformatics is very much like that.
 Near enough is never good enough, and commands need to be typed exactly.
 Laziness leads to confusion.
 
-1 - Go to the `File` menu at the top of R Studio & select `New Project...`.
+1. Go to the `File` menu at the top of R Studio and select `New Project...`.
 The following dialog will appear:
 
-```{r, echo=FALSE, out.width='50%', results='asis'}
-knitr::include_graphics("images/RProject.png")
-```
+    ```{r, echo=FALSE, out.width='50%', results='asis'}
+    knitr::include_graphics("images/RProject.png")
+    ```
 
-2 - Select **New Directory**, then **New Project**  
-3 - Type the name **Day_1** exactly in the first space in the dialog box that appears  
-4 - Click on **Create Project**  
+2. Select **New Directory**, then **New Project**  
+3. Type the name **Day_1** exactly in the first space in the dialog box that appears  
+4. Click on **Create Project**  
 
 This will have created a new directory called **Day_1** in your home directory, and inside that directory (using the **Files** Tab) you'll see the file `Day_1.Rproj`.
-You'll also notice that at the top right of your R Studio session, you'll see a blue cube with Day_1 next to it.
+You'll also notice that at the top right of your R Studio session there is a blue cube with Day_1 next to it.
 This is where R Studio keeps a list of your current and recent projects.
 We strongly encourage using a new R Project for each dataset as it will help you keep your data organised.
 They are really nothing more than a wrapper to your directory, but they do make our lives easier.
@@ -67,12 +67,12 @@ In your **Files** Tab, click the ![](images/NewFolder.png) icon, and call the di
 
 We've already placed the data for today on your VM in a general directory called `data`, so using the **Files** tab, navigate to your Home directory by clicking the ![](images/home.png) icon.
 Inside this directory you'll see another one called `data`, so let's enter that and select the check-box next to the file `DGE_results.tsv`.
-Now click the `More` drop-box next to the cog in the **Files** pane, then choose `Move...`, and move this file into your R Project subdirectory data (i.e. in `~/Day_1/data`).
+Now click the `More` drop-box next to the cog in the **Files** pane, then choose `Move...`, and move this file into your R Project subdirectory data (_i.e._ in `~/Day_1/data`).
 Call a tutor over if you're not sure.
 
-Once we've got that all setup the same for everyone, we'll be off & running!
+Once we've got that all setup the same for everyone, we'll be off and running!
 
-Just to check you have everything right, please copy & paste the following line of code into your R Console.
+Just to check you have everything right, please copy and paste the following line of code into your R Console.
 If you get `FALSE` call a tutor over, but hopefully you'll see `TRUE`.
 
 ```{r, eval=FALSE}
@@ -89,7 +89,7 @@ As we mentioned earlier this morning, to work with our data in R, we need to bri
 To do this we load the file from the disk, but importantly once we've read it in, we're not working directly with the file any more.
 It can just stay on our hard drive being happily ignored from then on.
 This is vastly different to working with Excel, and means the risk of accidentally overwriting our original data is much lower.
-All of the manipulation we do will instead be written as code & performed on the R object we create after importing the data.
+All of the manipulation we do will instead be written as code and performed on the R object we create after importing the data.
 
 ### Using the GUI
 
@@ -136,7 +136,7 @@ The first column is classed as `character`, meaning it's plain text, whilst the 
 In R we can have to main types of number, these being an `integer` and a `double`.
 Integers are whole numbers, whilst doubles refer to the idea of a *double precision* value, which basically just says we can have double the amount of numbers after the decimal point than we could with single precision.
 Single precision numbers were in heavy use when we all had 32-bit operating systems, but since the advent of 64-bit we mainly use double precision numbers.
-In short, a) doubles are numbers with something after the decimal point, and b) integers are whole numbers.
+In short, a) doubles can represent numbers with fractional parts, and b) integers are whole numbers.
 
 The other types of values we can have here can be seen by clicking one of the arrows. 
 Of special mention are:
@@ -173,7 +173,7 @@ Once you've done that, click the Import button and see what happens.
 You'll see that data preview tab appear in your script window in a familiar spreadsheet-like layout.
 We never work with data in that tab.
 It's just there to make Excel lovers feel happier.
-Let's close it & be grownups.
+Let's close it and be grownups.
 
 Moving to our **Environment** Tab, you'll see that now we have an object in our Environment called `DGE_Results`.
 (The GUI guessed that name by dropping the `.tsv` suffix from our file).
@@ -181,7 +181,7 @@ Click the blue arrow next to the object name and you'll see a bit more informati
 **See if you can figure out what everything means.**
 
 Formally, this has been loaded into R as an object type known as a `tibble`, which is a type of `data.frame`.
-These are very spreadsheet like data structures in R, which have a strict row/column layout.
+These are very spreadsheet-like data structures in R, which have a strict row/column layout.
 Importantly, **every column can only contain one data type**, which is why we went through a bit of that exploration earlier.
 
 Because this is a `tibble`, we can also just type the object name into the R Console and a more R-like preview will be printed out.
@@ -192,17 +192,17 @@ DGE_Results
 
 ### Making Import Reproducible
 
-As you may be able to tell, this is not particularly reproducible and we have just clicked a few menu items & buttons.
+As you may be able to tell, this is not particularly reproducible and we have just clicked a few menu items and buttons.
 Every time we wished to repeat this operation, we would have to go through all of those clicks again, but there is a far better way!
 
 Using the R Studio menu, select `File > New File > R Markdown` and our familiar dialog box will open up.
 Set your name as the author and set the name of the document as "Analysis of Gene Expression".
 Once you have the R Markdown document open:
 
-1. Save this as `DGE_Analysis.Rmd` in your `Day_1` main project folder (i.e. NOT in the data folder).
+1. Save this as `DGE_Analysis.Rmd` in your `Day_1` main project folder (_i.e._ NOT in the data folder).
 2. Delete everything below the YAML header
-3. Create a new code chunk by typing \`\`\`{r}
-4. Close the code chunk by going to the next line and typing \`\`\`.
+3. Create a new code chunk by typing `` ```{r}``
+4. Close the code chunk by going to the next line and typing `` ``` ``.
 5. Between the chunk opening and closing lines, create a new line and **paste the 3 lines you copied from the GUI** into this chunk.
 
 ```{r, eval=FALSE}
@@ -216,10 +216,10 @@ We don't really need that final preview line as this is only for interactive ses
 Close the data preview and remove the line that says `View(DGE_Results)`.
 
 Now, to really have some fun, in the **Environment** tab, click the broom (![](images/broom.png)) icon.
-(Say yes when you get the next dialog)
+(Click <kbd>Yes</kbd> when you get the next dialog.)
 This will clear all objects from your environment and you'll see the object `DGE_Results` disappear from this tab.
 Now it's gone from your R Environment, but we can easily get it back, by just running that chunk again!
-This is why we kept our code, and as you can imagine this step is now easily reproducible both now ad into the future.
+This is why we kept our code, and as you can imagine this step is now easily reproducible both now and into the future.
 
 To go further, add the command `DGE_Results` to the end of this chunk, then **Knit** the R Markdown document.
 This will give you a preview of the object `DGE_Results` and for `tibble` objects, can be just as handy as using the `View()` functionality.

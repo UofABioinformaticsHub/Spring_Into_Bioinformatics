@@ -1,6 +1,6 @@
 ---
 title: "Spring Into Bioinformatics"
-subtitle: "Introduction to R & R Studio"
+subtitle: "Introduction to R and R Studio"
 author: "Steve Pederson"
 date: "02/10/2019"
 output: html_document
@@ -25,8 +25,8 @@ This course will provide the most benefit if you continue to use the skills in t
 Course material will be available at this URL indefinitely.
 
 Most of the sessions will be self-guided, with key direction provided sporadically at important times.
-Please ask as many questions as you'd like.
-The tutors are specifically here to help you understand & develop your skills, so please ensure you take full advantage of their availability.
+Please ask as many questions as you need.
+The tutors are specifically here to help you understand and develop your skills, so please ensure you take full advantage of their availability.
 
 We strongly encourage you to a) read all of the notes, and b) manually type **all of the code** (unless directed otherwise).
 This will provide you with the the most benefit.
@@ -36,13 +36,13 @@ This will provide you with the the most benefit.
 
 This course was primarily written by members of the Bioinformatics Hub and the tutors across the three days will be:
 
-- Nathan Watson-Haigh, Dan Kortschak & Mark Armstrong (Bioinformatics Hub Staff)
+- Nathan Watson-Haigh, Dan Kortschak and Mark Armstrong (Bioinformatics Hub Staff)
 - Jimmy Breen (Bioinformatics Hub / SAHMRI)
 - Nhi Hin (PhD Candidate, Bioinformatics Hub)
 - Melanie Smith (PhD Candidate, Robinson Research Institute)
 - Terry Bertozzi (SA Museum)
 
-## Introduction to R & R Studio
+## Introduction to R and the R Studio environment
 
 ### What is R?
 
@@ -50,17 +50,17 @@ As you will no doubt be aware, R is one of the most commonly used languages/envi
 Whilst originally developed as a statistical teaching tool in the 1990s, a large and diverse ecosystem of packages has been developed enabling analysis of everything from financial markets, to election polls to biological research.
 There is truly too much to cover in a 3 day course, but hopefully we'll get you over the initial hurdle of unfamiliarity.
 
-There is no such thing as a perfect programming language, and R has many features (or 'quirks') that are based in it's historical origins.
+There is no such thing as a perfect programming language, and R has many features (or 'quirks') that are based in its historical origins.
 However, it can be a very useful tool.
 An important concept to remember from these sessions, is that we write code for two primary reasons.
 
-1. To perform the computational task
+1. To instruct a machine to perform the computational task
 2. To communicate with other people (including yourself!)
 
 A key advantage of R over software like Excel, is that everything you do is recorded as a script.
 Every change you make to your data can be revisited months or years later, and every analysis or figure can also be recreated at a later stage, or easily modified as more data points are collected.
-If you accidentally 'break' or modify your data in Excel, there will literally be no record of this event, with cut & paste errors being essentially invisible.
-In R, these mistakes are (generally) easy to find and correct ensuring reproducible & robust analysis, as well as enabling collaboration between researchers.
+If you accidentally 'break' or modify your data in Excel, there will literally be no record of this event, with cut and paste errors being essentially invisible.
+In R, these mistakes are (generally) easy to find and correct ensuring reproducible and robust analysis, as well as enabling collaboration between researchers.
 
 R is an *open source language*, meaning there is no software giant like Microsoft or Apple forcing you to buy their software, and hiding all the code so you don't really know what it's doing.
 Instead, all of the code that runs R is publicly visible, and maintained by what is essentially a volunteer community, consisting mainly of academics spread throughout the world.
@@ -82,13 +82,13 @@ Again, we'll come back to this very soon.
 ### What is R Studio?
 
 Whilst R itself is the language we use, we mostly interact with R using an Integrated Development Environment (IDE) called R Studio.
-We can almost think of R Studio as being like the cabin of a car, whilst R itself is the engine.
-Whilst we can tell the engine (R) exactly what to do from the cabin (R Studio), R Studio also has many features that don't directly interact with R, but that our make our lives more safe & convenient, just like a cabin will usually have a radio, air-conditioning & seatbelts.
-We can use R Studio as a file browser, text editor & bash interface as well as running version control software.
-For today, we'll stick to the text editor (where we write our code) and file browser, although we will use `bash` more & more as the course progresses.
+We can almost think of R Studio as being like the cabin of a car, and R itself is the engine.
+Though we can tell the engine (R) exactly what to do from the cabin (R Studio), R Studio also has many features that don't directly interact with R, but that our make our lives more safe and convenient, just like a cabin will usually have a radio, air-conditioning and seat belts.
+We can use R Studio as a file browser, text editor and bash interface as well as running version control software.
+For today, we'll stick to the text editor (where we write our code) and file browser, although we will use `bash` more and more as the course progresses.
 
 Interestingly, R Studio is produced by a company (called R Studio) and as such doesn't have some of the same open source features.
-However, it is still free software.
+However, it is still [free software](https://github.com/rstudio/rstudio).
 You will have already been through the login process, and this is the point where you will first see what R Studio looks like to a user.
 
 ```{r, echo = FALSE, out.width='100%', fig.cap="*The main RStudio interface*", results='asis'}
@@ -98,10 +98,10 @@ knitr::include_graphics("images/RStudio_VM.png")
 The main window you can see on the left has a few tabs available so ensure the tab with the word **Console** is active.
 This is where we can interact directly with R itself.
 At the top you'll see the R Version listed along with a few other pieces of information, whilst underneath this you'll see the `>` symbol.
-This is the R prompt & us where can type our code to be executed.
+This is the R prompt and us where can type our code to be executed.
 
 On the top right you'll see another pane with three tabs.
-We won't explore all of these, but the **Environment** & **History** tabs can be very useful.
+We won't explore all of these, but the **Environment** and **History** tabs can be very useful.
 
 On the bottom right you'll see another pane with tabs for **Files**, **Plots**, **Help** and a few other things.
 We'll definitely use those three, but the other two won't get much of a run.
@@ -160,7 +160,7 @@ As an example, let's save our output from that last mathematical operation where
 x_sq <- x^2
 ```
 
-Notice that the results of `x^2` were no longer printed to the console, and we now have two objects in our R Environment (both `x` & `x_sq`).
+Notice that the results of `x^2` were no longer printed to the console, and we now have two objects in our R Environment (both `x` and `x_sq`).
 **How would we view the contents of `x_sq`?**
 
 ### Getting Help

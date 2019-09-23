@@ -1,6 +1,6 @@
 ---
 title: "Spring Into Bioinformatics"
-subtitle: "Manipulating & Visualising Data In R"
+subtitle: "Manipulating and Visualising Data In R"
 author: "Steve Pederson"
 date: "02/10/2019"
 output: 
@@ -27,21 +27,21 @@ It's probably quite important to know what we're working with here.
 ### Data Description
 
 What we have provided is the results of a gene expression analysis in mice, where we have compared the expression patterns in brain with skeletal muscle.
-The value we have in our file are the Ensembl gene identifiers (`GeneID`), the difference in gene expression between the two cell types (`logFC`) the average expression of each gene (`logCPM`), the p-value for the statistical test comparing expression levels and the expected false discovery rate (`FDR`) if we used that raw p-value as our cutoff threshold for significance.
+The value we have in our file are the Ensembl gene identifiers (`GeneID`), the difference in gene expression between the two cell types (`logFC`) the average expression of each gene (`logCPM`), the $p$-value for the statistical test comparing expression levels and the expected false discovery rate (`FDR`) if we used that raw p-value as our cutoff threshold for significance.
 In order to keep this dataset manageable over these 3 days, we have restricted our genes to Chromosome 1 only. 
 
 ### Setting up our R Markdown Document
 
-In the previous section we just copied & pasted our code from the GUI into our R Markdown document, but let's take a moment know to get this organised a bit better.
+In the previous section we just copied and pasted our code from the GUI into our R Markdown document, but let's take a moment know to get this organised a bit better.
 Make sure you're happy with your title (although we can clearly change this at any time).
 
-There are two things commonly done at the start of the actual document (i.e. after the header): 1) We can set the behaviour of all chunks, and 2) We load all packages at the start for convenience.
+There are two things commonly done at the start of the actual document (_i.e._ after the header): 1) We can set the behaviour of all chunks, and 2) We load all packages at the start for convenience.
 
 #### Setting default options for all chunks
 
 Directly under your YAML header, create a new chunk.
-You can do this by either typing \`\`\`{r} then closing it with \`\`\`, or you can insert a new chunk by using the shortcut <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + I.
-This should be consistent across all your VMs, but if you're on MacOS & it doesn't work, call a tutor over.
+You can do this by either typing `` ```{r}`` then closing it with `` ``` ``, or you can insert a new chunk by using the shortcut <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>I</kbd>.
+This should be consistent across all your VMs, but if you're on MacOS and it doesn't work, call a tutor over.
 
 Name this chunk `chunkOpts` by typing it after the initial `r` (leaving a space), add a comma after the name, then add the argument `include = FALSE` to the chunk header.
 Once this is done, enter the following **inside** the chunk:
@@ -56,7 +56,7 @@ This is not terribly mysterious, but what we have done is:
 - Hidden the code and any results from the final output (`include = FALSE`)
 - Used the command `opts_chunk$set()` from the `knitr` package to ensure that all code is visible in any following chunks (`echo = TRUE`). If we'd set this to FALSE, all R code would be hidden, but any results would be visible.
 
-As you learn more & more, you'll probably like to set quite a few default behavious here, but this will do for now.
+As you learn more and more, you'll probably like to set quite a few default behaviour here, but this will do for now.
 
 #### Loading all packages
 
@@ -71,19 +71,19 @@ library(readr)
 ```
 
 
-It's not essential, but loading all packages at the start is good & common practice, as it does make life easier for your collaborators and for your future self.
+It's not essential, but loading all packages at the start is good and common practice, as it does make life easier for your collaborators and for your future self.
 
 
 #### Describing your data
 
-Hopefully your chunk where you import our list of genes is still stting there ready to go.
+Hopefully your chunk where you import our list of genes is still sitting there ready to go.
 Let's name this chunk `importData` and make sure that only the line which performs the import is left there.
 
 ```{r importData}
 DGE_Results <- read_tsv("data/DGE_Results.tsv")
 ```
 
-The next most importat thing to do now would be to describe our data.
+The next most important thing to do now would be to describe our data.
 Here we have results for `r nrow(DGE_Results)` genes from Chromosome 1, so a sensible paragraph might be:
 
 > This set of results contains a comparison of gene expression between skeletal muscle brain tissue. 
@@ -95,35 +95,37 @@ After your chunk which performs the import, write your own paragraph describing 
 #### Executing R commands in a text paragraph
 
 A super helpful feature of R Markdown is the ability to execute simple R commands within our plain text.
-We can do this by having an inline section of code, starting with a single backtick & the letter r  (\`r), followed by our code, then closed by another single backtick (\`).
-Where you've written the number `r nrow(DGE_Results)`, replace this with \`r` `nrow(DGE_Results)`, and recompile your document.
+We can do this by having an inline section of code, starting with a single backtick and the letter r  (`` `r``), followed by our code, then closed by another single backtick (`` ` ``).
+Where you've written the number `r nrow(DGE_Results)`, replace this with `` `​r nrow(DGE_Results)` `` (you will need to type this ... for reasons), and recompile your document.
+<!-- There is a zero-width space in the in-line code to prevent RStudio from evaluating the function. Please leave it there. -->
 
 Here, we've used the function `nrow()` to find the number of rows in our object `DGE_Results`, knowing that we have one row per gene.
 Adding this kind of thing to your data description can be an excellent 'sanity check' that your data has loaded correctly too.
 
 Another function which is useful for `tibble`, `data.frame` and `matrix`-type objects is `colnames()`.
 If you entered `colnames(DGE_Results)` in your Console, this will return your column names.
-There is another function (`pander()`) which lives inside the package `pander` tht we can use to make these look pretty in an R Markdown document.
+There is another function (`pander()`) which lives inside the package `pander` that we can use to make these look pretty in an R Markdown document.
 
-In your `loadPackages` chunk, add the command `library(pander)` & execute the chunk (hit the green arrow or try using <kbd>Ctrl</kbd>+C).
-Now where you have your manually typed column names in your paragraph, add the inline code `r` `pander(colnames(DGE_Results))`.
-This will automatically format them as italic & place the ampersand (&) before the last one when you compile your document.
+In your `loadPackages` chunk, add the command `library(pander)` and execute the chunk (hit the green arrow or try using <kbd>Ctrl</kbd>+<kbd>C</kbd>).
+Now where you have your manually typed column names in your paragraph, add the in-line code `` `​r pander(colnames(DGE_Results))` ``.
+This will automatically format them as italic and place the ampersand (`&`) before the last one when you compile your document.
+<!-- There is a zero-width space in the in-line code to prevent RStudio from evaluating the function. Please leave it there. -->
 
 ## Visualising Data
 
-Now that we've loaded our data & described it, we should actually see what it looks like.
+Now that we've loaded our data and described it, we should actually see what it looks like.
 A very common thing to check might be the distribution of p-values.
-In statistics, when $H_0$ is true (i.e. nothing is happening), these will be drawn from a uniform distribution ranging between 0 & 1.
-If $H_0$ is not true (i.e. something **is** happening), they will be biased towards zero in a manner that somewhat resembles an exponential distribution.
-In our data, we expect to see a combination of these noting that some genes will not be differentially expressed between cell types ($H_0$ is true), whilst others will be differntially expressed ($H_0$ is false).
-We can use the base plotting function `hist()` to inspect our p-values.
+In statistics, when $H_0$ is true (_i.e._ nothing is happening), these will be drawn from a uniform distribution ranging between 0 and 1.
+If $H_0$ is not true (_i.e._ something **is** happening), they will be biased towards zero in a manner that somewhat resembles an exponential distribution.
+In our data, we expect to see a combination of these noting that some genes will not be differentially expressed between cell types ($H_0$ is true), whilst others will be differentially expressed ($H_0$ is false).
+We can use the base plotting function `hist()` to inspect our $p$-values.
 
 ```{r histOfP, eval=FALSE}
 hist(DGE_Results$PValue, breaks = 50)
 ```
 
 Add the above chunk to your R Markdown document.
-Notice that we have grabbed the `PValue` column from our `tibble` by using the `$` symbol after the obect name.
+Notice that we have grabbed the `PValue` column from our `tibble` by using the `$` symbol after the object name.
 In the Console, type the object name followed by the `$` symbol and R Studio will give you the set of column names to choose from.
 This is a helpful feature of R Studio that will help you minimise typos.
 We strongly encourage you to work this way!
@@ -135,9 +137,9 @@ Try a few if you'd like.
 Returning to our plot, we might like to add a figure caption to this, and some text explaining what we've done.
 Write some text after the chunk saying something along the lines of:
 
-> After loading our data we inspected the distriution of p-values and noticed a large number of values near zero, indicating the likelihood that e will see many differentially expressed genes.
+> After loading our data we inspected the distribution of p-values and noticed a large number of values near zero, indicating the likelihood that we will see many differentially expressed genes.
 
-In the chunk header, add the argument `fig.cap = "Distribution of p-values across all genes"`, then recompile the document.
+In the chunk header, add the argument `fig.cap = "Distribution of $p$-values across all genes"`, then recompile the document.
 
 ```{r histOfPActual, echo=FALSE, fig.cap = "Distribution of p-values across all genes"}
 hist(DGE_Results$PValue, breaks = 50)
@@ -145,24 +147,24 @@ hist(DGE_Results$PValue, breaks = 50)
 
 Another plot we might like to make is to compare our average expression (logCPM) to our differential expression (logFC).
 There is another plotting function called `plot()` where we can just plot to vectors of values against each other.
-This is sometimes known as an MD plot (i.e. a Mean-Difference plot)
+This is sometimes known as an MD plot (_i.e._ a Mean-Difference plot)
 Now add the following chunk:
 
 ```{r, results='hide'}
 plot(x = DGE_Results$logCPM, y = DGE_Results$logFC)
 ```
 
-Compile the document & have a look.
+Compile the document and have a look.
 
 ### Using ggplot2
 
 These two plots both use plotting functions from the package `graphics` which is loaded by default in every R session, and is very old.
-In our opinion (and those of most bioinformaticians) these are fairly crude & ugly plots.
+In our opinion (and those of most bioinformaticians) these are fairly crude and ugly plots.
 A far improved plotting package called `ggplot2` was introduced about 10 years ago by Hadley Wickham, and made him a bit of a celebrity amongst R programmers.
 This package was an implementation of the *Grammar of Graphics* and uses a completely different approach to R's basic graphics.
 Let's start exploring.
 
-First, let's add the package `ggplot2` to our `loadPackages` chunk & re-execute this to make sure the `ggplot2` is loaded.
+First, let's add the package `ggplot2` to our `loadPackages` chunk and re-execute this to make sure the `ggplot2` is loaded.
 
 ```{r}
 library(ggplot2)
@@ -173,18 +175,18 @@ library(ggplot2)
 The primary function we use inside the package is called `ggplot()` so this is the source of the dual language.)
 
 Now we have the package loaded, we can figure out how it all works.
-The first thing we need to do is initialise the plotting area, and then we'll decide what plotting geonetry we'd like to use.
+The first thing we need to do is initialise the plotting area, and then we'll decide what plotting geometry we'd like to use.
 This is done in a layered approach, which may seem strange at first, but is actually very powerful.
 
 In our first call to `ggplot()`, we first pass the data object then we decide on the plotting aesthetics.
-To make a nicer version of our MD plot, we'd put `logCPM` on the x-axis & `logFC` o the y-axis.
+To make a nicer version of our MD plot, we'd put `logCPM` on the x-axis and `logFC` on the y-axis.
 These are our plotting aesthetics, and we need to wrap these inside the function `aes()`.
 
 ```{r, fig.show='hide'}
 ggplot(DGE_Results, aes(x = logCPM, y = logFC))
 ```
 
-This will initialise the plotting area and you'll see the axis labels looking alittle nicer than before, but there will be no points shown.
+This will initialise the plotting area and you'll see the axis labels looking a little nicer than before, but there will be no points shown.
 This is because we haven't defined which geometry we're going to use.
 The most obvious one to use would be points, so the to this we add a layer using the `+` symbol, and call the function `geom_point()`.
 
@@ -206,7 +208,7 @@ ggplot(DGE_Results, aes(x = logCPM, y = logFC)) +
 Let's add another couple of layers!
 
 It's very common to apply a threshold for differential expression where we consider anything with a logFC between $\pm1$ to not be biologically relevant, despite any statistical support.
-This is based on the fact that `logFC` is reported onthe $log_2$ scale so these values correspond to a doubling or halving of the expression levels, which is a common-use threshold.
+This is based on the fact that `logFC` is reported on the $log_2$ scale so these values correspond to a doubling or halving of the expression levels, which is a common-use threshold.
 This may or may not be realistic, but it is common.
 Let's add horizontal lines indicating this range, using the function `geom_hline()`, which stands for a horizontal line.
 

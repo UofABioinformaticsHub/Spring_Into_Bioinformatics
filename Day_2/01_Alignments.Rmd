@@ -68,24 +68,537 @@ Today we are going learn how to quantify aligned data and create a gene counts t
 
 ## Today's Schedule
 
-- Session 1: Working with Alignments
+- A quick introduction to `bash` and setting up the VM
+- Working with Alignments
   - Quality control of alignment data
   - Duplication/Deduplication with Picard
   - Assessment of alignment rate and multi-mapping
 
-- Session 2: Gene quantification and counts
+- Gene quantification and counts
   - Summarisation of aligned data to counts
   - Quality control of samples based on mapping counts
   - Estimation of library sizes
   - PCA/MDS assessment of outliers and batch effects
 
-- Session 3: Differential Expression
+- Differential Expression
   - Choosing count distribution model: voom vs edgeR
   
-## Session 1: Working with Alignments
+# A crash course in `bash`
+
+Pardon the pun
+
+## Introduction
+
+Yesterday we introduced the language `R`, which is heavily used in bioinformatics.
+`R` is particularly effective for interacting with and visualising data, as well as performing statistical analyses.
+However, in modern bioinformatics `R` is commonly used in the middle to late stage of many analyses.
+Today we're going to be interacting with programs and data using the command-line and using the language called `bash`.
+
+We can utilise `bash`in two primary ways:
+
+1. Interactively through the terminal
+2. Through a script which manages various stages of an analysis.
+
+Today we will work interactively using the terminal by executing commands and having a look at our alignment data. Before we start getting into our alignments however, we need to go through the basics of `bash` and how we execute commands.
+
+## Setup the directory for today
+
+Just as we've created a new `R Project` for Day 1, let's create a new one for today to make sure we're all in the same place.
+
+- Using the `File` menu at the top left, select `New Project`
+- Select `New Directory`
+- Select `New Project`
+- If you're not already asked to create this project as a subdirectory of `~`, navigate to your home directory using the <kbd>Browse</kbd> button 
+- In the `Directory Name` space, enter `Day_2`, then hit the <kbd>Create Project</kbd> button.
+
+This again helps us keep our code organised and is good practice.
+
+## Running `bash` on your VM
+
+All computers running MacOS and Linux have a terminal built-in as part of the standard setup, whilst for Windows there are several options, including `git bash` which also enables use of version control for your scripts.
+To keep everything consistent for this practical, we'll use the terminal which is available inside `RStudio`.
+Note that even though we're using `RStudio`, we won't be interacting with `R` today as `R` runs interactively in the `Console`.
+Instead we'll be using one of the other features provided by `RStudio` to access `bash`
+
+To access this, open `RStudio` as you have for the previous practicals and make sure the `Console` window is visible.
+Inside this pane, you will see a **Terminal** Tab so click on this and you will be at an interactive terminal running `bash`.
+
+Historically, `bash` is a replacement for the earlier Bourne Shell, written by Stephen Bourne, so the name is actually a hilarious joke.
+We'll explore a few important commands below, and the words *shell* and *bash* will often be used interchangeably with the terminal window.
+
+Although we haven't specifically mentioned this up until now, your virtual machines are actually running the *Ubuntu* flavour of Linux, and we can access these machines by logging in remotely, as well as through the `RStudio` interface which you used yesterday.
+Most High-Performance Computing (HPC) systems you use will require a knowledge of Linux so these practicals will give you the basics skills for working in this environment.
+Most of the data analysis performed by the Bioinformatics Hub relies on the University of Adelaide HPC for data storage and data processing.
+
+## Finding your way around
+
+Once you're in the `Terminal` section of `RStudio`, you will notice some text describing your computer of the form
+
+```
+biotech7005@2019-biotech7005-xx:~/Day_2$
+```
+
+The first section of this describes your username (`XXXXXXX`) and the machine `XXXXXXXXX`.
+The end of the machine identifier is marked with a colon (`:`).
+
+After the colon, the string (`~/Day_2`) represents your current directory, whilst the dollar sign (`$`) indicates the end of this path & the beginning of where you will type commands.
+This is the standard interface for the Bourne-again Shell, or `bash`.
+
+### Where are we?
+
+#### `pwd`
+
+Type the command `pwd` in the terminal then press the <kbd>Enter</kbd> key and you will see the output which describes the current directory you are in.
+
+```bash
+pwd
+```
+
+The command `pwd` is what we use to __p__rint the current (i.e. __w__orking) __d__irectory.
+Even though we are not using `R`, if you have setup the R project like we instructed above this command will probably return the directory. 
+
+```
+/home/biotech7005/Day_2
+```
+
+Check with your neighbour to see if you get the same thing.
+If not, see if you can figure out why.
+
+At the beginning of this section we mentioned that `~/Day_2` represented your current directory, but now our machine is telling us that our directory is `/home/biotech7005/Day_2`.
+This raises an important and very useful point.
+In `bash` the `~` symbol is a shortcut for the home directory of the current user.
+If Dan was logged in, this would be `/home/Dan` whilst if Steve was logged in this would be `/home/Steve`.
+As we are all logged on as `biotech7005`, this now stands for `/home/biotech7005`.
+(Formally, `~` is  a variable, but we'll deal with variables later.)
+
+Importantly every user with an account on a machine will have their own home directory of the format `/home/username1`, `/home/username2` etc..
+Notice that they will all live in the directory `/home` which is actually the parent directory that all users will have a home directory in, as we've just tried to explain.
+This can be confusing for many people, so hopefully we'll clear this up in the next section or two.
+
+In the above, the `/home` directory itself began with a slash, i.e. `/`.
+On a unix-based system (i.e. MacOS & Linux), the `/` directory is defined to be the root directory of the file system.
+Windows users would be more familiar with seeing `C:\` as the root of the computer, and this is an important difference in the two directory structures.
+Note also that whilst Windows uses the **backslash** (`\`) to indicate a new directory, a Linux-based system uses the **forward slash** (`/`), or more commonly just referred to simply as "slash", marking another but very important difference between the two.
+
+#### cd
+{:.no_toc}
+
+Now we know all about where we are, the next thing we need to do is go somewhere else.
+The `bash` command for this is `cd` which we use to **c**hange **d**irectory.
+No matter where we are in a file system, we can move up a directory in the hierarchy by using the command
+
+```bash
+cd ..
+```
+
+The string `..` is the convention for *one directory above*, whilst a single dot represents the current directory.
+
+
+Enter the above command and notice that the location immediately to the left of the \$ has now changed.
+Enter `pwd` again to check this makes sense to you.
+
+If we now enter
+```bash
+cd ..
+```
+a couple more times we should be in the root directory of the file system and we will see `/$` at the end of our prompt.
+Try this and print the working directory again (`pwd`).
+The output should be the root directory given as `/`.
+
+We can change back to our home folder by entering one of either:
+
+```bash
+cd ~
+```
+or
+
+```bash
+cd
+```
+
+The initial approach taken above to move through the directories used what we refer to as a **relative path**, where each move was made *relative to the current directory*.
+Going up one directory will clearly depend on where we are when we execute the command. 
+
+An alternative is to use an **absolute path**.
+An **absolute path** on Linux/Mac will always begin with the root directory symbol `/`.
+
+For example, `/foo` would refer to a directory called `foo` in the root directory of the file system (NB: This directory doesn't really exist, it's an example).
+In contrast, a **relative path** can begin with either the current directory (indicated by `./`) or a higher-level directory (indicated by `../` as mentioned above).
+A subdirectory `foo` of the current directory could thus be specified as `./foo`, whilst a subdirectory of the next higher directory would be specified by `../foo`.
+
+Another common absolute path is the one mentioned right at the start of the session, specified with `~`, which stands for your home directory `/home/biotech7005`, which also starts with a `/`.
+
+We can also move through multiple directories in one command by separating them with the slash `/`.
+For example, we could also get to the root directory from our home directory by typing
+```bash
+cd ../../
+```
+
+**Return to your home directory using** `cd`.
+
+In the above steps, this has been exactly the same as clicking through directories in our familiar folder interface that we're all familiar with.
+Now we know how to navigate folders using `bash` instead of the GUI.
+This is an essential skill when logged into a High Performance Computer (HPC) or a Virtual Machine (VM) as the vast majority of these run using Linux.
+
+### Important!!
+
+*Although we haven't directly discovered it yet, most file systems used on Unix-based systems such as Ubuntu are* **case-sensitive**, whilst **Windows file systems are usually not**.
+For example, the command `PWD` is completely different to `pwd` and doesn't actually exist on your (or any) default installation of `bash`.
+
+If `PWD` happened to be the name of a command which has been defined in your shell, you would get completely different results than from the intended `pwd` command.
+Most `bash` tools are named using all lower-case, but there are a handful of exceptions.
+
+We can also change into a specific directory by giving the path to the `cd` command using text instead of dots and symbols.
+Making sure you're in your home directory we can change back into the Day_2 directory
+```bash
+cd
+cd Day_2
+pwd
+```
+
+This is where we started the session.
+
+#### Tab auto-completion
+
+In a similar way that `RStudio` offered 'suggestions' when we start typing the name of a function, `bash` has the capacity for `auto-completion` as well.
+This will help you avoid a ridiculous number of typos.
+
+If you start typing something bash will complete as far as it can, then will wait for you to complete the path, command or file name.
+If it can complete all the way, it will.
+
+Let's see this in action and start becoming keyboard heroes.
+Change into your home folder.
+
+```
+cd
+```
+
+Now to change back into your Day_2 folder, type `cd Pr` without hitting enter.
+Instead hit your <kbd>Tab</kbd> key and `bash` will complete as far as it can.
+If you have setup your directories correctly, you should see this complete to `cd Day_` which is unfinished.
+You should have `Day_1` in your home folder, so `bash` has gone as far as it can.
+Now it's up to us to enter the final `2` before hitting <kbd>Enter</kbd>.
+
+When faced with multiple choices, we can also hit the <kbd>Tab</kbd> key twice and `bash` will give us all available alernatives.
+Let's see this in action by changing back to our home folder.
+
+```
+cd
+```
+
+Now type `cd Da` and hit the <kbd>Tab</kbd> key twice and you will be shown all of the alternatives.
+You'll still have to type the `2` though.
+
+Another example which will complete all the way for you might be to go up one from your home folder.
+
+```
+cd
+cd ..
+```
+
+Now to get back to your home directory (`/home/biotech7005`) start typing `cd b` followed by the <kbd>Tab</kbd> key.
+This should auto-complete for you and will save you making any errors.
+This also makes navigating your computer system very fast once you get the hang of it.
+
+Importantly, if tab auto-completion doesn't appear to be working, you've probably made a typo somewhere, or are not where you think you are.
+It's a good check for mistakes.
+
+
+### Looking at the Contents of a Directory
+
+There is another built-in command (`ls`) that we can use to **list** the contents of a directory.
+This is a way to get our familiar folder view in the terminal.
+Making sure you are in your home directory (`cd ~`), enter the `ls` command as it is and it will print the contents of the current directory.
+
+```bash
+ls
+```
+
+This is the list of files that we normally see in our traditional folder view that Windows and MacOS show us by default.
+We can actually check this output using `RStudio` too, so head to the **Files** tab in the `Files` window.
+Click on the Home icon (![home](../R_Practicals/images/home.png)) and look at the folders & files you can see there.
+**Do they match the output from `ls`?**
+Ask for help if not.
+
+Alternatively, we can specify which directory we wish to view the contents of, **without having to change into that directory**.
+Notice **you can't do actually this using your classic GUI folder view**.
+We simply type the `ls` command, followed by a space, then the directory we wish to view the contents of.
+To look at the contents of the root directory of the file system, we simply add that directory after the command `ls`.
+
+```bash
+ls /
+```
+
+Here you can see a whole raft of directories which contain the vital information for the computer's operating system.
+Among them should be the `/home` directory which is one level above your own home directory, and where the home directories for all users are located on a Linux system.
+
+```bash
+cd 
+ls Day_1
+```
+
+### Creating a New Directory
+
+Now we know how to move around and view the contents of a directory, we should learn how to create a new directory using `bash` instead of the GUI folder view you are used to.
+Navigate to your home folder using `bash`.
+
+```
+cd ~/Day_2
+```
+
+Now we are in a suitable location, let's create a directory called `test`.
+To do this we use the `mkdir` command as follows:
+
+```bash
+mkdir test
+```
+
+You should see this appear in the GUI view, and if you now enter `ls`, you should also see this directory in your output.
+
+Importantly, the `mkdir` command above will only make a directory directly below the one we are currently in as we have used a relative path.
+If automating this process via a script it is very important to understand the difference between *absolute* and *relative* paths, as discussed above.
+
+#### How To Not Panic
+{:.no_toc}
+
+It's easy for things to go wrong when working in the command-line, but if you've accidentally:
+
+- set something running which you need to exit or
+- if you can't see the command prompt, or
+- if the terminal is not responsive
+
+there are some simple options for stopping a process & getting you back on track.
+Some options to try are:
+
+| Command  | Result |
+|:-------- |:------ |
+| <kbd>Ctrl</kbd>+<kbd>C</kbd> | Kill the current job |
+| <kbd>Ctrl</kbd>+<kbd>D</kbd> | End of input         |
+| <kbd>Ctrl</kbd>+<kbd>Z</kbd> | Suspend current job  |
+
+<kbd>Ctrl</kbd>+<kbd>C</kbd> is usually the first port of call when things go wrong.
+However, sometimes <kbd>Ctrl</kbd>+<kbd>C</kbd> doesn't work but <kbd>Ctrl</kbd>+<kbd>D</kbd> or <kbd>Ctrl</kbd>+<kbd>Z</kbd> will.
+
+## Redirection Using The Pipe Symbol
+
+Sometimes we need to build up our series of commands & send the results of one to another.
+The *pipe* symbol (`|`) is the way we do this & it can literally be taken as placing the output from one command into a pipe & redirecting it somewhere new.
+This is where thinking about the output of a command as a *data stream* can be very helpful.
+This is a very conventional approach when working in `bash` and was the motivation behind the creation of the `magrittr` package in `R`.
+
+As a simple example, we could take the output from an `ls` command & send it to the pager `less`.
+The pager `less` essentially turns the terminal window into a text viewer so we can display text in the terminal window, but with no capacity for us to edit the text, almost like primitive version of Acrobat Reader.
+
+Although we can navigate through the `less` pager using up & down arrows on our keyboards, some helpful shortcuts are:
+
+| Key    | Action |
+|:---------- |:------ |
+| <kbd>Enter</kbd>    | go down one line |
+| <kbd>Spacebar</kbd> | go down one page (i.e. a screenful) |
+| <kbd>B</kbd>        | go **b**ackwards one page |
+| <kbd><</kbd>        | go to the beginning of the document |
+| <kbd>></kbd>        | go to the end of the document |
+| <kbd>Q</kbd>        | quit |
+
+For example, lets look at the how we can pipe one command into another
+
+```
+ls -lh /usr/bin | less
+```
+
+Page through the output (using <kbd>Spacebar</kbd>) until you get bored, then hit `q` to quit.
+
+
+---
+
+Ok I told you it was going to be a crash course! 
+If you're having problems working with the command-line, don't worry there will be plenty of helpers out there to give you some help.
+Now lets get into some biology!
+
+
+## Working with Alignments
 
 ### Quality control of alignment data
+
+A fundamental aspect of high-throughput sequencing approaches is the alignment of your input sample to a closely-related reference genome. 
+By identifying differences, or genetic variations, between the assembled reference genome and the input sample, we are able to make inferences regarding potential genetic changes that are creating phenotypic differences. 
+However, aligning millions, and often billions, of sequence fragments (referred to as "reads") to a specific reference genome is an incredibly complex task, especially in light of repetitive sequences that make it difficult to place certainity on a specific location of each sequence read.
+
+Of course, what happens when we sequence RNA? RNA fragment differ from DNA in that it only contains coding regions of the genome. 
+This means we will only see the exons of a gene, with the introns being spliced out after transcription. 
+If we are aligning to a genome made of DNA, rather than a transcriptome made of RNA, then we need the ability to align to split sequences across intron-exon boundaries.
+
+So it is extremely important that we have a way of detailing _where_ each read aligned, as well as information as to _how well_ it aligned. 
+In this session we're going to get into how we store alignments
+
+### Data setup
+
+Because we're working backwards, we are assuming that we have already aligned our RNA-seq samples to a reference genome. 
+
+We’ll be working today in the folder `~/Day_2`. Lets change into that directory:
+
+```
+cd ~/Day_2
+```
+
+Please ensure you use this _exact_ path as any variations will undoubtedly cause you problems & lead to unnecessary confusion.
+
+Now we have our base directory setup for the day, we can place our data in the directory `~/Day_2/data`. 
+As you may have seen yesterday, the data that we need is already available in the `~/data` directory in our home area. 
+Lets copy all the contents of that directory to our new 
+
+```
+cp ~/data/Day_2/* ~/Day_2/data/
+ls ~/Day_2/data/
+```
+
+This should show you the output: 
+
+```
+
+```
+
+From here, we’re into running our workflow.
+
+Now let's just check our installations first to make sure nothing has gone wrong during setup.
+If you don't get the expected results, call Jimmy or Dan over.
+
+#### What is a SAM file and what's a BAM file?
+
+BAM stands for Binary AlignMent and these are our alignments stored in binary.
+There is another type of file called a SAM (Sequence AlignMent) file which is in plain text, but SAM files can become very large and waste our precious storage resources.
+BAM files are the exact same files stored in binary format which enables them to be much smaller.
+This also has the added benefit of being faster for computers to read & perform operations on, as only humans read plain text.
+Computers don't.
+
+To look at the contents of a BAM file, we'll need the tool `samtools` which is one of the most heavily utilised command-line tools in the world of bioinformatics.
+This tool as a series of sub-commands which we can see if we just type `samtools` into our terminal.
+
+```
+Program: samtools (Tools for alignments in the SAM format)
+Version: 1.9 (using htslib 1.9)
+
+Usage:   samtools <command> [options]
+
+Commands:
+  -- Indexing
+     dict           create a sequence dictionary file
+     faidx          index/extract FASTA
+     fqidx          index/extract FASTQ
+     index          index alignment
+
+  -- Editing
+     calmd          recalculate MD/NM tags and '=' bases
+     fixmate        fix mate information
+     reheader       replace BAM header
+     targetcut      cut fosmid regions (for fosmid pool only)
+     addreplacerg   adds or replaces RG tags
+     markdup        mark duplicates
+
+  -- File operations
+     collate        shuffle and group alignments by name
+     cat            concatenate BAMs
+     merge          merge sorted alignments
+     mpileup        multi-way pileup
+     sort           sort alignment file
+     split          splits a file by read group
+     quickcheck     quickly check if SAM/BAM/CRAM file appears intact
+     fastq          converts a BAM to a FASTQ
+     fasta          converts a BAM to a FASTA
+
+  -- Statistics
+     bedcov         read depth per BED region
+     depth          compute the depth
+     flagstat       simple stats
+     idxstats       BAM index stats
+     phase          phase heterozygotes
+     stats          generate stats (former bamcheck)
+
+  -- Viewing
+     flags          explain BAM flags
+     tview          text alignment viewer
+     view           SAM<->BAM<->CRAM conversion
+     depad          convert padded BAM to unpadded BAM
+```
+
+As you can see, there are a number of sub-commands that point to specific tasks that you can do with the program.
+The one we'll need at this point is `samtools view`, which enables us to take a BAM file and send it to the screen as plain text so we can read it.
+Remember, we can use the pipe `|` to direct the screen to a function call `head`, which gives the first lines of the file.
+
+Use tab auto-complete to enter the following line:
+
+```
+samtools view data/[FILE] | head
+```
+
+This will return our initial alignments in a tab-delimited format.
+Although the lines are many columns wide and will probably be wrapped around in your terminal, you should be able to immediately spot some actual nucleotide sequences.
+
+The remainder of the fields are given below.
+
+| Field | Name | Meaning |
+| ---- | ----- | ------- |
+| 1 | QNAME | Query template/pair NAME |
+| 2 | FLAG | bitwise FLAG (discussed later) |
+| 3 | RNAME | Reference sequence (i.e. chromosome) NAME |
+| 4 | POS | 1-based leftmost POSition/coordinate of clipped sequence |
+| 5 | MAPQ | MAPping Quality (Phred-scaled) |
+| 6 | CIGAR | extended CIGAR string |
+| 7 | MRNM | Mate Reference sequence NaMe (`=` if same as RNAME) |
+| 8 | MPOS | 1-based Mate POSition |
+| 9 | TLEN | inferred Template LENgth (insert size) |
+| 10 | SEQ | query SEQuence on the same strand as the reference |
+| 11 | QUAL | query QUALity (ASCII-33 gives the Phred base quality) |
+| 12 | OPT | variable OPTional fields in the format TAG:VTYPE:VALUE |
+
+
+The internal representation of BAM files does not (for the most part) include tabs, but the information stored there is identical.
+
+Several of these fields contain useful information, so looking the the first few lines which we displayed above, you can see that each read is contained in the file and there is additional information about where it was located.
+Most of these fields are self-explanatory, but some require exploration in more detail.
+
+
+#### SAM Flags (Field 2)
+
+These are quite useful pieces of information, but can be difficult at first look.
+Head to http://broadinstitute.github.io/picard/explain-flags.html to see a helpful description.
+The simplest way to understand these is that it is a bitwise system so that each description heading down the page increases in a binary fashion.
+
+XXXXX
+
+Things can easily begin to confuse people once you start searching for specific flags, but if you remember that each attribute is like an individual flag that is either on or off (_i.e._ it is actually a binary bit with values 0 or 1).
+If you searched for flags with the value 1, you wouldn't obtain the alignments with the exact value 1, rather you would obtain the alignments for which the first flag is set and these can take a range of values.
+
+A summary of some of the flag can be obtained using the command `samtools flagstat`
+
+```
+samtools flagstat data/[FILE]
+```
+
+#### Questions
+
+1. How many reads aligned to our genome?
+
+2. What information does `samtools stats` provide that `samtools flagstat` does not?
+
+### CIGAR strings
+
+These give useful information about the type of alignment that has been performed on the read.
+In the first few reads we called up earlier, most had the value `..M` where `..` is some number.
+These are the perfect Matches, where the sequence has aligned exactly.
+In particular, RNA Seq alignments will feature CIGAR strings with large numbers followed by `N`.
+This represents a skipped region, and in this context is very likely to be where part of a read aligns to one exon, whilst the other part of the read aligns to another exon, making this commonly indicative of a spliced alignment.
+
+The other abbreviations in common use are I (insertion), D (deletion) and S (soft-clipping).
+Soft-clipping is a strategy used by aligners to mask mismatches, so these are often analogous to substitutions.
+Hard-clipping (H) is an alternative strategy, but the difference between the two is beyond the scope of today.
+
+*What is the interpretation of the first `CIGAR` string in your set of alignments?*
+
 ### Duplication/Deduplication with Picard
+
+
+
 ### Assessment of alignment rate and multi-mapping
 
 

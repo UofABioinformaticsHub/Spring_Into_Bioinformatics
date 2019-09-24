@@ -96,8 +96,9 @@ After your chunk which performs the import, write your own paragraph describing 
 
 A super helpful feature of R Markdown is the ability to execute simple R commands within our plain text.
 We can do this by having an inline section of code, starting with a single backtick and the letter r  (`` `r``), followed by our code, then closed by another single backtick (`` ` ``).
-Where you've written the number `r nrow(DGE_Results)`, replace this with `` `​r nrow(DGE_Results)` `` (you will need to type this ... for reasons), and recompile your document.
-<!-- There is a zero-width space in the in-line code to prevent RStudio from evaluating the function. Please leave it there. -->
+Where you've written the number `r nrow(DGE_Results)`, replace this with `` `r
+nrow(DGE_Results)` ``, and recompile your document.
+<!-- There is a line break in the in-line code to prevent RStudio from evaluating the function. Please leave it there. -->
 
 Here, we've used the function `nrow()` to find the number of rows in our object `DGE_Results`, knowing that we have one row per gene.
 Adding this kind of thing to your data description can be an excellent 'sanity check' that your data has loaded correctly too.
@@ -107,9 +108,10 @@ If you entered `colnames(DGE_Results)` in your Console, this will return your co
 There is another function (`pander()`) which lives inside the package `pander` that we can use to make these look pretty in an R Markdown document.
 
 In your `loadPackages` chunk, add the command `library(pander)` and execute the chunk (hit the green arrow or try using <kbd>Ctrl</kbd>+<kbd>C</kbd>).
-Now where you have your manually typed column names in your paragraph, add the in-line code `` `​r pander(colnames(DGE_Results))` ``.
+Now where you have your manually typed column names in your paragraph, add the in-line code `` `r
+pander(colnames(DGE_Results))` ``.
 This will automatically format them as italic and place the ampersand (`&`) before the last one when you compile your document.
-<!-- There is a zero-width space in the in-line code to prevent RStudio from evaluating the function. Please leave it there. -->
+<!-- There is a line break in the in-line code to prevent RStudio from evaluating the function. Please leave it there. -->
 
 ## Visualising Data
 

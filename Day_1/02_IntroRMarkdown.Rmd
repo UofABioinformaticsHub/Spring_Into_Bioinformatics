@@ -3,7 +3,10 @@ title: "Spring Into Bioinformatics"
 subtitle: "Introducing R Markdown"
 author: "Steve Pederson"
 date: "02/10/2019"
-output: html_document
+output: 
+  html_document: 
+    toc: yes
+    toc_depth: 2
 ---
 
 ```{r setup, include=FALSE}

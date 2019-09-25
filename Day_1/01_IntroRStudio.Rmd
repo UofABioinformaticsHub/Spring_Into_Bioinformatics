@@ -3,7 +3,9 @@ title: "Spring Into Bioinformatics"
 subtitle: "Introduction to R and R Studio"
 author: "Steve Pederson"
 date: "02/10/2019"
-output: html_document
+output: 
+  html_document: 
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -65,9 +67,11 @@ In R, these mistakes are (generally) easy to find and correct ensuring reproduci
 R is an *open source language*, meaning there is no software giant like Microsoft or Apple forcing you to buy their software, and hiding all the code so you don't really know what it's doing.
 Instead, all of the code that runs R is publicly visible, and maintained by what is essentially a volunteer community, consisting mainly of academics spread throughout the world.
 
-Some examples of trivial R code might be:
+Some examples of trivial R code might be as follows.
+Don't worry about typing these just yet.
+Instead, have a look and try to understand everything you see at this point.
 
-```{r firstExamples, results='asis'}
+```{r firstExamples, results='markup'}
 x <- 1:5
 print(x)
 sqrt(x)
@@ -75,9 +79,15 @@ x + 1
 ```
 
 We'll come back and actually run these examples later, but for now you may be able to see that in the first line `x <- 1:5` we've created an object called `x` which has the values `1:5`.
-We used the `<-` symbol, which was specifically designed to look like an arrow, to put those values *into* `x`.
+We used the `<-` symbol, which was specifically designed to look like an arrow, **to put those values into** `x`.
+
 After that we performed a few operations on `x` such as showing what values are in `x` (`print(x)`), finding the square root of all of the values in `x` (`sqrt(x)`), or adding one to all of the values `x + 1`.
 Again, we'll come back to this very soon.
+
+R will always print the position of the values which start the line too, so that is why you see `[1]` at the start of each of these examples.
+This can be very handy when printing tens or hundreds of values.
+We've also addedd the `##` symbol at the start or each line to clearly denote this is R output.
+This is non-essential, but a common convention.
 
 ### What is R Studio?
 
@@ -146,7 +156,6 @@ x*2
 x^2
 ```
 
-
 ### The R Environment
 
 When working with Excel and calling a function on a range of cells, we would usually write the output to another cell in the spreadsheet.
@@ -163,9 +172,37 @@ x_sq <- x^2
 Notice that the results of `x^2` were no longer printed to the console, and we now have two objects in our R Environment (both `x` and `x_sq`).
 **How would we view the contents of `x_sq`?**
 
+### Creating a Vector
+
+In the above, we initially created our object `x` by giving it the values 1 to 5.
+R interprets the `:` symbol as a quick way to create a sequence from the first up to the second value, in steps of 1.
+A far more common method for creating vectors is to enclose all the values we need inside the function `c()`.
+This function stands for *combine*, and example may be:
+
+```{r}
+fib <- c(0, 1, 1, 2, 3, 5)
+```
+
+This example is just the start of the Fibonacci sequence, but we can use any values we want.
+Notice that these were all numbers.
+We can also specify character (*i.e.* text) vectors by quoting the supplied values.
+
+```{r}
+pets <- c("dog", "cat", "bird")
+```
+
+R also has a convention that text strings must be quoted.
+If you see text which is not quoted, this will be referring to an R object, or sometimes the column name of a spreadsheet-like object we're working with. 
+
+As an important technical note, R *can only create vectors where all values are the same type*.
+Character vectors will always display with quotes around the text when you print them in the R console.
+If you mix numbers amongst text values, the numbers will be coerced to text strings and will also appear with quotes, indicating they have been stored as the alpha-numeric symbols for those numbers, but with no implicit value.
+This is quite different to Excel, where each value is treated in isolation, but once you get used to it, it's actually very useful.
+
+
 ### Getting Help
 
-If you're not sure how a function works, the easiest way to call up the help page is to type the name of the function into the R Console, but with a `?` beforehand.
+Finally for this section, if you're not sure how a function works, the easiest way to call up the help page is to type the name of the function into the R Console, but with a `?` beforehand.
 As an example, try typing `?sd` into the console.
 This will call up the help page for `sd()` (which calculates the standard deviation of a vector).
 
@@ -175,4 +212,4 @@ This function takes two arguments.
 2. Instructions on how to handling missing values (`na.rm = FALSE`).
 
 Some help pages can be a little harder to understand than this one but the more you use `R`, the clearer they become.
-We'll check a few more throughout the day.
+We'll check a few more throughout the day and hopefully you'll be able to make sense of them by the end of the course.

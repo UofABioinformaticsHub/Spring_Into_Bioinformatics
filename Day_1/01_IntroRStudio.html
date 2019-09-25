@@ -370,6 +370,21 @@ summary {
 
 </div>
 
+<div id="TOC">
+<ul>
+<li><a href="#welcome">Welcome</a><ul>
+<li><a href="#tutors">Tutors</a></li>
+</ul></li>
+<li><a href="#introduction-to-r-and-the-r-studio-environment">Introduction to R and the R Studio environment</a><ul>
+<li><a href="#what-is-r">What is R?</a></li>
+<li><a href="#what-is-r-studio">What is R Studio?</a></li>
+<li><a href="#the-r-console">The R Console</a></li>
+<li><a href="#the-r-environment">The R Environment</a></li>
+<li><a href="#creating-a-vector">Creating a Vector</a></li>
+<li><a href="#getting-help">Getting Help</a></li>
+</ul></li>
+</ul>
+</div>
 
 <div id="welcome" class="section level2">
 <h2>Welcome</h2>
@@ -400,15 +415,17 @@ summary {
 </ol>
 <p>A key advantage of R over software like Excel, is that everything you do is recorded as a script. Every change you make to your data can be revisited months or years later, and every analysis or figure can also be recreated at a later stage, or easily modified as more data points are collected. If you accidentally ‘break’ or modify your data in Excel, there will literally be no record of this event, with cut and paste errors being essentially invisible. In R, these mistakes are (generally) easy to find and correct ensuring reproducible and robust analysis, as well as enabling collaboration between researchers.</p>
 <p>R is an <em>open source language</em>, meaning there is no software giant like Microsoft or Apple forcing you to buy their software, and hiding all the code so you don’t really know what it’s doing. Instead, all of the code that runs R is publicly visible, and maintained by what is essentially a volunteer community, consisting mainly of academics spread throughout the world.</p>
-<p>Some examples of trivial R code might be:</p>
+<p>Some examples of trivial R code might be as follows. Don’t worry about typing these just yet. Instead, have a look and try to understand everything you see at this point.</p>
 <pre class="r"><code>x &lt;- 1:5
 print(x)</code></pre>
-<p>[1] 1 2 3 4 5</p>
+<pre><code>## [1] 1 2 3 4 5</code></pre>
 <pre class="r"><code>sqrt(x)</code></pre>
-<p>[1] 1.000000 1.414214 1.732051 2.000000 2.236068</p>
+<pre><code>## [1] 1.000000 1.414214 1.732051 2.000000 2.236068</code></pre>
 <pre class="r"><code>x + 1</code></pre>
-<p>[1] 2 3 4 5 6</p>
-<p>We’ll come back and actually run these examples later, but for now you may be able to see that in the first line <code>x &lt;- 1:5</code> we’ve created an object called <code>x</code> which has the values <code>1:5</code>. We used the <code>&lt;-</code> symbol, which was specifically designed to look like an arrow, to put those values <em>into</em> <code>x</code>. After that we performed a few operations on <code>x</code> such as showing what values are in <code>x</code> (<code>print(x)</code>), finding the square root of all of the values in <code>x</code> (<code>sqrt(x)</code>), or adding one to all of the values <code>x + 1</code>. Again, we’ll come back to this very soon.</p>
+<pre><code>## [1] 2 3 4 5 6</code></pre>
+<p>We’ll come back and actually run these examples later, but for now you may be able to see that in the first line <code>x &lt;- 1:5</code> we’ve created an object called <code>x</code> which has the values <code>1:5</code>. We used the <code>&lt;-</code> symbol, which was specifically designed to look like an arrow, <strong>to put those values into</strong> <code>x</code>.</p>
+<p>After that we performed a few operations on <code>x</code> such as showing what values are in <code>x</code> (<code>print(x)</code>), finding the square root of all of the values in <code>x</code> (<code>sqrt(x)</code>), or adding one to all of the values <code>x + 1</code>. Again, we’ll come back to this very soon.</p>
+<p>R will always print the position of the values which start the line too, so that is why you see <code>[1]</code> at the start of each of these examples. This can be very handy when printing tens or hundreds of values. We’ve also addedd the <code>##</code> symbol at the start or each line to clearly denote this is R output. This is non-essential, but a common convention.</p>
 </div>
 <div id="what-is-r-studio" class="section level3">
 <h3>What is R Studio?</h3>
@@ -447,15 +464,24 @@ x^2</code></pre>
 <pre class="r"><code>x_sq &lt;- x^2</code></pre>
 <p>Notice that the results of <code>x^2</code> were no longer printed to the console, and we now have two objects in our R Environment (both <code>x</code> and <code>x_sq</code>). <strong>How would we view the contents of <code>x_sq</code>?</strong></p>
 </div>
+<div id="creating-a-vector" class="section level3">
+<h3>Creating a Vector</h3>
+<p>In the above, we initially created our object <code>x</code> by giving it the values 1 to 5. R interprets the <code>:</code> symbol as a quick way to create a sequence from the first up to the second value, in steps of 1. A far more common method for creating vectors is to enclose all the values we need inside the function <code>c()</code>. This function stands for <em>combine</em>, and example may be:</p>
+<pre class="r"><code>fib &lt;- c(0, 1, 1, 2, 3, 5)</code></pre>
+<p>This example is just the start of the Fibonacci sequence, but we can use any values we want. Notice that these were all numbers. We can also specify character (<em>i.e.</em> text) vectors by quoting the supplied values.</p>
+<pre class="r"><code>pets &lt;- c(&quot;dog&quot;, &quot;cat&quot;, &quot;bird&quot;)</code></pre>
+<p>R also has a convention that text strings must be quoted. If you see text which is not quoted, this will be referring to an R object, or sometimes the column name of a spreadsheet-like object we’re working with.</p>
+<p>As an important technical note, R <em>can only create vectors where all values are the same type</em>. Character vectors will always display with quotes around the text when you print them in the R console. If you mix numbers amongst text values, the numbers will be coerced to text strings and will also appear with quotes, indicating they have been stored as the alpha-numeric symbols for those numbers, but with no implicit value. This is quite different to Excel, where each value is treated in isolation, but once you get used to it, it’s actually very useful.</p>
+</div>
 <div id="getting-help" class="section level3">
 <h3>Getting Help</h3>
-<p>If you’re not sure how a function works, the easiest way to call up the help page is to type the name of the function into the R Console, but with a <code>?</code> beforehand. As an example, try typing <code>?sd</code> into the console. This will call up the help page for <code>sd()</code> (which calculates the standard deviation of a vector).</p>
+<p>Finally for this section, if you’re not sure how a function works, the easiest way to call up the help page is to type the name of the function into the R Console, but with a <code>?</code> beforehand. As an example, try typing <code>?sd</code> into the console. This will call up the help page for <code>sd()</code> (which calculates the standard deviation of a vector).</p>
 <p>This function takes two arguments.</p>
 <ol style="list-style-type: decimal">
 <li>Any numeric vector (referred to as <code>x</code> by the function)</li>
 <li>Instructions on how to handling missing values (<code>na.rm = FALSE</code>).</li>
 </ol>
-<p>Some help pages can be a little harder to understand than this one but the more you use <code>R</code>, the clearer they become. We’ll check a few more throughout the day.</p>
+<p>Some help pages can be a little harder to understand than this one but the more you use <code>R</code>, the clearer they become. We’ll check a few more throughout the day and hopefully you’ll be able to make sense of them by the end of the course.</p>
 </div>
 </div>
 

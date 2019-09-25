@@ -180,25 +180,27 @@ Now we have the package loaded, we can figure out how it all works.
 The first thing we need to do is initialise the plotting area, and then we'll decide what plotting geometry we'd like to use.
 This is done in a layered approach, which may seem strange at first, but is actually very powerful.
 
-In our first call to `ggplot()`, we first pass the data object then we decide on the plotting aesthetics.
-To make a nicer version of our MD plot, we'd put `logCPM` on the x-axis and `logFC` on the y-axis.
-These are our plotting aesthetics, and we need to wrap these inside the function `aes()`.
+In our first call to `ggplot()`, we first pass the data object specifying which values we wish to show as 'plotting aesthetics'.
+To make a nicer version of our MD plot, we'd put `logCPM` on the x-axis and `logFC` on the y-axis, so these are our plotting aesthetics.
+According to `ggplot()` syntax, we need to wrap these inside the function `aes()`.
 
 ```{r, fig.show='hide'}
 ggplot(DGE_Results, aes(x = logCPM, y = logFC))
 ```
 
 This will initialise the plotting area and you'll see the axis labels looking a little nicer than before, but there will be no points shown.
-This is because we haven't defined which geometry we're going to use.
-The most obvious one to use would be points, so the to this we add a layer using the `+` symbol, and call the function `geom_point()`.
+*This is because we haven't defined which geometry we're going to use*.
+The most obvious one to use would be points, so to include this, we add a plotting layer using the `+` symbol, and call the function `geom_point()`.
 
 ```{r, fig.show='hide'}
 ggplot(DGE_Results, aes(x = logCPM, y = logFC)) +
     geom_point()
 ```
 
-Now we have a slightly improved version of our previous plot, but we still have a pesky grey background.
-`ggplot2` comes with a variety of themes that we can add as plotting layers, and a very useful one is `theme_bw()`, which controls numerous plot attributes like the panel background, axis line colour, axis labels, tick marks, legends etc.
+Now we have a slightly improved version of our previous plot, but we still have a pesky grey background, which is Hadley's default setting.
+(Apparently, he likes it.)
+`ggplot2` comes with a set of themes that we can add as additional plotting layers.
+A very useful one is `theme_bw()`, which controls numerous plot attributes like the panel background, axis line colour, axis labels, tick marks, legends etc.
 Let's simply add `theme_bw()` as our next plotting layer, and the plot will almost be good enough to publish!
 
 ```{r, fig.show='hide'}
@@ -230,7 +232,7 @@ R has `r length(colours())` colour values predefined with names and unsurprising
 
 #### The function `c()`
 
-The final imprtant concept we just glossed over is how we provided values to the `yintercept` argument.
+The final important concept we just glossed over is how we provided values to the `yintercept` argument.
 Here we used the function `c()` which stands for *combine* or *concatenate*, and we combined the two values -1 and 1 into a single vector.
 In this way we could pass two y-intercepts in a single call to `geom_hline()`.
 Otherwise, we might have had to call this function twice.
@@ -241,10 +243,41 @@ This may be a good thing to discuss with the tutors if you're curious!
 ### Tidying the plot a bit more
 
 Now we've got a pretty good looking plot, we might like to tidy up our x-axis label.
-All we need to do is provide.
+All we need to do is provide the values as a character string to the function `labs()`.
 
+```{r, fig.show='hide'}
+ggplot(DGE_Results, aes(x = logCPM, y = logFC)) +
+    geom_point() +
+    geom_hline(yintercept = c(-1, 1), colour = "blue", linetype = 2) +
+    theme_bw() +
+    labs(x = "Average Expression (logCPM)")
+```
 
+We can use this to change the labels for any attribute we plot, such as the x and y axes, colours, shapes etc.
 
+### Creating a Volcano Plot
+
+Now that we've made a pretty reasonable plot showing how expression levels change against their average value, we might like to create what is known as a *Volcano Plot*.
+In this type of plot, we would place the difference in expression (*i.e.* `logFC`) on the x-axis, and a measure of statistical significance on the y-axis.
+A common measure of significance is the p-value and for the purposes of plotting, a useful transformation is $-\log_{10}$.
+Using this approach, $-\log_{10}(0.01) = 2$ and $-\log_{10}(0.001) = 3$ and so on.
+This is a way of obtaining an increasing score for significance which looks informative on a plot.
+Additionally, we know that p-values between 0.05 and 1 are not very interesting, so this transformation will squash them together whilst highlighting the differences in significance for low p-values (*i.e.* p < 0.05).
+We can perform this transformation directly in `ggplot()`!
+
+```{r, fig.show='hide'}
+ggplot(DGE_Results, aes(logFC, -log10(PValue))) +
+    geom_point() +
+    geom_vline(xintercept = c(-1, 1), linetype = 2, colour = "blue") +
+    labs(y = "-log10(p)") +
+    theme_bw()
+```
+
+As you can see, we have some highly-significant genes here with p-values < 10^-100^!
+This is slightly uncommon, but considering we are comparing two vastly different tissues, it's not unrealistic here.
+
+This is a pretty reasonable looking plot already, but wouldn't it be great to show a few extra things like: 1) gene names, 2) which genes are considered DE, or 3) which p-value corresponds to an FDR (*i.e* False Discovery Rate) of 0.05?
+For that, we'll need to have a look at another extremely useful package called `dplyr`.
 
 
 

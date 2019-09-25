@@ -408,6 +408,22 @@ ls -lh /usr/bin | less
 
 Page through the output (using <kbd>Spacebar</kbd>) until you get bored, then hit `q` to quit.
 
+You can do this with a number of other handy unix tools called `head` and `tail`.
+As you can probably work out from the name, they enable you to look at the head (top) or tail (bottom) of a file. 
+These commands are especially handy for looking at large files.
+
+```
+ls -lh /usr/bin | head
+
+ls -lh /usr/bin | tail
+```
+
+You can also use the `-n` parameter to print a certain number of lines
+
+
+```
+ls -lh /usr/bin | head -n 2
+```
 
 ---
 
@@ -448,20 +464,19 @@ As you may have seen yesterday, the data that we need is already available in th
 Lets copy all the contents of that directory to our new 
 
 ```
-cp ~/data/Day_2/* ~/Day_2/data/
+cp -r ~/data/Day_2/* ~/Day_2/data/
 ls ~/Day_2/data/
 ```
 
-This should show you the output: 
+There should be one directory contained there, called `2_alignedData`.
+This contains all the data that (funnily enough) we will be creating tomorrow, but for which we need today.
+Within `2_alignedData` we had all the inputs that we need to look at alignments and count data.
 
 ```
-
+ls ~/Day_2/data/2_alignedData
 ```
 
-From here, we’re into running our workflow.
-
-Now let's just check our installations first to make sure nothing has gone wrong during setup.
-If you don't get the expected results, call Jimmy or Dan over.
+Let's get stuck into learning about alignment files.
 
 #### What is a SAM file and what's a BAM file?
 
@@ -472,6 +487,7 @@ This also has the added benefit of being faster for computers to read & perform 
 Computers don't.
 
 To look at the contents of a BAM file, we'll need the tool `samtools` which is one of the most heavily utilised command-line tools in the world of bioinformatics.
+`samtools` is used for a number of tasks in high-throughput sequencing analysis, from viewing and converting alignment formats, to generating reports and statistics.
 This tool as a series of sub-commands which we can see if we just type `samtools` into our terminal.
 
 ```
@@ -521,20 +537,19 @@ Commands:
      depad          convert padded BAM to unpadded BAM
 ```
 
-As you can see, there are a number of sub-commands that point to specific tasks that you can do with the program.
+As you can see, each sub-command points to specific tasks that you can do with the program.
 The one we'll need at this point is `samtools view`, which enables us to take a BAM file and send it to the screen as plain text so we can read it.
 Remember, we can use the pipe `|` to direct the screen to a function call `head`, which gives the first lines of the file.
 
-Use tab auto-complete to enter the following line:
-
 ```
-samtools view data/[FILE] | head
+cd ~/Day_2/data/2_alignedData/bam
+samtools view [FILE] | head
 ```
 
-This will return our initial alignments in a tab-delimited format.
-Although the lines are many columns wide and will probably be wrapped around in your terminal, you should be able to immediately spot some actual nucleotide sequences.
+As you can see, there is a tonne of information here set out in columns which are all tab separated.
+These contain information about the where and how the read aligned to the reference genome.
+The specific information of each field is contained below:
 
-The remainder of the fields are given below.
 
 | Field | Name | Meaning |
 | ---- | ----- | ------- |
@@ -552,51 +567,147 @@ The remainder of the fields are given below.
 | 12 | OPT | variable OPTional fields in the format TAG:VTYPE:VALUE |
 
 
-The internal representation of BAM files does not (for the most part) include tabs, but the information stored there is identical.
+Notice that each read is considered to be a *query* in the above descriptions, as we a querying the genome to find out where it probably came from.
 
-Several of these fields contain useful information, so looking the the first few lines which we displayed above, you can see that each read is contained in the file and there is additional information about where it was located.
+Several of these fields contain useful information, so looking the the first few lines, you can see that these reads are mapped in pairs as consecutive entries in the QNAME field are often (but not always) identical.
 Most of these fields are self-explanatory, but some require exploration in more detail.
-
-
-#### SAM Flags (Field 2)
-
-These are quite useful pieces of information, but can be difficult at first look.
-Head to http://broadinstitute.github.io/picard/explain-flags.html to see a helpful description.
-The simplest way to understand these is that it is a bitwise system so that each description heading down the page increases in a binary fashion.
-
-XXXXX
-
-Things can easily begin to confuse people once you start searching for specific flags, but if you remember that each attribute is like an individual flag that is either on or off (_i.e._ it is actually a binary bit with values 0 or 1).
-If you searched for flags with the value 1, you wouldn't obtain the alignments with the exact value 1, rather you would obtain the alignments for which the first flag is set and these can take a range of values.
-
-A summary of some of the flag can be obtained using the command `samtools flagstat`
+Note that in the following command, each line from the file may wrap around several lines in your terminal.
+If this is confusing, just select the first read only by adding the option `-n1` after your call to `head`
 
 ```
-samtools flagstat data/[FILE]
+samtools view SRR945375.skm.trimmedAligned.sortedByCoord.out.bam | head -n1
+```
+
+While its not actually output in BAM files, an alignment file has a lot of extra information that is commonly printed at the start of a file.
+The `samtools view` command actually hides this from you by default, but it contains some very important information such as the names of all the reference genome sequences, whether the file is sorted or not, and the command that was used to create the file in the first place. 
+To see this info we need to add the `-h` flag.
+
+```
+samtools view -h SRR945375.skm.trimmedAligned.sortedByCoord.out.bam | head 
+```
+
+This is what you should see
+
+```
+@HD     VN:1.4  SO:coordinate
+@SQ     SN:1    LN:195471971
+... <shortened>
+@PG     ID:STAR PN:STAR VN:STAR_2.5.3a  CL:STAR   --runThreadN 12   --genomeDir /data/biorefs/reference_genomes/ensembl-release-96/mus_musculus/star   --readFilesIn /data/biohub/2019_SIB/1_trimmedData/fastq/SRR945375.skm.trimmed.fastq.gz      --readFilesCommand gunzip   -c      --outFileNamePrefix /data/biohub/2019_SIB/2_alignedData/bam/SRR945375.skm.trimmed   --outSAMtype BAM   SortedByCoordinate
+@CO     user command line: STAR --runThreadN 12 --genomeDir /data/biorefs/reference_genomes/ensembl-release-96/mus_musculus/star --readFilesIn /data/biohub/2019_SIB/1_trimmedData/fastq/SRR945375.skm.trimmed.fastq.gz --readFilesCommand gunzip -c --outFileNamePrefix /data/biohub/2019_SIB/2_alignedData/bam/SRR945375.skm.trimmed --outSAMtype BAM SortedByCoordinate
 ```
 
 #### Questions
+{:.no_toc}
 
-1. How many reads aligned to our genome?
 
-2. What information does `samtools stats` provide that `samtools flagstat` does not?
+1. *What program was used to align the genome?*
+2. *Some common values in the bam file are 99, 147 & 145. Look up the meanings of these values.*
 
-### CIGAR strings
+
+
+## SAM Flags
+
+These are second field in a sam/bam file and are quite useful pieces of information, however they can be difficult at first look.
+Head to http://broadinstitute.github.io/picard/explain-flags.html to see a helpful description, then try clicking on a few combinations to see how the numbers change.
+The simplest way to understand these is that it is a bitwise system so that each description heading down the page increases in a binary fashion.
+The first has value 1, the second has value 2, the third has value 4 & so on until you reach the final value of 2048.
+The integer value contained in this file is the unique sum of whichever attributes the mapping has.
+For example, if the read is paired & mapped in a proper pair, but no other attributes are set, the flag field would contain the value 3.
+
+#### Questions
+{:.no_toc}
+
+
+1. *What value could a flag take if the read was 1 - paired; 2 - mapped in a proper pair; 3 - it was the first in the pair \& 4 - the alignment was a supplementary alignment.*
+2. *Some common values in the bam file are 99, 147 & 145. Look up the meanings of these values.*
+3. *In our very first call to* `samtools` *when we performed our alignments, we used the filter* `-F4`. *Now you understand flags, can you figure out what this was doing?*
+
+
+Things can easily begin to confuse people once you start searching for specific flags, but if you remember that each attribute is like an individual flag that is either on or off (i.e. it is actually a binary bit with values 0 or 1).
+If you searched for flags with the value 1, you wouldn't obtain the alignments with the exact value 1, rather you would obtain the alignments **for which the first flag is set** & these can take a range of values.
+
+
+Let's try this using the command `samtools view` with the option `-f` to include reads with a flag set and the option `-F` to exclude reads with a specific flag set.
+Let's get the first few reads which are mapped in a proper pair, so the flag `2` will be set.
+
+```
+cd 2_alignedData/bam
+samtools view -f 2 SRR2003569_chI.bam | head
+```
+
+Note that none of the flags actually have the value 2, but if you typed the values 99, 147 or 163 into the webpage, you'll see that this flag is set for all of these values.
+Similarly if we wanted to extract only the reads which are NOT mapped in a proper pair we would change the option to a upper-case F.
+
+```
+samtools view -F 2 SRR2003569_chI.bam | head
+```
+
+Again, try entering a few of these sample values into the webpage and you will see that this flag is not set for any of these values.
+
+This can be a very helpful tool for extract subsets of your aligned reads.
+For example, we can create a new BAM file with only the reads which were aligned in a proper pair by entering the following command.
+
+```
+samtools view -f 2 -bo SRR2003569_chI.bam
+ls -lh
+```
+
+You can thus pull out highly specific combinations of alignments should you so choose.
+
+## MAPQ
+
+Hopefully the 3rd and 4th fields are self explanatory, as these can be generally interpreted as the chromosome & position in the reference where the sequence aligned.
+However, the 5th field contains the `MAPQ` score which indicates how well the read aligned, and how unique each alignment is.
+We won't spend much time on this as the values tend to differ between alignment tools, but in general a higher score indicates a better, more unique alignment.
+
+
+## CIGAR strings
 
 These give useful information about the type of alignment that has been performed on the read.
 In the first few reads we called up earlier, most had the value `..M` where `..` is some number.
 These are the perfect Matches, where the sequence has aligned exactly.
-In particular, RNA Seq alignments will feature CIGAR strings with large numbers followed by `N`.
-This represents a skipped region, and in this context is very likely to be where part of a read aligns to one exon, whilst the other part of the read aligns to another exon, making this commonly indicative of a spliced alignment.
-
-The other abbreviations in common use are I (insertion), D (deletion) and S (soft-clipping).
-Soft-clipping is a strategy used by aligners to mask mismatches, so these are often analogous to substitutions.
-Hard-clipping (H) is an alternative strategy, but the difference between the two is beyond the scope of today.
-
-*What is the interpretation of the first `CIGAR` string in your set of alignments?*
+The other abbreviations in common use are I (insertion), D (deletion) & S(substitution).
 
 ### Duplication/Deduplication with Picard
 
+## Sorting Alignments
+
+Before we start calling variants we will need to **sort the alignments**.
+The original file will contain alignments in the order they were found in the original fastq file, so sorting arranges them in *genomic order*.
+
+```
+mkdir ~/Practical_7/2_alignedData/sorted_bam
+cd ~/Practical_7/2_alignedData
+samtools sort bam/SRR2003569_chI.bam -o sorted_bam/SRR2003569_chI.bam
+```
+
+This helps the variant caller to run the calling algorithm efficiently and prevents additional time to be allocated to going back and forth along the genome. 
+This is standard for most NGS downstream programs, such as RNA gene quantification and ChIPseq peak calling.
+
+Once we've sorted our alignments, we usually *index* the file, which allows rapid searching of the file.
+Running the following command will create an associated `bai` file which is the index associated with our sorted alignments.
+
+```
+samtools index sorted_bam/SRR2003569_chI.bam
+```
+
+---
+**Note: Additional Filtering**
+Ideally, before we start calling variants, there is a level of duplicate filtering that needs to be carried out to ensure accuracy of variant calling and allele frequencies. 
+The duplicates we wish to remove are generated during PCR and are not biological in origin, however **we'll skip this step today**.
+For future reference, the code you would use to do this is:
+
+```
+# Remove duplicates the samtools way
+samtools rmdup [SORTED BAM] [SORTED RMDUP BAM]
+
+# Remove duplicates the picard way (which uses Java)
+java -jar /path/to/picard/tools/picard.jar MarkDuplicates I=[SORTED BAM] O=[SORTED RMDUP BAM] M=dups.metrics.txt REMOVE_DUPLICATES=true
+```
+
+We would probably place these in a new folder called 3_deduplicatedData/bam, however everyone does have their own unique approach to setting up directories.
+
+---
 
 
 ### Assessment of alignment rate and multi-mapping

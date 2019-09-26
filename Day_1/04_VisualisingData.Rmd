@@ -1,6 +1,6 @@
 ---
 title: "Spring Into Bioinformatics"
-subtitle: "Manipulating and Visualising Data In R"
+subtitle: "Visualising Data In R"
 author: "Steve Pederson"
 date: "02/10/2019"
 output: 

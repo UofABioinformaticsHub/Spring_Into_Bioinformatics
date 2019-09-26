@@ -1,0 +1,280 @@
+---
+title: "Spring Into Bioinformatics"
+subtitle: "Working With Data In R"
+author: "Steve Pederson"
+date: "02/10/2019"
+output: 
+  html_document: 
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    message = FALSE,
+    warning = FALSE,
+    fig.align = "center",
+    results = "hide"
+)
+if (interactive()) setwd(here::here("Day_1"))
+```
+
+```{r, include=FALSE}
+library(readr)
+library(ggplot2)
+library(pander)
+DGE_Results <- read_tsv("data/DGE_Results.tsv")
+```
+
+
+## Introduction
+
+Now we have learned how to make a few plots with `ggplot2`, to really get things moving we should learn how manipulate `tibble` objects to add extra columns, sort columns, perform filtering steps etc., just like we do with Excel.
+
+### Tibbles and Data Frames
+
+Most of the objects we work with today are `tibble` objects, which are an extension of the basic R structure called a `data.frame`.
+In short, these are very much like spreadsheets with clear rows and columns, but there are a few key points we should just make a note of:
+
+1. All values in a column must be of the same type (*i.e.* `character`, `numeric`, `integer`, `logical`)
+2. Each column can be of a different type to the other columns
+3. All columns must be the same length
+4. Column names must be specified. If not, R will add generic column names
+5. Row names are optional.
+
+This final point is one of the things that sets a `tibble` apart from a `data.frame`.
+Whilst a `data.frame` can have row names, a `tibble` cannot, and will drop them.
+This can initially seem a little strange, but it does provide a little more flexibility when dealing with non-trivial data structures.
+Other features which make tibble objects a slightly more convenient version of a `data.frame` are:
+
+1. Only the first few rows are displayed when you type the object name. A `data.frame` will dump the entire contents into your R Console if you just type it's name
+2. Only the first few columns are displayed, with a summary of the remaining columns given. Once again, a `data.frame` will dump it's entire contents into your R Console
+3. The type of value contaned in each column is shown
+4. The dimensions of the object are shown
+
+Beyond this, they are essentially identical structures and a `tibble` can just be thought of as a `data.frame` with nice wrapping paper around it.
+Sometimes, you will hear `tibble` objects referred to as `data.frame` objects as this is their basic class, so hopefully this won't cause any confusion.
+
+Even though we have restricted our results to the genes on chromosome 1, we still have over 1000 genes in our dataset.
+If we wish to look as specific values, we can use the square brackets (`[r,c]`) just to pull out the rows & columns of interest.
+Rows go before the comma, whilst columns go after the comma.
+In the following, we'll just grab the first row, and the first two columns. 
+
+```{r}
+DGE_Results[1, 1:2]
+```
+
+We can also call columns by name, although given the lack of row names for tibbles, we can only call rows by position (this only applies to `tibble` objects).
+Note that when doing this, we use the `c()` function to combine the column names we want.
+
+```{r}
+DGE_Results[1, c("GeneID", "logFC")]
+```
+
+In general, we encourage using column names, rather than the numeric positions.
+This can be more robust if you accidentally change the column order, and is also far easier to understand when other people (*e.g.* you in the future when you've forgotten what you did in the past) read your code.
+
+Another way to extract information *from a single column* is to use the `$` symbol, and the square brackets.
+In this case, our column is treated as a vector and we only need to specify the position in the brackets, without a comma.
+In the following, we'll just grab the first two gene identifiers.
+
+```{r}
+DGE_Results$GeneID[1:2]
+```
+
+### Introducing `dplyr`
+
+The above methods are the traditional ways of accessing data from a `tibble` or `data.frame`.
+Another package written by Hadley Wickham is `dplyr` which introduces a variety of additional strategies for manipulating these objects.
+These not only make sense to an Excel user, but enable extremely powerful approaches for data manipulation.
+Let's add the following to our `loadPackages` chunk:
+
+```{r}
+library(dplyr)
+```
+
+#### Using `select()` to select columns
+
+Whilst we have already seen how to select columns using conventional strategies, `dplyr` introduces a new function `select()` which enables you to select columns.
+The strategy here is to pass our `tibble`/`data.frame` as the first argument to the function, and then to just list any columns we wish returned.
+Column names can be quoted, or given that they are columns within the data frame we're working with, they can also be unquoted.
+We also no longer need to use the `c()` fnction to combine our column names.
+
+```{r}
+select(DGE_Results, GeneID, logFC)
+```
+
+This may seem pretty simple, but given the helper functions which `dplyr` brings with it, becomes extremely powerful.
+Common helper functions are: `contains()`, `starts_with()`, `ends_with()`, `one_of()` and `everything()`.
+
+An example of this may be just to extract the `logFC` and `logCPM` columns.
+
+```{r}
+select(DGE_Results, starts_with("log"))
+```
+
+We can also use this to rearrange our columns.
+
+```{r}
+select(DGE_Results, logFC, everything())
+```
+
+Notice that through the above calls to `select()`, we never overwrote our original object.
+`select()` simply takes a `tibble`/`data.frame` as input and returns the same. 
+
+#### Using `arrange()` to sort columns
+
+A common strategy in Excel is to sort your data by the values in a particular column.
+The function that `dplyr` introduces is `arrange()` and it behaves very similarly to `select()` in that we pass it the object, then call the columns we wish to sort by.
+Similarly, the object will not be overwritten, but if a `tibble` is provided, a `tibble` will be returned.
+
+By default, we have given you the object sorted by the `PValue` column.
+If we wish to sort by expression level, we would sort on the `logCPM` column.
+
+```{r}
+arrange(DGE_Results, logCPM)
+```
+
+This will sort in increasing order by default, but to switch this to descending order, we can wrap the column name in the `desc()` function.
+
+```{r}
+arrange(DGE_Results, desc(logCPM))
+```
+
+Now the most highly expressed genes are the first ones shown.
+
+#### Using `filter()` to subset our results
+
+Yet another commonstrategy in Excel is to use the auto-filter to restrict the values shown to those matching a given criteria.
+We can do this using the `filter()` function, which behaves similarly to the previous ones we've seen, but this time we need to perform a logical test on our column(s) of interest.
+Let's just get the most highly expressed genes:
+
+```{r}
+filter(DGE_Results, logCPM > 10)
+```
+
+We could also return those beyond a given logFC threshold, using the `abs()` function to filter based on absolute values (*i.e.* where the $\pm$ sign is ignored).
+
+```{r}
+filter(DGE_Results, abs(logFC) > 5)
+```
+
+We can also combine filtering criteria for more complex strategies.
+Here we can ask for the significant genes (FDR < 0.01) which are down-regulated.
+
+```{r}
+filter(DGE_Results, FDR < 0.01, logFC < 0)
+```
+
+#### Using `slice()` to obtain rows
+
+Whilst `filter()` can be very useful for returning rows that match a given criteria, sometimes we do want to call rows by position.
+A classic example, may be if we just want to show the top 10 genes in a given list.
+To do this, we can use the function `slice()`.
+
+```{r}
+slice(DGE_Results, 1:5)
+```
+
+*Importantly*, we use `filter()` to filter rows based on a given criteria, but we use `slice()` to return rows based on their position in the original object.
+
+#### Using `mutate()` to add columns
+
+The final thing we might like to do with our `tibble` object is to add a column.
+A common strategy might be to add a column denoting whether we consider each gene to be differentially expressed by some individual, or combined criteria.
+To add columns using `dplyr`, we can use the function `mutate()`.
+
+In the following code, we're adding a new column called `Sig` and adding a logical (or boolean) value based in the gene matching a combined criteria of an FDR-adjusted p-value < 0.01, and logFC beyond the range $\pm1$
+
+```{r}
+mutate(DGE_Results, Sig = FDR < 0.01 & abs(logFC) > 1)
+```
+
+Again, we haven't yet overwritten our original object.
+We've just passed it to the function `mutate()` which has returned another `tibble`, but this time with one additional column.
+
+We can also create more than one column using this strategy, by combining our process with the function `case_when()`.
+Note that for better 'readibility', we're going to stagger our code over multiple lines here.
+When doing this indenting becomes very useful, and the shortcut `<kbd>Ctrl</kbd> + I` will do this for you. 
+
+```{r}
+mutate(
+    DGE_Results,
+    Sig = FDR < 0.01 & abs(logFC) > 1,
+    Direction = case_when(
+        Sig & logFC > 0 ~ "Up",
+        Sig & logFC < 0 ~ "Down",
+        !Sig ~ "Unchanged"
+    )
+)
+```
+
+
+### Combining functions
+
+In the above, we introduced our key functions from `dplyr` and have already started to perform a few relatively complex operations in a fairly intuitive manner.
+We also made a point of mentioning that every one of the above functions takes a `tibble` (or `data.frame`) as input & returns the same.
+This makes it very easy to chain together multiple operations and produce a series of simple steps to get our data in the form we need it to be.
+There is an additional function from the package `magrittr` which is imported by `dplyr`.
+For those of you familiar with the pipe sumbol in bash, this is R's equivalent operator.
+In short, the `%>%` function takes the output of one command, and 'pipes' it into the next command, strictly in the first position.
+By way of example.
+
+```{r}
+filter(DGE_Results, abs(logFC) > 5)
+```
+
+Is identical to
+
+```{r}
+DGE_Results %>% filter(abs(logFC) > 5)
+```
+
+When working like this, we often spread out our steps over multiple lines too, so the above can be expressed as:
+
+```{r}
+DGE_Results %>% 
+    filter(abs(logFC) > 5)
+```
+
+(Note the indenting)
+
+Now we can chain together multiple operations by placing this after every function call.
+To get a list of our top 10 upregulated genes we could do the following.
+First we'll filter based on an FDR < 0.01, then we'll restrict to the genes with logFC > 0.
+The we're sorting by PValue, just to make sure the data is arranged how we think it is.
+Next, we'll remove the column `PValue` as it doesn't really add much useful information here.
+Note that we can do this by simply placing a `-` symbol before the column name.
+Finally, we'll use slice to retrn the first 10 values
+
+```{r}
+DGE_Results %>%
+    filter(FDR < 0.01 & logFC > 0) %>%
+    arrange(PValue) %>%
+    select(-PValue) %>%
+    slice(1:10)
+```
+
+We also introduced the package `pander` earlier, and this also has a default method for making `tibble` and `data.frame` objects look amazing in R markdown.
+In the following, we're adding two arguments to the call to `pander()`.
+Firstly, we're adding a caption, then we're making sure our markdown table is left-aligned for the first column (text), the right-aligned for the numeric columns.
+
+```{r}
+DGE_Results %>%
+    filter(FDR < 0.01 & logFC > 0) %>%
+    arrange(PValue) %>%
+    select(-PValue) %>%
+    slice(1:10) %>%
+    pander(
+        caption = "Top 10 upregulated genes",
+        justify = "lrrr"
+    )
+```
+
+As you can see, this now enables a large variety of data manipulations to be performed, in a manner which is both intuitive to write, and relatively easy to read back.
+Much of the syntax for `dplyr` is based on SQL syntax, where a spreadsheet-type structure is referred to as a table.
+This is actually how the name `tibble` came about.
+They were originally called `tbl_df` objects to reflect that they mirror an SQL table but ar also a `data.frame`.
+Over the years this became pronounced then formalised into `tibble`.
+
+

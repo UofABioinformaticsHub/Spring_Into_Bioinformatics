@@ -1,8 +1,8 @@
 ---
-title: "Fall Into Bioinformatics"
-subtitle: "Sequence alignment"
+title: "Spring Into Bioinformatics"
+subtitle: "Differential expression"
 author: "Melanie Smith"
-date: "17/09/2019"
+date: "25/09/2019"
 output: html_document
 ---
 
@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
     fig.align = "center",
     results = "hide"
 )
-if (interactive()) setwd(here::here("Day_1"))
+if (interactive()) setwd(here::here("Day_2"))
 ```
 
 
@@ -47,62 +47,89 @@ library(ggrepel)
 
 First we should import the file we've created using `featureCounts`.
 
-```{r, echo=FALSE}
-counts <- read_tsv("../data/genes.out")
-```
-
-
 ```{r counts, eval=FALSE}
-counts <- read_tsv("../2_alignedData/counts/genes.out")
+
+file <- "../data/2_alignedData/featureCounts/counts.out"
+counts <- read_delim(file, comment = "#", delim = "\t")
+
 ```
 
-This file has the gene identifiers in the first column, with the remaining columns containing the name of the `bam` file and the number of reads aligning to each gene.
-The first thing we might like to do is tidy up those column names.
+This file has the gene identifiers in the first column, followed by the chromosome number, start, end, strand and length information (recall that we have subset our data to only include mouse chromosome 1), with the remaining columns containing the name of the `bam` file and the number of reads aligning to each gene.
+The first thing we might like to do is to remove the columns which don't contain the count data we require today, and tidy up those column names.
 
 ```{r setColnames}
-colnames(counts) <- colnames(counts) %>%
-    basename() %>%
-    str_remove("_(10|23)_(03|04)_(2014|2016)_S[0-9]_fem_Aligned.+")
+counts <- dplyr::select(counts, -c(Chr, Start, End, Strand, Length)) %>%
+  set_colnames(basename(colnames(.))) %>%
+  set_colnames(str_remove(colnames(.), ".trimmedAligned.sortedByCoord.out.bam"))
 ```
 
-That looks much cleaner and we haven't lost any important information.
+That looks much cleaner and we haven't lost any important information but we're not quite done.
+The group information we need for the differential expression is locked in the samplename.
+Next we can split the sample ID from the group information and save that information in a dataframe for later use.
+
+```{r splitSampleID}
+sampleGroups <- as.data.frame(names(counts[-1]), stringsAsFactors = FALSE) %>%
+  set_colnames(., "samplename") %>%
+  tidyr::separate(., col = samplename, into = c("samplename", "group"), remove = TRUE)
+```
+
+Now we have a small table of metadata regarding our samples.
+We can also tidy up our counts table column names a little more by moving the gene IDs to row names and removing the group information after the sample name.
+
+```{r sampleName}
+counts <- as.data.frame(counts) %>%
+  column_to_rownames("Geneid")
+colnames(counts) <- sampleGroups$samplename
+```
 
 ### Create a DGE List
 
-The main object type we like to use for differential gene expression is a `DGEList`, which stands for Digital Gene Expression List.
-These objects have two mandatory elements, with the first being our counts and the second being our samples.
-In these objects, we can consider the gene IDs to be the row names and the sample names are the column names.
-Here's one way to create a `DGEList`.
+The main object type we like to use for differential gene expression is a `DGEList`, which stands for Digital Gene Expression List, and is an object used by _edgeR_ to store count data.
+This object is more complex than others we have looked at in `R` so far because it contains a number of _slots_ for storing not only our data, but also different paramaters *about* the data.
+The `DGEList` objects have two mandatory elements, with the first being our counts data, and the second being our sample information.
+Recall that above we have made the gene IDs the row names and the sample IDs the column names.
 
+Here's one way to create a `DGEList`.
 
 ```{r dgeList}
 dgeList <- counts %>%
-    as.data.frame() %>%
-    column_to_rownames("Geneid") %>%
     DGEList() %>%
     calcNormFactors()
 ```
 
-In the first 3 lines, we're just setting the gene IDs as the row names instead of being a column.
-From there we've turned the remaining columns (i.e. the counts) into a `DGEList` object, and calculated the normalisation factors, which can be seen in `dgeList$samples`
-If fitting counts using a negative binomial model (for discrete data), these `norm.factors` are included in the model to adjust for variations in the library size and count distributions.
-We'll use a different approach for our analysis today, but doing this as we form the object is still good practice, in case we change tack halfway through our planned analysis.
+Here we have taken our counts table with gene IDs as row names and sample IDs as column names and put it in to a `DGEList` object, called `dgeList`, and called the `calcNormFactors()` function to calculated the normalisation factors, which can be seen in `dgeList$samples`.
+
+If we decided to fit our counts using a negative binomial model (for discrete data), these `norm.factors` would be included in the model to adjust for variations in the library size and count distributions (for an interesting post on what "fitting" a model is see https://diamondage.com/2017/06/03/what-does-it-mean-to-fit-a-model-anyway/).
+
+We have chosen to use a different approach for our analysis today, but taking the time to include the _calculation of normalisation factors_ step as we form the `DGEList` object is still good practice as it allows us to change methodology part way through our planned analysis if we determine the negative binomial model is better suited to our data.
+
+Take a moment now to run this next code chunk and inspect the `samples` data frame sitting inside the `DGEList` object we have just created.
 
 ```{r samples}
 dgeList$samples
 ```
 
-In the `samples` element, we can also set the group variable so let's put our time-points here.
+`R` understood that the column names from our counts table contained the sample IDs for our project and created the `samples` data frame inside the `DGEList` object. `lib.size` and `norm.factors` have also been calculated from the counts table and incorporated into the element.
+We haven't yet included any information describing our samples. In the `samples` element, we can set the group variable we previously took from the sample IDs by running:
 
 ```{r setGroups}
-dgeList$samples$group <- colnames(dgeList) %>%
-    str_extract("(6|24)mth") %>%
-    factor(levels = c("6mth", "24mth"))
+dgeList$samples$group <- sampleGroups$group %>%
+    factor(levels = c("cbc", "skm"))
 ```
+
+Take another moment now to inspect the `samples` data frame again and you will now see what was previously a row of 1s is now populated with the appropriate tissue type.
+
+```{r samples}
+dgeList$samples
+```
+
+As a small note of warning, keep in mind that we did not at any time alter the order in which our samples were being reported. This allowed us to simply _cut_ the information from one table and _paste_ it into another. There are ways of using _mutating joins_ to ensure order is never corrupted including `left_join`, `right_join`, `inner_join` and others.
+
+It is always worth taking the time to perform a "sanity check" to ensure the sample names and groups are correctly aligned before you continue.
 
 ### Add Gene Information
 
-A common, but optional element that we can include in a `DGEList` is one called `genes`.
+A common, but optional element that we can include in a `DGEList`, is one called `genes`.
 This is where we can place information such as the genomic location, the gene symbol and anything else we think is going to be relevant.
 First, we need to find this information though, and we'll use the package `AnnotationHub` which contains the *metadata* for all of the annotation packages included in Bioconductor.
 
@@ -110,46 +137,50 @@ First, we need to find this information though, and we'll use the package `Annot
 ah <- AnnotationHub()
 ```
 
+The structure of this new object `ah` is quite advanced. Take a moment to type in the object name and run the line, you'll get an informative summary of all available annotation packages.
+
 ```{r viewAh}
 ah
 ```
 
-This structure is quite advanced, but if you just type in the object name, you'll get an informative summary of all available annotation packages.
 Note that we have numerous data providers, species and data classes.
-The column on the left is also a shorthand ID we can use to retrieve any of these annotation objects.
+The column on the left (AH####) is a shorthand ID we can use to retrieve any of these annotation objects.
 
 We can also subset the Annotation Hub object to help us find what we're looking for.
-In the following code, we're restricting our search to zebrafish, with data held sourced from Ensembl.
+In the following code, we're restricting our search to mouse, and specifying Ensembl as our data source.
+
 The final line looks for an object of class `EnsDb` which is a database object containing a large amount of information, but in a relatively user-friendly way.
 
-```{r subsetAh}
-ah %>%
-    subset(species == "Danio rerio") %>%
-    subset(dataprovider == "Ensembl") %>%
-    subset(rdataclass == "EnsDb")
+```{r subset_ah}
+ah <- ah %>%
+  subset(species == "Mus musculus") %>%
+  subset(dataprovider == "Ensembl") %>%
+  subset(rdataclass == "EnsDb")
 ```
 
-The last of these objects contains data from release 94, which will be close enough to match the data we have generated so far (which was Ensembl 95).
-Ideally, these should be the same, but there is no EnsDb object for Ensembl 95. I' sure one will be made available in the next release of Bioconductor.
-Let's use this annotation object and define it as the object `ensDb`
+We have now subset `ah` and removed most of the information we don't need (ie infromation related to other species and other data providors). The step is to ensure we are only using data from an appropriate release. `ah` currently contains data from release 87-92, which will be close enough to match the data we have generated so far (which was Ensembl 93).
+Ideally, these should be the same, but there is no EnsDb object for Ensembl 93.
+I'm sure one will be made available in the next release of Bioconductor.
+When we inspected `ah` above we saw that the latest release was *AH60992 | Ensembl 92 EnsDb for Mus Musculus*.
+Let's use this annotation record and define it as the object `ensDb`
 
 ```{r ensDb}
-ensDb <- ah[["AH64906"]]
+ensDb <- ah[["AH60992"]]
 ensDb
 ```
 
 There are many helper functions for extracting data from this package, such as `transcripts()`, `promoters()` and `genes()`.
 We want gene information today, so let's just use that function. 
-Note that after we obtain the data, we're using `subset()` to only keep the data from chromosome 2.
+Note that after we obtain the data, we're using `subset()` to ensure we only keep the data from chromosome 1.
 
 ```{r genes}
 genesGR <- genes(ensDb) %>%
-    subset(seqnames == 2)
+    subset(seqnames == 1)
 ```
 
-This object is a `GenomicRanges` (or `GRanges`) object and these are the brad & butter of genomic analysis in R. 
-We could spend hours just looking at these, but the main point is that on the left of the "pipes" we have the chromosome (`seqnames`) followed by the range of bases the genes is contained within and the strand the gene is located on.
-This is the core `GRanges` element, and we could simply return this information using the function `granges()`
+This object is a `GenomicRanges` (or `GRanges`) object and these are the bread & butter of genomic analysis in R. 
+We could spend hours just looking at these, but the main point is that on the right of the gene IDs we have the chromosome (`seqnames`) followed by the range of bases the genes is contained within and the strand the gene is located on (note that _start_ and _end_ positions are both *1-based* relative to the 5' end of the plus strand of the choromosome, even when the range is on the minus strand).
+This is the core `GRanges` element. Run the following code chunk to return this information using the function `granges()`
 
 ```{r granges}
 granges(genesGR)
@@ -172,89 +203,92 @@ If you want to use the `dplyr` functions on them, you will need to go through th
 mcols(genesGR)
 ```
 
-When we place this information into our `DGEList` object, some of those columns look a bit redundant, so let's just keep four of the most useful ones.
+Before we place this information into the `genes` element of our `DGEList` object we will remove columns that are redundant for our purposes today, and keep only the four most useful ones. We can achieve this by calling the `mcols()` function on our `GRanges` object. Firstly we use the square brackets to subset the `genesGR` object we created earlier, and then by using the assignment operator (<-) to overwrite this subsetted element back into the object.
 
 ```{r newMcols}
 mcols(genesGR) <- mcols(genesGR)[c("gene_id", "gene_name", "gene_biotype", "entrezid")]
 ```
 
 If we wish to add this to our `DGEList`, note that the order of genes will be completely different.
-To fix this, we just use the `rownames` of our `DGEList` to reorder the `genes` object.
-We can also just create the new element `$genes` by simply typing it & providing a value.
-`R` will not check that these two objects are compatible, so you have to be on your toes here.
+To fix this, we will use the `rownames` of our `DGEList` object to reorder the `genes` object.
+Taking the time to ensure that the two gene lists are in the same order is important because `R` will give no warning or error to inform us if the two gene lists are in different orders. `R` will not check that these two objects are compatible.
 
 ```{r addGenes}
-dgeList$genes <- genesGR[rownames(dgeList),]
+dgeList$genes <- genesGR[genesGR$gene_id %in% rownames(dgeList),]
 ```
 
-Now when we subset our `DGEList` by gene, the `genes` element will also be subset accordingly and the initial relationships will be maintained.
+Here we have used square brackets `[]` to subset and reorder the `genesGR` object such that it now only contains the genes in our `dgeList` object, and in the same order.
+
+Now when we subset our `DGEList` by gene, the `genes` element will also be subset accordingly and the initial relationships will be maintained. Take a moment to inspect the first four elements of our `dgeList` object by running the code chunk below.
 
 ```{r dge1to4}
 dgeList[1:4,]
 ```
 
+You will notice that the `degList$genes` element is now populated with the information from `annotationHub` we downloaded earlier, and that `dgeList$counts` and `degList$genes` are in the same order.
 
 ## Data QC
 
 ### Undetectable genes
 
-As you may have noticed, no reads aligned to the 4th gene in this dataset so we should really remove it from the data.
-There are probably many more genes in this boat too.
-Let's do a logical test to see how many genes were not detected in our dataset.
-First we'll add up the total counts for every gene and see how many received at least one count.
+You may have noticed that no reads aligned to a number of the genes contained in this dataset. As common practice we remove genes with zero counts across all samples before we continue with our initial data exploration.
+Rather than inspect our data one line at a time looking for zeros we can use `R` to perform a logical test to see how many genes were not detected in our dataset.
+First we'll add up the total counts for every gene and see how many received at least one count. In the following code chunk we will take the `counts` element from our `DGEList` object and pipe it into the function `rowSums()` which will output a named number vector with a single value (the sum of each gene) for each gene. This vector is in turn piped into another function `is_greater_than()` which will ask the logical question _is the value greater than the given value_, with the given value being $0$. We then pipe the *TRUE*/*FALSE* answers to this logical question into `table` which will provide us with a simple two number summary.
 
 ```{r checkZeroes}
 dgeList$counts %>% 
     rowSums() %>%
     is_greater_than(0) %>%
-    table()
+    table
 ```
 
-Clearly, a good proportion of our genes were not expressed in our original samples.
-A common approach would be to remove undetectable genes using some metric, such as *Counts per Million reads*, known as `cpm`.
-We could consider a gene detectable if returning more than 1CPM in every sample from one of the treatment groups.
-Although our dataset is small (all libraries are < 1e6 reads), we usually deal with libraries between 20-30million reads, and this would equate to 20-30 reads aligning to a gene, in every sample from a treatment group.
-Here our smallest group is 3 so let's see what would happen if we applied that filter.
+Any genes that fail our test (ie the sum of which are not greater than zero) will be counted in the *FALSE* column, and any genes that pass our test (ie the sum of which is greater than zero) will be counted in the *TRUE* column.
+We can see that a proportion of genes were not expressed or were _undetectable_ in our original samples.
+A common approach would be to remove undetectable genes using some metric, such as *Counts per Million reads*, also known as `CPM`.
+We could consider a gene detectable if returning more than 1CPM, in every sample, from one (usually the smaller), of the treatment groups.
 
-First we'll calculate the `cpm` for each gene in each sample, and then we'll apply a logical test to each value checking whether it's greater than 1.
-Next, we'll add these up for each gene (i.e. row) and this will give us the total number of samples for each gene, that passed our criteria of $cpm > 1$.
-Finally, we'll check for genes which passed our criteria in more than 3 samples, as our smallest group is 3. 
-We could also have used `is_weakly_greater_than()` which would test for equality ($\geq$) instead of strictly greater than ($>$).
+Although our dataset is small (6/8 libraries are < 1e6 reads), we usually deal with libraries between 20-30million reads. In the context of the more usual library size a CPM of 1 equates to 20-30 reads aligning to a gene, which we test in every sample from a treatment group.
+Here our smallest group is 4 so let's see what would happen if we applied the filter of > 1CPM in 4 samples.
+
+First we'll calculate the `CPM` for each gene in each sample, and then we'll apply a logical test to each value checking whether it's greater than 1.
+Next, we'll add these up for each gene (i.e. row) and this will give us the total number of samples for each gene, that passed our criteria of $CPM > 1$.
+Finally, we'll check for genes which passed our criteria in more than 4 samples, as our smallest group is 4. 
+We could also have used the function `is_weakly_greater_than()` which would test for equality ($\geq$) instead of strictly greater than ($>$).
 
 ```{r checkFiltering}
 dgeList %>%
     cpm() %>%
     is_greater_than(1) %>%
     rowSums() %>%
-    is_greater_than(3) %>%
+    is_greater_than(4) %>%
     table()
 ```
 
 Losing about 1/3 of the genes is pretty common, so let's now apply that to our dataset.
 The object `genes2keep` below will be a `logical` vector deciding on whether we keep the gene for downstream analysis, based purely on whether we consider the gene to be detectable.
-We'll create a new `DGEList` object by subsetting our primary one.
-This way if we change our mind about our filtering strategy, we don't have to rerun all the code above.
+We'll create a new `DGEList` object by subsetting our primary one using the `[]` trick we learned earlier.
+We are creating a new object here so that if we change our mind about our filtering strategy, we don't have to rerun all the code above.
 
 ```{r dgeFilt}
 genes2keep <- dgeList %>%
     cpm() %>%
     is_greater_than(1) %>%
     rowSums() %>%
-    is_greater_than(3)
-dgeFilt <- dgeList[genes2keep,] %>% calcNormFactors()
+    is_greater_than(4)
+
+dgeList_Filtered <- dgeList[genes2keep,] %>% calcNormFactors()
 ```
 
-Let's compare the distributions of the two datasets, using cpm on the log2 scale.
-In the following the command `par(mfrow = c(1,2))` is a base graphics approach and sets the plotting `par`ameters to be a `m`ulti=`f`eature layout, with 1 row and 2 columns.
-We've done this because the convenient function `plotDensities()` uses base graphics not `ggplot2`.
-It's nowhere near as pretty.
+Let's compare the distributions of the two datasets (cbc and skm), using CPM on the log2 scale.
+In the following, the command `par(mfrow = c(1,2))` is a base graphics approach and sets the plotting `par`ameters to be a `m`ulti=`f`eature layout, with 1 row and 2 columns.
+We set these paramaters because the convenient function `plotDensities()` we are calling below uses base graphics, not `ggplot2`.
 
 ```{r plotCPM, fig.cap="Comparison of logCPM distributions before and after filtering for undetectable genes. Values o the x-axis represent logCPM"}
 par(mfrow = c(1,2))
 dgeList %>%
     cpm(log = TRUE) %>%
     plotDensities(legend = FALSE, main = "A. Before Filtering")
-dgeFilt %>%
+dgeList_Filtered %>%
     cpm(log = TRUE) %>%
     plotDensities(legend = FALSE, main = "B. After Filtering")
 par(mfrow = c(1,1))
@@ -263,32 +297,79 @@ par(mfrow = c(1,1))
 Note the peak at the left in the first plot around zero.
 This is all of the genes with near-zero counts.
 Then note that this peak is missing the second plot, confirming that we have removed most of the undetectable genes.
+Ideally we would like to see that the peak around zero has been removed after filtering, and that the samples all have approximately the same distribution of counts. Keeping in mind that we have significantly subset our original `fastq` data during alignment earlier such that we only have genes from mouse chromosome 1.
 
 ### Library Sizes
 
 Next we should check our library sizes.
-It does appear that these being prepared on different days has given one of our groups more reads.
+It does appear that the two tissue types have a different profile of reads. There could be a number of reasons for seeing differences between groups including sequencing batch effects, differences in the RNA quality from different tissues or extractions, or lab operations being performed by different staff.
 This is not ideal but most modelling approaches will be able to handle this.
 
 ```{r plotLibSizes, fig.cap = "Library Sizes after filtering for undetectable genes."}
-dgeFilt$samples %>%
+dgeList_Filtered$samples %>%
     ggplot(aes(group, lib.size, fill = group)) +
     geom_boxplot() +
     scale_y_continuous(labels = comma) +
-    labs(x = "Timepoint", y = "Library Size") +
+    labs(x = "Tissue Type", y = "Library Size") +
     theme_bw() 
 ```
 
 We've used he function `comma` from the `scales` package here to help us interpret the y-axis.
-For most vertebrate datasets, you'd expect >20million reads, but as we've given you a significantly reduced dataset, these numbers are pretty acceptable.
+For most vertebrate datasets we expect libraries of >20million reads, but as we've given you a significantly reduced dataset, these numbers are pretty acceptable.
 
-### PCA
+### Unsupervised clustering of samples
+
+One of the first steps in exploring our gene expression data is that of unsupervised clustering in the form of a multi-dimensional scaling plot (MDS), Principal Component Analysis (PCA) or similar. By _unsupervised_ here we mean to say that we haven't _told_ `R` how many groups we are expecting to see, or given any information about which samples we expect to see clustering closely together. Visually inspecting the data in this way allows us to start to understand the extent to which any differential expression can be detected before we have performed any statistical tests. It may also help us to identify any outliers in our samples, or perhaps a factor we haven't yet considered that should be included when fitting our model later.
+
+#### Multi-dimensional Scaling Plot (MDS)
+
+An important first exploration of our sequencing data is the MDS plot.
+
+The `plotMDS()` function from the `limma` package creates a temporary log fold change between pairs and plots samples on a two-dimensional scatterplot so that distances on the plot approximate the typical $log_2$ fold changes between the samples.
+
+Here we see that the Leading logFC on dimension 1 seperates the samples by batch indicating the need for batch correction.
+```{r mds}
+
+temp <- plotMDS(cpm(dgeList_Filtered, log = TRUE))
+title(main = "Multi Dimensional Scaling Plot \nMouse Chromosome 1")
+
+```
+
+We can use the `plotMDS()` function directly to create an MDS plot as we did above, or assign the data created to an object that we can pipe into ggplot for a presentation ready figure.
+
+```{r mdsObject}
+mds <- dgeList_Filtered %>%
+  cpm(log = TRUE) %>%
+  plotMDS()
+```
+
+The following chunk wraps the plotting of our MDS plot inside `plotly::ggplotly()` which takes a `ggplot` object and makes it interactive.
+You may notice that `label` was included as a plotting aesthetic, but no labels were added as a layer in ggplot2.
+These will instead be added once the plot is made interactive (try hovering the mouse over one of the points on the plot to see what we mean by _interactive_).
+Interactive plots will only be interactive in the *Viewer* tab or when compiling an RMarkdown document to an html format, and will remain static if rendering to an MS Word document or pdf.
+
+```{r plotMDS, fig.cap = "MDS showing two clear groups in the data", results='asis'}
+plotly::ggplotly(
+  as.data.frame(cbind(dim1=mds$x,dim2= mds$y)) %>%
+        rownames_to_column("sample") %>%
+        as_tibble() %>%
+        left_join(rownames_to_column(dgeList_Filtered$samples, "sample")) %>%
+        ggplot(aes(dim1, dim2, colour = group, label = sample)) +
+        geom_point(size = 3) +
+        theme_bw()
+)
+```
+
+#### PCA
 
 Next we might choose to perform a Principal Component Analysis on our data, commonly abbreviated to PCA.
 This time, let's take our CPM values & asses them on the log2 scale to make sure our PCA results are not heavily skewed by highly expressed genes.
+Our first step is to create a new object to hold the PCA results. In the following code chunk we take our filtered DGEList obeject `dgeList_Filtered` and pipe it to the `cpm()` function we used earlier to calculate the CPM values for each gene prior to setting the filtering threshold. We have made one small change here by including $log - TRUE$ in the function call. By default this is $log_2$. Next we pipe the $log2$CPM values into the `t()` function. This will _transpose_ the matrix of counts such that the matrix now has genes in the columns and samples in the rows, which we then pipe into `prcomp` from the `stats` package. `prcomp()` returns a list with class "prcomp" containing a number of useful components.
+
+To find out more about `prcomp` try typing `help("prcomp")` into the console. This will open the R Documentation for this function in the `Help` tab.
 
 ```{r pca}
-pca <- dgeFilt %>%
+pca <- dgeList_Filtered %>%
     cpm(log = TRUE) %>%
     t() %>%
     prcomp() 
@@ -297,19 +378,16 @@ pca <- dgeFilt %>%
 In our DGEList, we have the genes as the variables of interest for our main analysis, however for the PCA we're looking at out samples as the variables of interest.
 The third line in the above code chunk has transposed (`t()`) the matrix returned by `cpm(log = TRUE)` to place the samples as the rows, which is where the function `prcomp()` expects to see the variables of interest.
 
-A quick inspection of the results shows that the first two components capture most of the variability, as expected.
+Run the next code chunk for a quick inspection of the results shows that the first two components capture most of the variability, as expected.
 Beyond this observation, the details of PCA are beyond what we can cover here.
 
 ```{r summaryPca, results='asis'}
-summary(pca)$importance %>% pander(split.tables = Inf)
+summary(pca)$importance %>%
+  pander(split.tables = Inf)
 ```
 
-We can also plot our results to see if samples group clearly with the treatment group based on our main two principal components.
-Any clear separation can be considered a positive sign that we will find differentially expressed genes.
-The following chunk wraps the plotting inside `plotly::ggplotly()` which takes a `ggplot` object and makes it interactive.
-You may notice that `label` was included as a plotting aesthetic, but no labels were added as a layer in ggplot2.
-These will instead be added once the plot is made interactive.
-Interactive plots will only be interactive when compiling an RMarkdown document to an html format, and will remain static if rendering to an MS Word document or pdf.
+Just as we did with the MDS plot, we can plot our PCA results to see if samples group clearly with their tissue type based on our main two principal components (ie PC1 and PC2).
+Much the same as the MDS plot, any clear separation of our groups of interest can be considered a positive sign that we will find differentially expressed genes.
 
 ```{r plotPCA, fig.cap = "PCA showing two clear groups in the data", results='asis'}
 plotly::ggplotly(
@@ -318,17 +396,16 @@ plotly::ggplotly(
         rownames_to_column("sample") %>%
         as_tibble() %>%
         dplyr::select(sample, PC1, PC2) %>%
-        left_join(rownames_to_column(dgeFilt$samples, "sample")) %>%
+        left_join(rownames_to_column(dgeList_Filtered$samples, "sample")) %>%
         ggplot(aes(PC1, PC2, colour = group, label = sample)) +
         geom_point(size = 3) +
         theme_bw()
 )
 ```
 
-In many workflows you may see the function `plotMDS()` which produces a similar plot to the above.
-Multi-Dimensional Scaling can look similar to PCA, but asks a slightly different question of the data.
-Usually results found under both methods will reveal similar patterns in your data.
-`plotMDS()` doesn't quite give you as pretty a picture as the above either.
+Multi-Dimensional Scaling can look similar to PCA, but asks a slightly different question of the data. For a great tutorial on multi-dimensional scaling check out _"StatQuest: MDS and PCoA"_ at https://youtu.be/GEn-_dAyYME, and a companion vidoe about PCA titled _"StatQuest: Principal Component Analysis (PCA), Step-by-Step"_ at https://youtu.be/FgakZw6K1QQ.
+
+It is common to perform one or both of these analyses before starting a differential expression analysis but rest assured that _usually_ results found under both methods will reveal similar patterns in your data.
 
 ## Differential Expression
 

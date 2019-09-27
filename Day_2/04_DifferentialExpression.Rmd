@@ -410,15 +410,20 @@ plotly::ggplotly(
 )
 ```
 
-Multi-Dimensional Scaling can look similar to PCA, but asks a slightly different question of the data. For a great tutorial on multi-dimensional scaling check out _"StatQuest: MDS and PCoA"_ at https://youtu.be/GEn-_dAyYME, and a companion vidoe about PCA titled _"StatQuest: Principal Component Analysis (PCA), Step-by-Step"_ at https://youtu.be/FgakZw6K1QQ.
+Multi-Dimensional Scaling can look similar to PCA, but asks a slightly different question of the data. PCA creates plots based on _correlations between samples_, MDS creates plots based on _distances between samples_ (here logFC between genes). Both methods return the results:
+1. Coordinates for a graph
+2. Percent of variation each axis accounts for
+3. Loading scores (to determine which variables have the largest effect)
 
 It is common to perform one or both of these analyses before starting a differential expression analysis but rest assured that _usually_ results found under both methods will reveal similar patterns in your data.
+
+For a great tutorial on multi-dimensional scaling check out _"StatQuest: MDS and PCoA"_ at https://youtu.be/GEn-_dAyYME, and a companion vidoe about PCA titled _"StatQuest: Principal Component Analysis (PCA), Step-by-Step"_ at https://youtu.be/FgakZw6K1QQ.
 
 #### Tasks
 {:.no_toc}
 
 1. *How much variation is accounted for in PC1 and PC2 combined?*
-2. *Using the code chunk aboive as a template, plot PC3 and PC4 to investigate other sources of variation.*
+2. *Using the code chunk above as a template, plot PC3 and PC4 to investigate other sources of variation.*
 
 ## Differential Expression
 

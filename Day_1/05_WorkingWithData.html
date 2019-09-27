@@ -377,6 +377,7 @@ summary {
 <li><a href="#introducing-dplyr">Introducing <code>dplyr</code></a></li>
 <li><a href="#combining-functions">Combining functions</a></li>
 </ul></li>
+<li><a href="#incorporating-data-manipulation-with-plots">Incorporating Data Manipulation With Plots</a></li>
 </ul>
 </div>
 
@@ -397,7 +398,7 @@ summary {
 <ol style="list-style-type: decimal">
 <li>Only the first few rows are displayed when you type the object name. A <code>data.frame</code> will dump the entire contents into your R Console if you just type it’s name</li>
 <li>Only the first few columns are displayed, with a summary of the remaining columns given. Once again, a <code>data.frame</code> will dump it’s entire contents into your R Console</li>
-<li>The type of value contaned in each column is shown</li>
+<li>The type of value contained in each column is shown</li>
 <li>The dimensions of the object are shown</li>
 </ol>
 <p>Beyond this, they are essentially identical structures and a <code>tibble</code> can just be thought of as a <code>data.frame</code> with nice wrapping paper around it. Sometimes, you will hear <code>tibble</code> objects referred to as <code>data.frame</code> objects as this is their basic class, so hopefully this won’t cause any confusion.</p>
@@ -415,7 +416,7 @@ summary {
 <pre class="r"><code>library(dplyr)</code></pre>
 <div id="using-select-to-select-columns" class="section level4">
 <h4>Using <code>select()</code> to select columns</h4>
-<p>Whilst we have already seen how to select columns using conventional strategies, <code>dplyr</code> introduces a new function <code>select()</code> which enables you to select columns. The strategy here is to pass our <code>tibble</code>/<code>data.frame</code> as the first argument to the function, and then to just list any columns we wish returned. Column names can be quoted, or given that they are columns within the data frame we’re working with, they can also be unquoted. We also no longer need to use the <code>c()</code> fnction to combine our column names.</p>
+<p>Whilst we have already seen how to select columns using conventional strategies, <code>dplyr</code> introduces a new function <code>select()</code> which enables you to select columns. The strategy here is to pass our <code>tibble</code>/<code>data.frame</code> as the first argument to the function, and then to just list any columns we wish returned. Column names can be quoted, or given that they are columns within the data frame we’re working with, they can also be unquoted. We also no longer need to use the <code>c()</code> function to combine our column names.</p>
 <pre class="r"><code>select(DGE_Results, GeneID, logFC)</code></pre>
 <p>This may seem pretty simple, but given the helper functions which <code>dplyr</code> brings with it, becomes extremely powerful. Common helper functions are: <code>contains()</code>, <code>starts_with()</code>, <code>ends_with()</code>, <code>one_of()</code> and <code>everything()</code>.</p>
 <p>An example of this may be just to extract the <code>logFC</code> and <code>logCPM</code> columns.</p>
@@ -435,7 +436,7 @@ summary {
 </div>
 <div id="using-filter-to-subset-our-results" class="section level4">
 <h4>Using <code>filter()</code> to subset our results</h4>
-<p>Yet another commonstrategy in Excel is to use the auto-filter to restrict the values shown to those matching a given criteria. We can do this using the <code>filter()</code> function, which behaves similarly to the previous ones we’ve seen, but this time we need to perform a logical test on our column(s) of interest. Let’s just get the most highly expressed genes:</p>
+<p>Yet another common strategy in Excel is to use the auto-filter to restrict the values shown to those matching a given criteria. We can do this using the <code>filter()</code> function, which behaves similarly to the previous ones we’ve seen, but this time we need to perform a logical test on our column(s) of interest. Let’s just get the most highly expressed genes:</p>
 <pre class="r"><code>filter(DGE_Results, logCPM &gt; 10)</code></pre>
 <p>We could also return those beyond a given logFC threshold, using the <code>abs()</code> function to filter based on absolute values (<em>i.e.</em> where the <span class="math inline">\(\pm\)</span> sign is ignored).</p>
 <pre class="r"><code>filter(DGE_Results, abs(logFC) &gt; 5)</code></pre>
@@ -454,7 +455,7 @@ summary {
 <p>In the following code, we’re adding a new column called <code>Sig</code> and adding a logical (or boolean) value based in the gene matching a combined criteria of an FDR-adjusted p-value &lt; 0.01, and logFC beyond the range <span class="math inline">\(\pm1\)</span></p>
 <pre class="r"><code>mutate(DGE_Results, Sig = FDR &lt; 0.01 &amp; abs(logFC) &gt; 1)</code></pre>
 <p>Again, we haven’t yet overwritten our original object. We’ve just passed it to the function <code>mutate()</code> which has returned another <code>tibble</code>, but this time with one additional column.</p>
-<p>We can also create more than one column using this strategy, by combining our process with the function <code>case_when()</code>. Note that for better ‘readibility’, we’re going to stagger our code over multiple lines here. When doing this indenting becomes very useful, and the shortcut <code>&lt;kbd&gt;Ctrl&lt;/kbd&gt; + I</code> will do this for you.</p>
+<p>We can also create more than one column using this strategy, by combining our process with the function <code>case_when()</code>. Note that for better ‘readability’, we’re going to stagger our code over multiple lines here. When doing this indenting becomes very useful, and the shortcut <code>&lt;kbd&gt;Ctrl&lt;/kbd&gt; + I</code> will do this for you.</p>
 <pre class="r"><code>mutate(
     DGE_Results,
     Sig = FDR &lt; 0.01 &amp; abs(logFC) &gt; 1,
@@ -468,7 +469,7 @@ summary {
 </div>
 <div id="combining-functions" class="section level3">
 <h3>Combining functions</h3>
-<p>In the above, we introduced our key functions from <code>dplyr</code> and have already started to perform a few relatively complex operations in a fairly intuitive manner. We also made a point of mentioning that every one of the above functions takes a <code>tibble</code> (or <code>data.frame</code>) as input &amp; returns the same. This makes it very easy to chain together multiple operations and produce a series of simple steps to get our data in the form we need it to be. There is an additional function from the package <code>magrittr</code> which is imported by <code>dplyr</code>. For those of you familiar with the pipe sumbol in bash, this is R’s equivalent operator. In short, the <code>%&gt;%</code> function takes the output of one command, and ‘pipes’ it into the next command, strictly in the first position. By way of example.</p>
+<p>In the above, we introduced our key functions from <code>dplyr</code> and have already started to perform a few relatively complex operations in a fairly intuitive manner. We also made a point of mentioning that every one of the above functions takes a <code>tibble</code> (or <code>data.frame</code>) as input &amp; returns the same. This makes it very easy to chain together multiple operations and produce a series of simple steps to get our data in the form we need it to be. There is an additional function from the package <code>magrittr</code> which is imported by <code>dplyr</code>. For those of you familiar with the pipe symbol in bash, this is R’s equivalent operator. In short, the <code>%&gt;%</code> function takes the output of one command, and ‘pipes’ it into the next command, strictly in the first position. By way of example.</p>
 <pre class="r"><code>filter(DGE_Results, abs(logFC) &gt; 5)</code></pre>
 <p>Is identical to</p>
 <pre class="r"><code>DGE_Results %&gt;% filter(abs(logFC) &gt; 5)</code></pre>
@@ -476,7 +477,7 @@ summary {
 <pre class="r"><code>DGE_Results %&gt;% 
     filter(abs(logFC) &gt; 5)</code></pre>
 <p>(Note the indenting)</p>
-<p>Now we can chain together multiple operations by placing this after every function call. To get a list of our top 10 upregulated genes we could do the following. First we’ll filter based on an FDR &lt; 0.01, then we’ll restrict to the genes with logFC &gt; 0. The we’re sorting by PValue, just to make sure the data is arranged how we think it is. Next, we’ll remove the column <code>PValue</code> as it doesn’t really add much useful information here. Note that we can do this by simply placing a <code>-</code> symbol before the column name. Finally, we’ll use slice to retrn the first 10 values</p>
+<p>Now we can chain together multiple operations by placing this after every function call. To get a list of our top 10 up-regulated genes we could do the following. First we’ll filter based on an FDR &lt; 0.01, then we’ll restrict to the genes with logFC &gt; 0. The we’re sorting by PValue, just to make sure the data is arranged how we think it is. Next, we’ll remove the column <code>PValue</code> as it doesn’t really add much useful information here. Note that we can do this by simply placing a <code>-</code> symbol before the column name. Finally, we’ll use slice to return the first 10 values</p>
 <pre class="r"><code>DGE_Results %&gt;%
     filter(FDR &lt; 0.01 &amp; logFC &gt; 0) %&gt;%
     arrange(PValue) %&gt;%
@@ -489,11 +490,69 @@ summary {
     select(-PValue) %&gt;%
     slice(1:10) %&gt;%
     pander(
-        caption = &quot;Top 10 upregulated genes&quot;,
+        caption = &quot;Top 10 up-regulated genes&quot;,
         justify = &quot;lrrr&quot;
     )</code></pre>
-<p>As you can see, this now enables a large variety of data manipulations to be performed, in a manner which is both intuitive to write, and relatively easy to read back. Much of the syntax for <code>dplyr</code> is based on SQL syntax, where a spreadsheet-type structure is referred to as a table. This is actually how the name <code>tibble</code> came about. They were originally called <code>tbl_df</code> objects to reflect that they mirror an SQL table but ar also a <code>data.frame</code>. Over the years this became pronounced then formalised into <code>tibble</code>.</p>
+<p>As you can see, this now enables a large variety of data manipulations to be performed, in a manner which is both intuitive to write, and relatively easy to read back. Much of the syntax for <code>dplyr</code> is based on SQL syntax, where a spreadsheet-type structure is referred to as a table. This is actually how the name <code>tibble</code> came about. They were originally called <code>tbl_df</code> objects to reflect that they mirror an SQL table but are also a <code>data.frame</code>. Over the years this became pronounced then formalised into <code>tibble</code>.</p>
+<p><strong>Repeat the above but for down-regulated genes</strong></p>
 </div>
+</div>
+<div id="incorporating-data-manipulation-with-plots" class="section level2">
+<h2>Incorporating Data Manipulation With Plots</h2>
+<p>Now we’ve learned how to add useful information to our <code>DGE_Results</code> object, this opens up a few useful ways to enhance our plots. A good strategy may be to indicate which genes are considered to be differentially-expressed on our MD plot. Our previous strategy of adding the column <code>Sig</code> would be a good approach here. Once we’ve done this, we can use this to plot our DE genes in a different colour. Again, we just need to specify colour as a plotting aesthetic.</p>
+<pre class="r"><code>DGE_Results %&gt;%
+    mutate(Sig = FDR &lt; 0.01 &amp; abs(logFC) &gt; 1) %&gt;%
+    ggplot(aes(x = logCPM, y = logFC, colour = Sig)) +
+    geom_point() +
+    geom_hline(yintercept = c(-1, 1), colour = &quot;blue&quot;, linetype = 2) +
+    labs(x = &quot;Average Expression (logCPM)&quot;) +
+    theme_bw() </code></pre>
+<p>By default <code>ggplot2</code> will assign a two colour category the two colours you see. This may not be what we’re after, so to change these colours, we use another <code>ggplot2</code> function <code>scale_colour_manual()</code>, which we add as an additional layer. We can add this layer anywhere we choose, but a good strategy is to put any scale parameters between our geometry and theme layers.</p>
+<pre class="r"><code>DGE_Results %&gt;%
+    mutate(Sig = FDR &lt; 0.01 &amp; abs(logFC) &gt; 1) %&gt;%
+    ggplot(aes(x = logCPM, y = logFC, colour = Sig)) +
+    geom_point() +
+    geom_hline(yintercept = c(-1, 1), colour = &quot;blue&quot;, linetype = 2) +
+    scale_colour_manual(values = c(&quot;grey40&quot;, &quot;red&quot;)) +
+    labs(x = &quot;Average Expression (logCPM)&quot;) +
+    theme_bw() </code></pre>
+<p>This isn’t a really informative legend, so if we wish to hide this we could use one of two approaches. We can turn this off using a <code>guides()</code> layer.</p>
+<pre class="r"><code>DGE_Results %&gt;%
+    mutate(Sig = FDR &lt; 0.01 &amp; abs(logFC) &gt; 1) %&gt;%
+    ggplot(aes(x = logCPM, y = logFC, colour = Sig)) +
+    geom_point() +
+    geom_hline(yintercept = c(-1, 1), colour = &quot;blue&quot;, linetype = 2) +
+    scale_colour_manual(values = c(&quot;grey40&quot;, &quot;red&quot;)) +
+    guides(colour = FALSE) +
+    labs(x = &quot;Average Expression (logCPM)&quot;) +
+    theme_bw() </code></pre>
+<p>Or we can turn this off by adding a new <code>theme()</code> layer. The previous method is useful if we only wish to hide specific aesthetics, while the <code>theme()</code> approach can be used to hide all legends.</p>
+<pre class="r"><code>DGE_Results %&gt;%
+    mutate(Sig = FDR &lt; 0.01 &amp; abs(logFC) &gt; 1) %&gt;%
+    ggplot(aes(x = logCPM, y = logFC, colour = Sig)) +
+    geom_point() +
+    geom_hline(yintercept = c(-1, 1), colour = &quot;blue&quot;, linetype = 2) +
+    scale_colour_manual(values = c(&quot;grey40&quot;, &quot;red&quot;)) +
+    labs(x = &quot;Average Expression (logCPM)&quot;) +
+    theme_bw() +
+    theme(legend.position = &quot;none&quot;)</code></pre>
+<p>This latter approach can also be used to place the legend in alternative positions. Options can be <code>legend.position = &quot;bottom&quot;</code>, or <code>&quot;right&quot;</code>, <code>&quot;left&quot;</code> or <code>&quot;top&quot;</code>.</p>
+<p>We could take this idea even further for our volcano plot, where we could colour up and down regulated genes separately.</p>
+<pre class="r"><code>DGE_Results %&gt;%
+    mutate(
+        Sig = FDR &lt; 0.01 &amp; abs(logFC) &gt; 1,
+        Direction = case_when(
+            Sig &amp; logFC &gt; 0 ~ &quot;Up&quot;,
+            Sig &amp; logFC &lt; 0 ~ &quot;Down&quot;,
+            !Sig ~ &quot;Unchanged&quot;
+        )
+    ) %&gt;%
+    ggplot(aes(logFC, -log10(PValue), colour = Direction)) +
+    geom_point() +
+    scale_colour_manual(values = c(&quot;blue&quot;, &quot;grey&quot;, &quot;red&quot;)) +
+    labs(y = &quot;-log10(p)&quot;) +
+    theme_bw()</code></pre>
+<p>The next step might be to add gene names, so let’s move to the next section.</p>
 </div>
 
 

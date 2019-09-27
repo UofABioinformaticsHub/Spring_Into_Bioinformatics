@@ -13,8 +13,8 @@ knitr::opts_chunk$set(
     echo = TRUE,
     message = FALSE,
     warning = FALSE,
-    fig.align = "center",
-    results = "hide"
+    results = "hide",
+    fig.show = "hide"
 )
 if (interactive()) setwd(here::here("Day_1"))
 ```
@@ -49,7 +49,7 @@ Other features which make tibble objects a slightly more convenient version of a
 
 1. Only the first few rows are displayed when you type the object name. A `data.frame` will dump the entire contents into your R Console if you just type it's name
 2. Only the first few columns are displayed, with a summary of the remaining columns given. Once again, a `data.frame` will dump it's entire contents into your R Console
-3. The type of value contaned in each column is shown
+3. The type of value contained in each column is shown
 4. The dimensions of the object are shown
 
 Beyond this, they are essentially identical structures and a `tibble` can just be thought of as a `data.frame` with nice wrapping paper around it.
@@ -98,7 +98,7 @@ library(dplyr)
 Whilst we have already seen how to select columns using conventional strategies, `dplyr` introduces a new function `select()` which enables you to select columns.
 The strategy here is to pass our `tibble`/`data.frame` as the first argument to the function, and then to just list any columns we wish returned.
 Column names can be quoted, or given that they are columns within the data frame we're working with, they can also be unquoted.
-We also no longer need to use the `c()` fnction to combine our column names.
+We also no longer need to use the `c()` function to combine our column names.
 
 ```{r}
 select(DGE_Results, GeneID, logFC)
@@ -145,7 +145,7 @@ Now the most highly expressed genes are the first ones shown.
 
 #### Using `filter()` to subset our results
 
-Yet another commonstrategy in Excel is to use the auto-filter to restrict the values shown to those matching a given criteria.
+Yet another common strategy in Excel is to use the auto-filter to restrict the values shown to those matching a given criteria.
 We can do this using the `filter()` function, which behaves similarly to the previous ones we've seen, but this time we need to perform a logical test on our column(s) of interest.
 Let's just get the most highly expressed genes:
 
@@ -194,7 +194,7 @@ Again, we haven't yet overwritten our original object.
 We've just passed it to the function `mutate()` which has returned another `tibble`, but this time with one additional column.
 
 We can also create more than one column using this strategy, by combining our process with the function `case_when()`.
-Note that for better 'readibility', we're going to stagger our code over multiple lines here.
+Note that for better 'readability', we're going to stagger our code over multiple lines here.
 When doing this indenting becomes very useful, and the shortcut `<kbd>Ctrl</kbd> + I` will do this for you. 
 
 ```{r}
@@ -216,7 +216,7 @@ In the above, we introduced our key functions from `dplyr` and have already star
 We also made a point of mentioning that every one of the above functions takes a `tibble` (or `data.frame`) as input & returns the same.
 This makes it very easy to chain together multiple operations and produce a series of simple steps to get our data in the form we need it to be.
 There is an additional function from the package `magrittr` which is imported by `dplyr`.
-For those of you familiar with the pipe sumbol in bash, this is R's equivalent operator.
+For those of you familiar with the pipe symbol in bash, this is R's equivalent operator.
 In short, the `%>%` function takes the output of one command, and 'pipes' it into the next command, strictly in the first position.
 By way of example.
 
@@ -240,12 +240,12 @@ DGE_Results %>%
 (Note the indenting)
 
 Now we can chain together multiple operations by placing this after every function call.
-To get a list of our top 10 upregulated genes we could do the following.
+To get a list of our top 10 up-regulated genes we could do the following.
 First we'll filter based on an FDR < 0.01, then we'll restrict to the genes with logFC > 0.
 The we're sorting by PValue, just to make sure the data is arranged how we think it is.
 Next, we'll remove the column `PValue` as it doesn't really add much useful information here.
 Note that we can do this by simply placing a `-` symbol before the column name.
-Finally, we'll use slice to retrn the first 10 values
+Finally, we'll use slice to return the first 10 values
 
 ```{r}
 DGE_Results %>%
@@ -266,7 +266,7 @@ DGE_Results %>%
     select(-PValue) %>%
     slice(1:10) %>%
     pander(
-        caption = "Top 10 upregulated genes",
+        caption = "Top 10 up-regulated genes",
         justify = "lrrr"
     )
 ```
@@ -274,7 +274,94 @@ DGE_Results %>%
 As you can see, this now enables a large variety of data manipulations to be performed, in a manner which is both intuitive to write, and relatively easy to read back.
 Much of the syntax for `dplyr` is based on SQL syntax, where a spreadsheet-type structure is referred to as a table.
 This is actually how the name `tibble` came about.
-They were originally called `tbl_df` objects to reflect that they mirror an SQL table but ar also a `data.frame`.
+They were originally called `tbl_df` objects to reflect that they mirror an SQL table but are also a `data.frame`.
 Over the years this became pronounced then formalised into `tibble`.
 
+**Repeat the above but for down-regulated genes**
 
+## Incorporating Data Manipulation With Plots
+
+Now we've learned how to add useful information to our `DGE_Results` object, this opens up a few useful ways to enhance our plots.
+A good strategy may be to indicate which genes are considered to be differentially-expressed on our MD plot.
+Our previous strategy of adding the column `Sig` would be a good approach here.
+Once we've done this, we can use this to plot our DE genes in a different colour.
+Again, we just need to specify colour as a plotting aesthetic.
+
+```{r}
+DGE_Results %>%
+    mutate(Sig = FDR < 0.01 & abs(logFC) > 1) %>%
+    ggplot(aes(x = logCPM, y = logFC, colour = Sig)) +
+    geom_point() +
+    geom_hline(yintercept = c(-1, 1), colour = "blue", linetype = 2) +
+    labs(x = "Average Expression (logCPM)") +
+    theme_bw() 
+```
+
+By default `ggplot2` will assign a two colour category the two colours you see.
+This may not be what we're after, so to change these colours, we use another `ggplot2` function `scale_colour_manual()`, which we add as an additional layer.
+We can add this layer anywhere we choose, but a good strategy is to put any scale parameters between our geometry and theme layers.
+
+```{r}
+DGE_Results %>%
+    mutate(Sig = FDR < 0.01 & abs(logFC) > 1) %>%
+    ggplot(aes(x = logCPM, y = logFC, colour = Sig)) +
+    geom_point() +
+    geom_hline(yintercept = c(-1, 1), colour = "blue", linetype = 2) +
+    scale_colour_manual(values = c("grey40", "red")) +
+    labs(x = "Average Expression (logCPM)") +
+    theme_bw() 
+```
+
+This isn't a really informative legend, so if we wish to hide this we could use one of two approaches.
+We can turn this off using a `guides()` layer.
+
+```{r}
+DGE_Results %>%
+    mutate(Sig = FDR < 0.01 & abs(logFC) > 1) %>%
+    ggplot(aes(x = logCPM, y = logFC, colour = Sig)) +
+    geom_point() +
+    geom_hline(yintercept = c(-1, 1), colour = "blue", linetype = 2) +
+    scale_colour_manual(values = c("grey40", "red")) +
+    guides(colour = FALSE) +
+    labs(x = "Average Expression (logCPM)") +
+    theme_bw() 
+```
+
+Or we can turn this off by adding a new `theme()` layer.
+The previous method is useful if we only wish to hide specific aesthetics, while the `theme()` approach can be used to hide all legends.
+
+```{r}
+DGE_Results %>%
+    mutate(Sig = FDR < 0.01 & abs(logFC) > 1) %>%
+    ggplot(aes(x = logCPM, y = logFC, colour = Sig)) +
+    geom_point() +
+    geom_hline(yintercept = c(-1, 1), colour = "blue", linetype = 2) +
+    scale_colour_manual(values = c("grey40", "red")) +
+    labs(x = "Average Expression (logCPM)") +
+    theme_bw() +
+    theme(legend.position = "none")
+```
+
+This latter approach can also be used to place the legend in alternative positions.
+Options can be `legend.position = "bottom"`, or `"right"`, `"left"` or `"top"`.
+
+We could take this idea even further for our volcano plot, where we could colour up and down regulated genes separately.
+
+```{r}
+DGE_Results %>%
+    mutate(
+        Sig = FDR < 0.01 & abs(logFC) > 1,
+        Direction = case_when(
+            Sig & logFC > 0 ~ "Up",
+            Sig & logFC < 0 ~ "Down",
+            !Sig ~ "Unchanged"
+        )
+    ) %>%
+    ggplot(aes(logFC, -log10(PValue), colour = Direction)) +
+    geom_point() +
+    scale_colour_manual(values = c("blue", "grey", "red")) +
+    labs(y = "-log10(p)") +
+    theme_bw()
+```
+
+The next step might be to add gene names, so let's move to the next section.

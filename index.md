@@ -41,7 +41,9 @@ Password for `UofA-Guest`:
 | ------- |:----- |:--------- |:---- |
 | 9:00 - 10:30 | [1. Introduction To RStudio](Day_1/01_IntroRStudio.html) |  | |
 |              | [2. Introduction To R Markdown](Day_1/02_IntroRMarkdown.html) | | |
-| 11:00 - 12:30 | [3. Importing Data](Day_1/03_DataImport.html)
+| 11:00 - 12:30 | [3. Importing Data](Day_1/03_DataImport.html) | | |
+|               | [4. Visualising Data](Day_1/04_VisualisingData.html) | | |
+| 1:30 - 3:00 | [5. Manipulating Data](Day_1/05_WorkingWithData.html) | | |
 
 
 # Day 2

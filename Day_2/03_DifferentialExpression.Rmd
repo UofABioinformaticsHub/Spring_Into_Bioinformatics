@@ -14,15 +14,8 @@ knitr::opts_chunk$set(
     fig.align = "center",
     results = "hide"
 )
-if (interactive()) setwd(here::here("Day_2"))
+# if (interactive()) setwd(here::here("Day_2"))
 ```
-
-
-
-```{r setup, echo = FALSE}
-knitr::opts_chunk$set(results = "hide", message = FALSE, warning = FALSE)
-```
-
 
 Now that we have our data in a nicely formatted file, we can move to `R` and follow a fairly standard workflow.
 Along the way, we'll come across a few useful packages, data structures and coding tricks which will be applicable in many other contexts.
@@ -32,6 +25,7 @@ We'll also add the `magrittr`,`pander` and `scales` packages as they contain som
 
 ```{r loadPackages}
 library(limma)
+library(Glimma)
 library(edgeR)
 library(AnnotationHub)
 library(tidyverse)
@@ -48,10 +42,8 @@ library(ggrepel)
 First we should import the file we've created using `featureCounts`.
 
 ```{r counts, eval=FALSE}
-
 file <- "../data/2_alignedData/featureCounts/counts.out"
 counts <- read_delim(file, comment = "#", delim = "\t")
-
 ```
 
 This file has the gene identifiers in the first column, followed by the chromosome number, start, end, strand and length information (recall that we have subset our data to only include mouse chromosome 1), with the remaining columns containing the name of the `bam` file and the number of reads aligning to each gene.
@@ -85,7 +77,7 @@ colnames(counts) <- sampleGroups$samplename
 ### Create a DGE List
 
 The main object type we like to use for differential gene expression is a `DGEList`, which stands for Digital Gene Expression List, and is an object used by _edgeR_ to store count data.
-This object is more complex than others we have looked at in `R` so far because it contains a number of _slots_ for storing not only our data, but also different paramaters *about* the data.
+This object is more complex than others we have looked at in `R` so far because it contains a number of _slots_ for storing not only our data, but also different paramaters _about_ the data.
 The `DGEList` objects have two mandatory elements, with the first being our counts data, and the second being our sample information.
 Recall that above we have made the gene IDs the row names and the sample IDs the column names.
 
@@ -119,7 +111,7 @@ dgeList$samples$group <- sampleGroups$group %>%
 
 Take another moment now to inspect the `samples` data frame again and you will now see what was previously a row of 1s is now populated with the appropriate tissue type.
 
-```{r samples}
+```{r samplesGroups}
 dgeList$samples
 ```
 
@@ -161,8 +153,8 @@ ah <- ah %>%
 We have now subset `ah` and removed most of the information we don't need (ie infromation related to other species and other data providors). The step is to ensure we are only using data from an appropriate release. `ah` currently contains data from release 87-92, which will be close enough to match the data we have generated so far (which was Ensembl 93).
 Ideally, these should be the same, but there is no EnsDb object for Ensembl 93.
 I'm sure one will be made available in the next release of Bioconductor.
-When we inspected `ah` above we saw that the latest release was *AH60992 | Ensembl 92 EnsDb for Mus Musculus*.
-Let's use this annotation record and define it as the object `ensDb`
+When we inspected `ah` above we saw that the latest release was **AH60992 | Ensembl 92 EnsDb for Mus Musculus**.
+Today we will use this annotation record and define it as the object `ensDb`
 
 ```{r ensDb}
 ensDb <- ah[["AH60992"]]
@@ -179,7 +171,7 @@ genesGR <- genes(ensDb) %>%
 ```
 
 This object is a `GenomicRanges` (or `GRanges`) object and these are the bread & butter of genomic analysis in R. 
-We could spend hours just looking at these, but the main point is that on the right of the gene IDs we have the chromosome (`seqnames`) followed by the range of bases the genes is contained within and the strand the gene is located on (note that _start_ and _end_ positions are both *1-based* relative to the 5' end of the plus strand of the choromosome, even when the range is on the minus strand).
+We could spend hours just looking at these, but the main point is that on the right of the gene IDs we have the chromosome (`seqnames`) followed by the range of bases the genes is contained within and the strand the gene is located on (note that _start_ and _end_ positions are both **1-based** relative to the 5' end of the plus strand of the choromosome, even when the range is on the minus strand).
 This is the core `GRanges` element. Run the following code chunk to return this information using the function `granges()`
 
 ```{r granges}
@@ -233,7 +225,7 @@ You will notice that the `degList$genes` element is now populated with the infor
 
 You may have noticed that no reads aligned to a number of the genes contained in this dataset. As common practice we remove genes with zero counts across all samples before we continue with our initial data exploration.
 Rather than inspect our data one line at a time looking for zeros we can use `R` to perform a logical test to see how many genes were not detected in our dataset.
-First we'll add up the total counts for every gene and see how many received at least one count. In the following code chunk we will take the `counts` element from our `DGEList` object and pipe it into the function `rowSums()` which will output a named number vector with a single value (the sum of each gene) for each gene. This vector is in turn piped into another function `is_greater_than()` which will ask the logical question _is the value greater than the given value_, with the given value being $0$. We then pipe the *TRUE*/*FALSE* answers to this logical question into `table` which will provide us with a simple two number summary.
+First we'll add up the total counts for every gene and see how many received at least one count. In the following code chunk we will take the `counts` element from our `DGEList` object and pipe it into the function `rowSums()` which will output a named number vector with a single value (the sum of each gene) for each gene. This vector is in turn piped into another function `is_greater_than()` which will ask the logical question _is the value greater than the given value_, with the given value being $0$. We then pipe the **TRUE**/**FALSE** answers to this logical question into `table` which will provide us with a simple two number summary.
 
 ```{r checkZeroes}
 dgeList$counts %>% 
@@ -242,9 +234,9 @@ dgeList$counts %>%
     table
 ```
 
-Any genes that fail our test (ie the sum of which are not greater than zero) will be counted in the *FALSE* column, and any genes that pass our test (ie the sum of which is greater than zero) will be counted in the *TRUE* column.
+Any genes that fail our test (ie the sum of which are not greater than zero) will be counted in the **FALSE** column, and any genes that pass our test (ie the sum of which is greater than zero) will be counted in the **TRUE** column.
 We can see that a proportion of genes were not expressed or were _undetectable_ in our original samples.
-A common approach would be to remove undetectable genes using some metric, such as *Counts per Million reads*, also known as `CPM`.
+A common approach would be to remove undetectable genes using some metric, such as **Counts per Million reads**, also known as `CPM`.
 We could consider a gene detectable if returning more than 1CPM, in every sample, from one (usually the smaller), of the treatment groups.
 
 Although our dataset is small (6/8 libraries are < 1e6 reads), we usually deal with libraries between 20-30million reads. In the context of the more usual library size a CPM of 1 equates to 20-30 reads aligning to a gene, which we test in every sample from a treatment group.
@@ -328,11 +320,10 @@ An important first exploration of our sequencing data is the MDS plot.
 The `plotMDS()` function from the `limma` package creates a temporary log fold change between pairs and plots samples on a two-dimensional scatterplot so that distances on the plot approximate the typical $log_2$ fold changes between the samples.
 
 Here we see that the Leading logFC on dimension 1 seperates the samples by batch indicating the need for batch correction.
+
 ```{r mds}
-
-temp <- plotMDS(cpm(dgeList_Filtered, log = TRUE))
+plotMDS(cpm(dgeList_Filtered, log = TRUE))
 title(main = "Multi Dimensional Scaling Plot \nMouse Chromosome 1")
-
 ```
 
 We can use the `plotMDS()` function directly to create an MDS plot as we did above, or assign the data created to an object that we can pipe into ggplot for a presentation ready figure.
@@ -346,7 +337,7 @@ mds <- dgeList_Filtered %>%
 The following chunk wraps the plotting of our MDS plot inside `plotly::ggplotly()` which takes a `ggplot` object and makes it interactive.
 You may notice that `label` was included as a plotting aesthetic, but no labels were added as a layer in ggplot2.
 These will instead be added once the plot is made interactive (try hovering the mouse over one of the points on the plot to see what we mean by _interactive_).
-Interactive plots will only be interactive in the *Viewer* tab or when compiling an RMarkdown document to an html format, and will remain static if rendering to an MS Word document or pdf.
+Interactive plots will only be interactive in the **Viewer** tab or when compiling an RMarkdown document to an html format, and will remain static if rendering to an MS Word document or pdf.
 
 ```{r plotMDS, fig.cap = "MDS showing two clear groups in the data", results='asis'}
 plotly::ggplotly(
@@ -359,6 +350,22 @@ plotly::ggplotly(
         theme_bw()
 )
 ```
+
+In the spirit of interactive plots available in `R`, run the following code chunk to create an interactive MDS plot as an HTML page using `Glimma::glMDSPlot`. If you set $launch=TRUE$ this code chunk will open a new browser window containing an MDS plot in the left panel and a bar plot showing the proportion of variation explained by each dimension in the right panel. 
+
+```{r plotMDS_Glimma}
+dgeList_Filtered %>%
+  cpm() %>%
+  glMDSPlot(., labels=rownames(dgeList_Filtered$samples),
+            groups=dgeList_Filtered$samples$group,
+            launch=TRUE)
+```
+
+#### Tasks
+{:.no_toc}
+
+1. *Try clicking on the bars of the bar plot to change the pair of dimensions being plotted on the MDS.*
+2. *What might account for the variation between dimension 2 and dimension 3?*
 
 #### PCA
 
@@ -407,6 +414,12 @@ Multi-Dimensional Scaling can look similar to PCA, but asks a slightly different
 
 It is common to perform one or both of these analyses before starting a differential expression analysis but rest assured that _usually_ results found under both methods will reveal similar patterns in your data.
 
+#### Tasks
+{:.no_toc}
+
+1. *How much variation is accounted for in PC1 and PC2 combined?*
+2. *Using the code chunk aboive as a template, plot PC3 and PC4 to investigate other sources of variation.*
+
 ## Differential Expression
 
 In the previous sections we have worked with read counts, which are a discrete value and formally cannot be modelled using the assumption of normally distributed data.
@@ -415,7 +428,7 @@ An alternative was proposed by [Law et al](https://genomebiology.biomedcentral.c
 This method is called `voom` and we'll use this today.
 
 ```{r voom}
-voomData <- voom(dgeFilt)
+voomData <- voom(dgeList_Filtered)
 ```
 
 Note that this has added a design matrix to the data based on our `groups` column, and we can use this to perform a simple linear regression on each gene, which amounts to a t-test in this dataset.
@@ -431,7 +444,7 @@ A lot of analysis is performed in the following code chunk:
 topTable <- voomData %>% 
     lmFit() %>%
     eBayes %>%
-    topTable(coef = "group24mth", n = Inf) %>%
+    topTable(coef = "groupskm", n = Inf) %>%
     as_tibble()
 ```
 

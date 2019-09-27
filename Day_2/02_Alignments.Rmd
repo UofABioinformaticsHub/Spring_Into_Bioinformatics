@@ -1,0 +1,307 @@
+---
+title: "Fall Into Bioinformatics"
+subtitle: "Alignments"
+author: "Jimmy Breen"
+date: "17/09/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    message = FALSE,
+    warning = FALSE,
+    fig.align = "center",
+    results = "hide"
+)
+if (interactive()) setwd(here::here("Day_1"))
+```
+
+
+## Working with Alignments
+
+### Quality control of alignment data
+
+A fundamental aspect of high-throughput sequencing approaches is the alignment of your input sample to a closely-related reference genome. 
+By identifying differences, or genetic variations, between the assembled reference genome and the input sample, we are able to make inferences regarding potential genetic changes that are creating phenotypic differences. 
+However, aligning millions, and often billions, of sequence fragments (referred to as "reads") to a specific reference genome is an incredibly complex task, especially in light of repetitive sequences that make it difficult to place certainity on a specific location of each sequence read.
+
+Of course, what happens when we sequence RNA? RNA fragment differ from DNA in that it only contains coding regions of the genome. 
+This means we will only see the exons of a gene, with the introns being spliced out after transcription. 
+If we are aligning to a genome made of DNA, rather than a transcriptome made of RNA, then we need the ability to align to split sequences across intron-exon boundaries.
+
+So it is extremely important that we have a way of detailing _where_ each read aligned, as well as information as to _how well_ it aligned. 
+In this session we're going to get into how we store alignments
+
+### Data setup
+
+Because we're working backwards, we are assuming that we have already aligned our RNA-seq samples to a reference genome. 
+
+We’ll be working today in the folder `~/Day_2`. Lets change into that directory:
+
+```
+cd ~/Day_2
+```
+
+Please ensure you use this _exact_ path as any variations will undoubtedly cause you problems & lead to unnecessary confusion.
+
+Now we have our base directory setup for the day, we can place our data in the directory `~/Day_2/data`. 
+As you may have seen yesterday, the data that we need is already available in the `~/data` directory in our home area. 
+Lets copy all the contents of that directory to our new 
+
+```
+cp -r ~/data/Day_2/* ~/Day_2/data/
+ls ~/Day_2/data/
+```
+
+There should be one directory contained there, called `2_alignedData`.
+This contains all the data that (funnily enough) we will be creating tomorrow, but for which we need today.
+Within `2_alignedData` we had all the inputs that we need to look at alignments and count data.
+
+```
+ls ~/Day_2/data/2_alignedData
+```
+
+Let's get stuck into learning about alignment files.
+
+#### What is a SAM file and what's a BAM file?
+
+BAM stands for Binary AlignMent and these are our alignments stored in binary.
+There is another type of file called a SAM (Sequence AlignMent) file which is in plain text, but SAM files can become very large and waste our precious storage resources.
+BAM files are the exact same files stored in binary format which enables them to be much smaller.
+This also has the added benefit of being faster for computers to read & perform operations on, as only humans read plain text.
+Computers don't.
+
+To look at the contents of a BAM file, we'll need the tool `samtools` which is one of the most heavily utilised command-line tools in the world of bioinformatics.
+`samtools` is used for a number of tasks in high-throughput sequencing analysis, from viewing and converting alignment formats, to generating reports and statistics.
+This tool as a series of sub-commands which we can see if we just type `samtools` into our terminal.
+
+```
+Program: samtools (Tools for alignments in the SAM format)
+Version: 1.9 (using htslib 1.9)
+
+Usage:   samtools <command> [options]
+
+Commands:
+  -- Indexing
+     dict           create a sequence dictionary file
+     faidx          index/extract FASTA
+     fqidx          index/extract FASTQ
+     index          index alignment
+
+  -- Editing
+     calmd          recalculate MD/NM tags and '=' bases
+     fixmate        fix mate information
+     reheader       replace BAM header
+     targetcut      cut fosmid regions (for fosmid pool only)
+     addreplacerg   adds or replaces RG tags
+     markdup        mark duplicates
+
+  -- File operations
+     collate        shuffle and group alignments by name
+     cat            concatenate BAMs
+     merge          merge sorted alignments
+     mpileup        multi-way pileup
+     sort           sort alignment file
+     split          splits a file by read group
+     quickcheck     quickly check if SAM/BAM/CRAM file appears intact
+     fastq          converts a BAM to a FASTQ
+     fasta          converts a BAM to a FASTA
+
+  -- Statistics
+     bedcov         read depth per BED region
+     depth          compute the depth
+     flagstat       simple stats
+     idxstats       BAM index stats
+     phase          phase heterozygotes
+     stats          generate stats (former bamcheck)
+
+  -- Viewing
+     flags          explain BAM flags
+     tview          text alignment viewer
+     view           SAM<->BAM<->CRAM conversion
+     depad          convert padded BAM to unpadded BAM
+```
+
+As you can see, each sub-command points to specific tasks that you can do with the program.
+The one we'll need at this point is `samtools view`, which enables us to take a BAM file and send it to the screen as plain text so we can read it.
+Remember, we can use the pipe `|` to direct the screen to a function call `head`, which gives the first lines of the file.
+
+```
+cd ~/Day_2/data/2_alignedData/bam
+samtools view SRR945375.skm.trimmedAligned.sortedByCoord.out.bam | head
+```
+
+As you can see, there is a tonne of information here set out in columns which are all tab separated.
+These contain information about the where and how the read aligned to the reference genome.
+The specific information of each field is contained below:
+
+
+| Field | Name | Meaning |
+| ---- | ----- | ------- |
+| 1 | QNAME | Query template/pair NAME |
+| 2 | FLAG | bitwise FLAG (discussed later) |
+| 3 | RNAME | Reference sequence (i.e. chromosome) NAME |
+| 4 | POS | 1-based leftmost POSition/coordinate of clipped sequence |
+| 5 | MAPQ | MAPping Quality (Phred-scaled) |
+| 6 | CIGAR | extended CIGAR string |
+| 7 | MRNM | Mate Reference sequence NaMe (`=` if same as RNAME) |
+| 8 | MPOS | 1-based Mate POSition |
+| 9 | TLEN | inferred Template LENgth (insert size) |
+| 10 | SEQ | query SEQuence on the same strand as the reference |
+| 11 | QUAL | query QUALity (ASCII-33 gives the Phred base quality) |
+| 12 | OPT | variable OPTional fields in the format TAG:VTYPE:VALUE |
+
+
+Notice that each read is considered to be a *query* in the above descriptions, as we a querying the genome to find out where it probably came from.
+
+Several of these fields contain useful information, so looking the the first few lines, you can see that these reads are mapped in pairs as consecutive entries in the QNAME field are often (but not always) identical.
+Most of these fields are self-explanatory, but some require exploration in more detail.
+Note that in the following command, each line from the file may wrap around several lines in your terminal.
+If this is confusing, just select the first read only by adding the option `-n1` after your call to `head`
+
+```
+samtools view SRR945375.skm.trimmedAligned.sortedByCoord.out.bam | head -n1
+```
+
+While its not actually output in BAM files, an alignment file has a lot of extra information that is commonly printed at the start of a file.
+The `samtools view` command actually hides this from you by default, but it contains some very important information such as the names of all the reference genome sequences, whether the file is sorted or not, and the command that was used to create the file in the first place. 
+To see this info we need to add the `-h` flag.
+
+```
+samtools view -h SRR945375.skm.trimmedAligned.sortedByCoord.out.bam | head 
+```
+
+This is what you should see:
+
+```
+@HD     VN:1.4  SO:coordinate
+@SQ     SN:1    LN:195471971
+...
+...
+@PG     ID:STAR PN:STAR VN:STAR_2.5.3a  CL:STAR   --runThreadN 12   --genomeDir /data/biorefs/reference_genomes/ensembl-release-96/mus_musculus/star   --readFilesIn /data/biohub/2019_SIB/1_trimmedData/fastq/SRR945375.skm.trimmed.fastq.gz      --readFilesCommand gunzip   -c      --outFileNamePrefix /data/biohub/2019_SIB/2_alignedData/bam/SRR945375.skm.trimmed   --outSAMtype BAM   SortedByCoordinate
+@CO     user command line: STAR --runThreadN 12 --genomeDir /data/biorefs/reference_genomes/ensembl-release-96/mus_musculus/star --readFilesIn /data/biohub/2019_SIB/1_trimmedData/fastq/SRR945375.skm.trimmed.fastq.gz --readFilesCommand gunzip -c --outFileNamePrefix /data/biohub/2019_SIB/2_alignedData/bam/SRR945375.skm.trimmed --outSAMtype BAM SortedByCoordinate
+```
+
+
+#### Questions
+{:.no_toc}
+
+1. *What program and version of the program was used to align the genome?*
+2. *How many lines does the head of the `SRR945375.skm.trimmedAligned.sortedByCoord.out.bam` file contain?*
+
+
+## Filtering a BAM file
+
+As you have seen, the information contained in the BAM file is very comprehensive and so its often preferrable to filter the original BAM file to only include the relevant information.
+The alignment algorithm used to create the BAM file will calculate a lot of quality values that can used for filtering, and today we'll look at mapping quality (MAQ) and CIGAR strings.
+
+
+## Mapping Quality (MAPQ)
+
+Let's run `head` on one of our alignments files again, this time without the header information at the top.
+
+```
+samtools view SRR945375.skm.trimmedAligned.sortedByCoord.out.bam | head 
+```
+
+Hopefully the 3rd and 4th fields are self explanatory, as these can be generally interpreted as the chromosome & position in the reference where the sequence aligned.
+However, the 5th field contains the `MAPQ` score which indicates how well the read aligned, and how unique each alignment is.
+How this value is calculated can often differ between alignment tools, but primarily the a higher score indicates a better, more unique alignment.
+
+You will find out tomorrow that quality scores in sequencing technologies, as well as mapping qualities, are projected onto the same quality scale called a "Phred Score".
+On sequencing machines, a Phred score is a probability of error for each individual base bair that was sequenced and therefore is an assigned level of accuracy.
+In fact, if you look in the second last field (11th) you will see the ASCII-33 Phred base quality scores. 
+On the latest sequencing machines that produce FASTQ files (Illumina 1.8+), these scores go from 0 - 41.
+The table below defines the error profile of Phred Quality scores as you go higher on the scale.
+
+Table: Phred quality scores are logarithmically linked to error probabilities
+
+| Phred Quality Score | Probability of incorrect base call | Base call accuracy |
+|---------------------|------------------------------------|--------------------|
+| 10 | 1 in 10 | 90% |
+| 20 | 1 in 100 | 99% |
+| 30 | 1 in 1000 | 99.9% |
+| 40 | 1 in 10,000 | 99.99% |
+| 50 | 1 in 100,000 | 99.999% |
+| 60 | 1 in 1,000,000 | 99.9999% |
+
+The higher you go the smaller the probability that you've sequenced a error. 
+As you can see from that 11th field though, we dont see numbers but rather individual characters such as '<9?<?B?FG4/9?**)).8' that look like absolute jibberish.
+These characters are actually manifestations of a 0-41 value as a single character of the ASCII-33 scale.
+We're not going to get into this further today, but if you'd like to know more about Phred Scores, check out the FASTQ format wikipedia page (https://en.wikipedia.org/wiki/FASTQ_format).
+
+Unlike a base quality score, which is the probability that the base is an error, `MAPQ` score is the probability that the read is incorrectly mapped.
+So by using the `MAPQ` score, we can filter our BAM file to only include the most uniquely, and therefore _most confident_, alignments.
+Using `samtools view` you can filter for quality by using the `-q` flag.
+
+
+```
+samtools view -q 30 SRR945375.skm.trimmedAligned.sortedByCoord.out.bam | head 
+```
+
+As you can see, the first lines have no changed considerably and we only see alignments with >30 quality values.
+
+## CIGAR strings
+
+In the 6th field of the BAM file, we see another character and number code that gives useful information about the type of alignment that has been performed on the read.
+In the first few reads we called up earlier, most had the value `..M` where `..` is some number.
+These are the perfect Matches, where the sequence has aligned exactly.
+The other abbreviations in common use are I (insertion), D (deletion) & S(substitution).
+
+## Extra: SAM Flags
+
+SAM flags are found in the second field of the BAM file and are quite useful pieces of information, however they can be difficult at first look.
+We won't go into these today as a lot of these flags concern paired-end read sequencing and today we have single-end sequencing data.
+If you would like to know more about them, head to http://broadinstitute.github.io/picard/explain-flags.html to see a helpful description, then try clicking on a few combinations to see how the numbers change.
+
+#### Questions
+{:.no_toc}
+
+1. *How many reads were mapped to each file and how many had a MAPQ greater than 30?*
+2. *How many lines does the head of the `SRR945375.skm.trimmedAligned.sortedByCoord.out.bam` file contain?*
+
+### Assessment of alignment rate and multi-mapping
+
+
+
+
+### To deduplicate or not to deduplicate? That is the question!
+
+During the sequencing library process, DNA or cDNA fragments are amplified in a Polymerase Chain Reaction (PCR) using specific adapters and primers. 
+If the initial unique targets are saturated during this process you can lead to a scenario where replicated fragments are amplified, leading to what we refer to as "Library Duplicates" or "PCR Duplicates". 
+Additionally, the Illumina machine itself can introduce another duplication effect called an "Optical Duplicate" which is a result of the position of a sequencing cluster on the sequencing flowcell. 
+A few programs exist that can identify these duplicates and remove them from the final BAM file.
+To do this, these programs identify sets of reads pairs that have	the	same unclipped alignment start	and unclipped alignment end (i.e. the reads start and end at the same alignment position).
+
+Duplicates can be particularly problematic in variant calling where it violates the assumptions of variant identification and has the potential to over-inflate sequencing error.
+However, the catch is that unless you have paired-read sequences (which we do not), its very difficult for you to know that your read is a duplicate in single-end reads because you don't sequence the other end of the fragment.
+
+To add more caveats, count-based sequencing approaches such as ChIP-seq and RNA-seq are generally prone to having high-coverage areas (especially if you have deep sequencing) which may look like duplcates. 
+Some small non-coding RNAs are also short, so its very likely to have similar alignment starts and ends. 
+Additionally, if you have an experiment that involves a low initial input of DNA or RNA, you're likely to get a high level of PCR duplicates anyway!
+
+So do we remove duplicates for these approaches?
+
+The answer is:
+
+![Why not do both??](https://img.buzzfeed.com/buzzfeed-static/static/2015-03/26/19/enhanced/webdr06/original-25942-1427414325-9.jpg)
+
+Generally for RNA sequencing or ChIP-seq experiments, we will run both raw and duplicate reads through the same pipeline to compare the results to make sure our duplicates are not effecting our final outcome.
+
+**For today however, we are going to skip calling duplicates,** but you can use either use `samtools` or `picard` tools to remove them, such as the code below:
+
+```
+# Remove duplicates the samtools way
+samtools rmdup [SORTED BAM] [SORTED RMDUP BAM]
+
+# Remove duplicates the picard way (which uses Java)
+java -jar /path/to/picard/tools/picard.jar MarkDuplicates I=[SORTED BAM] O=[SORTED RMDUP BAM] M=dups.metrics.txt REMOVE_DUPLICATES=true
+```
+
+---
+
+# Extra Material
+
+- http://www.acgt.me/blog/2014/12/16/understanding-mapq-scores-in-sam-files-does-37-42
+

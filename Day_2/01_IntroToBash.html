@@ -389,7 +389,9 @@ summary {
 <li><a href="#looking-at-the-contents-of-a-directory">Looking at the Contents of a Directory</a></li>
 <li><a href="#creating-a-new-directory">Creating a New Directory</a></li>
 </ul></li>
-<li><a href="#redirection-using-the-pipe-symbol">Redirection Using The Pipe Symbol</a></li>
+<li><a href="#redirection-using-the-pipe-symbol">Redirection Using The Pipe Symbol</a><ul>
+<li><a href="#pattern-matching-using-grep">Pattern matching using <code>grep</code></a></li>
+</ul></li>
 </ul></li>
 </ul>
 </div>
@@ -497,22 +499,22 @@ summary {
 <h4>cd</h4>
 <p>{:.no_toc}</p>
 <p>Now we know all about where we are, the next thing we need to do is go somewhere else. The <code>bash</code> command for this is <code>cd</code> which we use to <strong>c</strong>hange <strong>d</strong>irectory. No matter where we are in a file system, we can move up a directory in the hierarchy by using the command</p>
-<pre class="bash"><code>cd ..</code></pre>
+<pre><code>cd ..</code></pre>
 <p>The string <code>..</code> is the convention for <em>one directory above</em>, whilst a single dot represents the current directory.</p>
 <p>Enter the above command and notice that the location immediately to the left of the $ has now changed. Enter <code>pwd</code> again to check this makes sense to you.</p>
-<p>If we now enter</p>
-<pre class="bash"><code>cd ..</code></pre>
+<p>If we now enter:</p>
+<pre><code>cd ..</code></pre>
 <p>a couple more times we should be in the root directory of the file system and we will see <code>/$</code> at the end of our prompt. Try this and print the working directory again (<code>pwd</code>). The output should be the root directory given as <code>/</code>.</p>
 <p>We can change back to our home folder by entering one of either:</p>
-<pre class="bash"><code>cd ~</code></pre>
+<pre><code>cd ~</code></pre>
 <p>or</p>
-<pre class="bash"><code>cd</code></pre>
+<pre><code>cd</code></pre>
 <p>The initial approach taken above to move through the directories used what we refer to as a <strong>relative path</strong>, where each move was made <em>relative to the current directory</em>. Going up one directory will clearly depend on where we are when we execute the command.</p>
 <p>An alternative is to use an <strong>absolute path</strong>. An <strong>absolute path</strong> on Linux/Mac will always begin with the root directory symbol <code>/</code>.</p>
 <p>For example, <code>/foo</code> would refer to a directory called <code>foo</code> in the root directory of the file system (NB: This directory doesn’t really exist, it’s an example). In contrast, a <strong>relative path</strong> can begin with either the current directory (indicated by <code>./</code>) or a higher-level directory (indicated by <code>../</code> as mentioned above). A subdirectory <code>foo</code> of the current directory could thus be specified as <code>./foo</code>, whilst a subdirectory of the next higher directory would be specified by <code>../foo</code>.</p>
 <p>Another common absolute path is the one mentioned right at the start of the session, specified with <code>~</code>, which stands for your home directory <code>/home/biotech7005</code>, which also starts with a <code>/</code>.</p>
 <p>We can also move through multiple directories in one command by separating them with the slash <code>/</code>. For example, we could also get to the root directory from our home directory by typing</p>
-<pre class="bash"><code>cd ../../</code></pre>
+<pre><code>cd ../../</code></pre>
 <p><strong>Return to your home directory using</strong> <code>cd</code>.</p>
 <p>In the above steps, this has been exactly the same as clicking through directories in our familiar folder interface that we’re all familiar with. Now we know how to navigate folders using <code>bash</code> instead of the GUI. This is an essential skill when logged into a High Performance Computer (HPC) or a Virtual Machine (VM) as the vast majority of these run using Linux.</p>
 </div>
@@ -522,7 +524,7 @@ summary {
 <p><em>Although we haven’t directly discovered it yet, most file systems used on Unix-based systems such as Ubuntu are</em> <strong>case-sensitive</strong>, whilst <strong>Windows file systems are usually not</strong>. For example, the command <code>PWD</code> is completely different to <code>pwd</code> and doesn’t actually exist on your (or any) default installation of <code>bash</code>.</p>
 <p>If <code>PWD</code> happened to be the name of a command which has been defined in your shell, you would get completely different results than from the intended <code>pwd</code> command. Most <code>bash</code> tools are named using all lower-case, but there are a handful of exceptions.</p>
 <p>We can also change into a specific directory by giving the path to the <code>cd</code> command using text instead of dots and symbols. Making sure you’re in your home directory we can change back into the Day_2 directory</p>
-<pre class="bash"><code>cd
+<pre><code>cd
 cd Day_2
 pwd</code></pre>
 <p>This is where we started the session.</p>
@@ -546,12 +548,12 @@ cd ..</code></pre>
 <div id="looking-at-the-contents-of-a-directory" class="section level3">
 <h3>Looking at the Contents of a Directory</h3>
 <p>There is another built-in command (<code>ls</code>) that we can use to <strong>list</strong> the contents of a directory. This is a way to get our familiar folder view in the terminal. Making sure you are in your home directory (<code>cd ~</code>), enter the <code>ls</code> command as it is and it will print the contents of the current directory.</p>
-<pre class="bash"><code>ls</code></pre>
+<pre><code>ls</code></pre>
 <p>This is the list of files that we normally see in our traditional folder view that Windows and MacOS show us by default. We can actually check this output using <code>RStudio</code> too, so head to the <strong>Files</strong> tab in the <code>Files</code> window. Click on the Home icon (<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAVCAIAAADNQonCAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wcbDBQ0bzwVhgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAACHUlEQVQ4y6WTPW8TQRCGZz9u784mCRSAscBEBEFBQeQCJBqixAhEnaTjj/AT6FKAW0okEkqEkBAIWYbIEYgClFgJRcA4jg0H2Gd7z7czFCGQMxcDyXQ77+yzs69mmB8Y2A7CEP4/5N6uRRC12uY+EczXwSCdcylFGBpA3LWEBoauVl5eOqerlQE1fFe2rfzV8nIui+vl5amsv1rmtoqvxLgOmRBeaXFzNldJpdIPlxonM7WZKa+0yISIKW58/eY4Tl82qNfe57LvDh289viNhSF3ko+unh+rbpx68lodPvqHF9EuuK38tfLK5PjG8RMTCwUeBGGIQfP75fnnX8ZOr0yO+2v9P4p4wTj3XhTqs1c+plJn8/OWtFC6JF2yEoRwJn+/nsnUZ3JescA4j0cYrb27+WeMXVwoOgeGUKjS3PSrOzdKc9MolFDOhQfFp4LX7+WN1r9HK9KSUulbt48tveVhLzQEhpq+FoqbQKMhY4i32+JmfvT6BFcKiGIQQJQcGlGABgkROVHT78geC4MOESEiIhcmTA6P6B0DKTnnUQgBwa8XOl0tSYTbbRMAAdG2+hNhqYi9DCA0Zv1TlYiEZfeGR9Gyja0/VCqmp4UQiNQ/F62ujpwZa3z2Wu02AyAAYSkgAAamF2xlbGWlU0d2gvoRe1l232/HrzDbsuYfEJyzWKHZbCUSrohbin6E67qxQrerHceRUv4VwWHf8QMmlkG6c5FbcAAAAABJRU5ErkJggg==" alt="home" />) and look at the folders &amp; files you can see there. <strong>Do they match the output from <code>ls</code>?</strong> Ask for help if not.</p>
 <p>Alternatively, we can specify which directory we wish to view the contents of, <strong>without having to change into that directory</strong>. Notice <strong>you can’t do actually this using your classic GUI folder view</strong>. We simply type the <code>ls</code> command, followed by a space, then the directory we wish to view the contents of. To look at the contents of the root directory of the file system, we simply add that directory after the command <code>ls</code>.</p>
-<pre class="bash"><code>ls /</code></pre>
+<pre><code>ls /</code></pre>
 <p>Here you can see a whole raft of directories which contain the vital information for the computer’s operating system. Among them should be the <code>/home</code> directory which is one level above your own home directory, and where the home directories for all users are located on a Linux system.</p>
-<pre class="bash"><code>cd 
+<pre><code>cd 
 ls Day_1</code></pre>
 </div>
 <div id="creating-a-new-directory" class="section level3">
@@ -559,7 +561,7 @@ ls Day_1</code></pre>
 <p>Now we know how to move around and view the contents of a directory, we should learn how to create a new directory using <code>bash</code> instead of the GUI folder view you are used to. Navigate to your home folder using <code>bash</code>.</p>
 <pre><code>cd ~/Day_2</code></pre>
 <p>Now we are in a suitable location, let’s create a directory called <code>test</code>. To do this we use the <code>mkdir</code> command as follows:</p>
-<pre class="bash"><code>mkdir test</code></pre>
+<pre><code>mkdir test</code></pre>
 <p>You should see this appear in the GUI view, and if you now enter <code>ls</code>, you should also see this directory in your output.</p>
 <p>Importantly, the <code>mkdir</code> command above will only make a directory directly below the one we are currently in as we have used a relative path. If automating this process via a script it is very important to understand the difference between <em>absolute</em> and <em>relative</em> paths, as discussed above.</p>
 <div id="how-to-not-panic" class="section level4">
@@ -648,15 +650,25 @@ ls -lh /usr/bin | tail</code></pre>
 <pre><code>ls -lh /usr/bin | head -n 2</code></pre>
 <p>The command <code>wc</code> stands for “Word Count” and is a really handy tool to count the number of lines, words or characters in a file. It works in a very similar way to the “Word Count” command in Microsoft Word! Lines are output first, then words and lastly characters.</p>
 <pre><code>ls -lh /usr/bin | wc</code></pre>
+<div id="pattern-matching-using-grep" class="section level3">
+<h3>Pattern matching using <code>grep</code></h3>
+<p>The built-in command which searches using “regular expressions” in the terminal is <code>grep</code>, which stands for <code>g</code>lobal <code>r</code>egular <code>e</code>xpression <code>p</code>rint. This function searches a file or input on a line-by-line basis, so patterns contained within a line can be found, but patterns split across lines are more difficult to find.</p>
+<p>If we take the example we’ve done above, you can use <code>grep</code> to online extract lines that contain certain characters or words. In the <code>/usr/bin</code> lets search for any line in the directory that contains the word “command”</p>
+<pre><code>ls -lh /usr/bin | grep &quot;command&quot;</code></pre>
+<p>Thats quite specific, but you can also use smaller words or characters</p>
+<pre><code>ls -lh /usr/bin | grep &quot;ls&quot;</code></pre>
+<p>As you can see, a lot more lines contain the two consecutive characters “ls” than the word “command”.</p>
+<p>Regular expressions more broadly are a powerful &amp; flexible way of searching for text strings amongst a large document or file. Most of us are familiar with searching for a word within a file, but regular expressions allow us to search for these with more flexibility, particularly in the context of genomics. For example, we could search for a sequence that is either <code>AGT</code> or <code>ACT</code> by using the patterns <code>A[GC]T</code> or <code>A(G|C)T</code>. These two patterns will search for an <code>A</code>, followed by either a <code>G</code> or <code>C</code>, then followed strictly by a <code>T</code>. Due to time we won’t go in-depth into regular expressions, but we will delve more into those during Day 3.</p>
 <div id="questions" class="section level4">
 <h4>Questions</h4>
 <p>{:.no_toc}</p>
 <ol style="list-style-type: decimal">
 <li><em>How many lines were output from the <code>ls -lh /usr/bin</code> command?</em></li>
-<li><em>What does this mean?</em></li>
+<li><em>How many lines contain the word “cut”?</em></li>
 </ol>
 <hr />
 <p>Ok I told you it was going to be a crash course! If you’re having problems working with the command-line, don’t worry there will be plenty of helpers out there to give you some help. Now lets get into some biology!</p>
+</div>
 </div>
 </div>
 </div>

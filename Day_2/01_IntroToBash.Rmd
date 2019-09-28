@@ -175,7 +175,7 @@ Now we know all about where we are, the next thing we need to do is go somewhere
 The `bash` command for this is `cd` which we use to **c**hange **d**irectory.
 No matter where we are in a file system, we can move up a directory in the hierarchy by using the command
 
-```bash
+```
 cd ..
 ```
 
@@ -185,8 +185,9 @@ The string `..` is the convention for *one directory above*, whilst a single dot
 Enter the above command and notice that the location immediately to the left of the \$ has now changed.
 Enter `pwd` again to check this makes sense to you.
 
-If we now enter
-```bash
+If we now enter:
+
+```
 cd ..
 ```
 a couple more times we should be in the root directory of the file system and we will see `/$` at the end of our prompt.
@@ -195,12 +196,12 @@ The output should be the root directory given as `/`.
 
 We can change back to our home folder by entering one of either:
 
-```bash
+```
 cd ~
 ```
 or
 
-```bash
+```
 cd
 ```
 
@@ -218,7 +219,8 @@ Another common absolute path is the one mentioned right at the start of the sess
 
 We can also move through multiple directories in one command by separating them with the slash `/`.
 For example, we could also get to the root directory from our home directory by typing
-```bash
+
+```
 cd ../../
 ```
 
@@ -238,7 +240,8 @@ Most `bash` tools are named using all lower-case, but there are a handful of exc
 
 We can also change into a specific directory by giving the path to the `cd` command using text instead of dots and symbols.
 Making sure you're in your home directory we can change back into the Day_2 directory
-```bash
+
+```
 cd
 cd Day_2
 pwd
@@ -298,7 +301,7 @@ There is another built-in command (`ls`) that we can use to **list** the content
 This is a way to get our familiar folder view in the terminal.
 Making sure you are in your home directory (`cd ~`), enter the `ls` command as it is and it will print the contents of the current directory.
 
-```bash
+```
 ls
 ```
 
@@ -313,14 +316,14 @@ Notice **you can't do actually this using your classic GUI folder view**.
 We simply type the `ls` command, followed by a space, then the directory we wish to view the contents of.
 To look at the contents of the root directory of the file system, we simply add that directory after the command `ls`.
 
-```bash
+```
 ls /
 ```
 
 Here you can see a whole raft of directories which contain the vital information for the computer's operating system.
 Among them should be the `/home` directory which is one level above your own home directory, and where the home directories for all users are located on a Linux system.
 
-```bash
+```
 cd 
 ls Day_1
 ```
@@ -337,7 +340,7 @@ cd ~/Day_2
 Now we are in a suitable location, let's create a directory called `test`.
 To do this we use the `mkdir` command as follows:
 
-```bash
+```
 mkdir test
 ```
 
@@ -345,6 +348,7 @@ You should see this appear in the GUI view, and if you now enter `ls`, you shoul
 
 Importantly, the `mkdir` command above will only make a directory directly below the one we are currently in as we have used a relative path.
 If automating this process via a script it is very important to understand the difference between *absolute* and *relative* paths, as discussed above.
+
 
 #### How To Not Panic
 {:.no_toc}
@@ -421,11 +425,36 @@ Lines are output first, then words and lastly characters.
 ls -lh /usr/bin | wc
 ```
 
+### Pattern matching using `grep`
+
+The built-in command which searches using "regular expressions" in the terminal is `grep`, which stands for `g`lobal `r`egular `e`xpression `p`rint.
+This function searches a file or input on a line-by-line basis, so patterns contained within a line can be found, but patterns split across lines are more difficult to find.
+
+If we take the example we've done above, you can use `grep` to online extract lines that contain certain characters or words. In the `/usr/bin` lets search for any line in the directory that contains the word "command" 
+
+```
+ls -lh /usr/bin | grep "command"
+```
+
+Thats quite specific, but you can also use smaller words or characters
+
+```
+ls -lh /usr/bin | grep "ls"
+```
+
+As you can see, a lot more lines contain the two consecutive characters "ls" than the word "command".
+
+Regular expressions more broadly are a powerful & flexible way of searching for text strings amongst a large document or file.
+Most of us are familiar with searching for a word within a file, but regular expressions allow us to search for these with more flexibility, particularly in the context of genomics.
+For example, we could search for a sequence that is either `AGT` or `ACT` by using the patterns  `A[GC]T` or  `A(G|C)T`.
+These two patterns will search for an  `A`, followed by either a  `G` or  `C`, then followed strictly by a  `T`.
+Due to time we won't go in-depth into regular expressions, but we will delve more into those during Day 3.
+
 #### Questions
 {:.no_toc}
 
 1. *How many lines were output from the `ls -lh /usr/bin` command?*
-2. *What does this mean?*
+2. *How many lines contain the word "cut"?*
 
 
 ---

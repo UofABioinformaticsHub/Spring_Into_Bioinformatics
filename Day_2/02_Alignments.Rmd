@@ -3,7 +3,9 @@ title: "Fall Into Bioinformatics"
 subtitle: "Alignments"
 author: "Jimmy Breen"
 date: "17/09/2019"
-output: html_document
+output: 
+  html_document:
+    toc: true
 ---
 
 ```{r setup, include=FALSE}
@@ -14,13 +16,13 @@ knitr::opts_chunk$set(
     fig.align = "center",
     results = "hide"
 )
-if (interactive()) setwd(here::here("Day_1"))
+if (interactive()) setwd(here::here("Day_2"))
 ```
 
 
-## Working with Alignments
+# Working with Alignments
 
-### Quality control of alignment data
+## Quality control of alignment data
 
 A fundamental aspect of high-throughput sequencing approaches is the alignment of your input sample to a closely-related reference genome. 
 By identifying differences, or genetic variations, between the assembled reference genome and the input sample, we are able to make inferences regarding potential genetic changes that are creating phenotypic differences. 
@@ -33,7 +35,7 @@ If we are aligning to a genome made of DNA, rather than a transcriptome made of 
 So it is extremely important that we have a way of detailing _where_ each read aligned, as well as information as to _how well_ it aligned. 
 In this session we're going to get into how we store alignments
 
-### Data setup
+## Data setup
 
 Because we're working backwards, we are assuming that we have already aligned our RNA-seq samples to a reference genome. 
 
@@ -64,7 +66,7 @@ ls ~/Day_2/data/2_alignedData
 
 Let's get stuck into learning about alignment files.
 
-#### What is a SAM file and what's a BAM file?
+## What is a SAM file and what's a BAM file?
 
 BAM stands for Binary AlignMent and these are our alignments stored in binary.
 There is another type of file called a SAM (Sequence AlignMent) file which is in plain text, but SAM files can become very large and waste our precious storage resources.
@@ -184,7 +186,7 @@ This is what you should see:
 ```
 
 
-#### Questions
+### Questions
 {:.no_toc}
 
 1. *What program and version of the program was used to align the genome?*
@@ -249,24 +251,74 @@ In the first few reads we called up earlier, most had the value `..M` where `..`
 These are the perfect Matches, where the sequence has aligned exactly.
 The other abbreviations in common use are I (insertion), D (deletion) & S(substitution).
 
-## Extra: SAM Flags
+## SAM Flags
 
 SAM flags are found in the second field of the BAM file and are quite useful pieces of information, however they can be difficult at first look.
 We won't go into these today as a lot of these flags concern paired-end read sequencing and today we have single-end sequencing data.
-If you would like to know more about them, head to http://broadinstitute.github.io/picard/explain-flags.html to see a helpful description, then try clicking on a few combinations to see how the numbers change.
+However the flags can indicate a lot of information that can be used to filter the BAM file, much like you did with mapping alignment.
 
-#### Questions
+Head to http://broadinstitute.github.io/picard/explain-flags.html to see a helpful description of each flag.
+For example, if we were to identify reads that mapped to the reverse strand, we can use the SAM flag 16.
+Then we can use the `-f` parameter to filter our BAM file to only include those reads.
+
+
+```
+samtools view -f 16 SRR945375.skm.trimmedAligned.sortedByCoord.out.bam
+```
+
+You can also do the exact opposite, i.e. identify all reads that are not on the reverse strand, by using the `-F` parameter.
+
+```
+samtools view -F 16 SRR945375.skm.trimmedAligned.sortedByCoord.out.bam
+```
+
+Going through a lot of these SAM flags one by one would be fairly tedious, so `samtools` has a subcommand called `flagstat` which counts the number of reads in specific flags.
+
+```
+samtools flagstat SRR945375.skm.trimmedAligned.sortedByCoord.out.bam
+```
+
+
+### Questions
 {:.no_toc}
 
-1. *How many reads were mapped to each file and how many had a MAPQ greater than 30?*
-2. *How many lines does the head of the `SRR945375.skm.trimmedAligned.sortedByCoord.out.bam` file contain?*
+1. *Using the BAM file "SRR945375.skm.trimmedAligned.sortedByCoord.out.bam", how many reads differ between `-F 16` and `-f 16`?*
+2. *How many reads were mapped to each file and how many had a MAPQ greater than 30?*
+3. *How many lines does the header of the `SRR945375.skm.trimmedAligned.sortedByCoord.out.bam` file contain? Do all the BAM file contain the same number of lines?*
 
-### Assessment of alignment rate and multi-mapping
+## Assessment of alignment rate and multi-mapping
+
+Now that we know what's in a BAM file, how do we assess the quality of the alignment process.
+Generally, this is by looking at two metrics:
+
+- how many reads have aligned? 
+- how many reads multi-mapped?
+
+If you noticed when you were viewing the BAM file previously, there were a few alignments at the top of the file which had the same read name in field 1. Lets have a look again by running `head` and `samtools`
+
+```
+samtools view SRR945375.skm.trimmedAligned.sortedByCoord.out.bam | head 
+```
+
+In this particular BAM file, the query read `SRR945375.4599518` in the first column is found multiple times.
+Lets see if thats just a one-off, or whether its a regular occurance in the file
+
+```
+samtools view -F 512 SRR945375.skm.trimmedAligned.sortedByCoord.out.bam | grep "SRR945375.4599518"
+```
+
+The primary goal of genome sequence alignment is where you identify the exact position of each read on the reference genome, however it is often the case that a read can map to multiple locations.
+These reads are what we call "multi-mapped" reads.
+As you learnt above, your MAPQ score is the probability of the read is incorrectly mapped, or more importantly, the probability that the read maps _uniquely_.
+So if you look at the 5th column of the specific "SRR945375.4599518" reads, you see that they are all have a MAPQ value of zero.
+However if you look at the SAM flag field, the reads contain different flags depending on their location.
+For example
+
+Multi-mapped reads are problematic because we are not confident in their position in the genome, and therefore have a high probability of being erroneous.
 
 
 
-
-### To deduplicate or not to deduplicate? That is the question!
+## To deduplicate or not to deduplicate? That is the question!
 
 During the sequencing library process, DNA or cDNA fragments are amplified in a Polymerase Chain Reaction (PCR) using specific adapters and primers. 
 If the initial unique targets are saturated during this process you can lead to a scenario where replicated fragments are amplified, leading to what we refer to as "Library Duplicates" or "PCR Duplicates". 
@@ -285,7 +337,7 @@ So do we remove duplicates for these approaches?
 
 The answer is:
 
-![Why not do both??](https://img.buzzfeed.com/buzzfeed-static/static/2015-03/26/19/enhanced/webdr06/original-25942-1427414325-9.jpg)
+![](https://img.buzzfeed.com/buzzfeed-static/static/2015-03/26/19/enhanced/webdr06/original-25942-1427414325-9.jpg)
 
 Generally for RNA sequencing or ChIP-seq experiments, we will run both raw and duplicate reads through the same pipeline to compare the results to make sure our duplicates are not effecting our final outcome.
 
@@ -301,7 +353,7 @@ java -jar /path/to/picard/tools/picard.jar MarkDuplicates I=[SORTED BAM] O=[SORT
 
 ---
 
-# Extra Material
+### Extra Material
 
 - http://www.acgt.me/blog/2014/12/16/understanding-mapq-scores-in-sam-files-does-37-42
 

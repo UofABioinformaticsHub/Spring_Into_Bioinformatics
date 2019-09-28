@@ -1,21 +1,10 @@
-  ---
-  title: "Fall Into Bioinformatics"
-  subtitle: "Intro to Bash"
-  author: "Jimmy Breen"
-  date: "17/09/2019"
-  output: html_document
-  ---
-  
-  ```{r setup, include=FALSE}
-  knitr::opts_chunk$set(
-      echo = TRUE,
-      message = FALSE,
-      warning = FALSE,
-      fig.align = "center",
-      results = "hide"
-  )
-  if (interactive()) setwd(here::here("Day_1"))
-  ```
+---
+title: "Fall Into Bioinformatics"
+subtitle: "Intro to Bash"
+author: "Jimmy Breen"
+date: "17/09/2019"
+output: html_document
+---
 
 
 ## Welcome
@@ -44,21 +33,6 @@ This course was primarily written by members of the Bioinformatics Hub and the t
 - Terry Bertozzi (SA Museum)
 
 ## Day 2: Working with alignments and differential expression
-
-```{r loadPackages, echo=FALSE, eval=TRUE}
-library(tidyverse)
-library(limma)
-library(ggrepel)
-library(pander)
-library(RColorBrewer)
-library(reshape2)
-library(scales)
-library(pheatmap)
-library(VennDiagram)
-library(edgeR)
-library(DiagrammeR)
-theme_set(theme_bw())
-```
 
 In keeping with the format of this course where we essentially started at the end and worked our way forward, the the last Day we are going to learn the initial steps needed to process high-throughput sequencing data. 
 In Day 1 we learnt how to analyse and organise data in `R`, use important data processing packages contained in the `tidyverse` ecosystem, and perform plots that you would commonly create for Transcriptome sequencing projects (e.g. Volcano plot, Mean-difference plot etc). 

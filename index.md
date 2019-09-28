@@ -44,6 +44,7 @@ Password for `UofA-Guest`:
 | 11:00 - 12:30 | [3. Importing Data](Day_1/03_DataImport.html) | | |
 |               | [4. Visualising Data](Day_1/04_VisualisingData.html) | | |
 | 1:30 - 3:00 | [5. Manipulating Data](Day_1/05_WorkingWithData.html) | | |
+|             | [6. Adding Annotations](Day_1/06_AddingAnnotations.html) | | |
 
 
 # Day 2

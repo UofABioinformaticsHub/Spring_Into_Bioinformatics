@@ -255,6 +255,47 @@ ggplot(DGE_Results, aes(x = logCPM, y = logFC)) +
 
 We can use this to change the labels for any attribute we plot, such as the x and y axes, colours, shapes etc.
 
+### Revisiting Our Histogram
+
+Right at the beginning, we made a histogram of our p-values using the base plotting function `hist()`.
+An alternative methed would be to make this plot using `ggplot2`.
+By default, the histograms don't look great in `ggplot2`, but with a bit of tweaking, they can be an improvement on those made using the base function.
+
+To set this up for `ggplot2`, our `x` aesthetic would be the p-values themselves, whilst the `y` aesthetic would be the counts in each bin along the x-axis.
+When using the geometry function `geom_histogram()`, `ggplot2` will generate these summaries internally, as did the function `hist()`.
+The default number of bins is generated internally by `geom_histogram()` using a function called `stat_bin()`, with the number of bins set to 30.
+If you don't set the number of bins, you'll see a friendly message that looks angry, telling you to pick a better value.
+
+
+```{r, fig.show='hide'}
+ggplot(DGE_Results, aes(x = PValue)) +
+  geom_histogram(fill = "grey", colour = "black") +
+  theme_bw()
+```
+
+
+This is what's known as a *message* in R.
+We'll generally see three types of these things:
+
+1. An **error**. This will usually say the word *error* and it means your code has failed
+2. A **warning**. This will usually say the word *warning* and this is letting you know that something unexpected has happened, and you may need to check your data
+3. A **message**. Although these look the same as the above, they're really just trying to give you helpful information.
+We saw some of these as we loaded the data in using `read_tsv()`
+
+Choose a value for `binwidth` and this message will disappear.
+We could choose `0.02`, which would break our data into 50 bins.
+Similarly, setting `binwidth = 0.01` would break our data into 100 bins.
+
+```{r, fig.show='hide'}
+ggplot(DGE_Results, aes(x = PValue)) +
+  geom_histogram(fill = "grey", colour = "black", binwidth = 0.02) +
+  theme_bw()
+```
+
+With `geom_histogram()` we can use this method, or just choose the number of bins.
+Rewriting the above code using `bins = 50` instead of `binwidth = 0.02` will give identical results.
+Sometimes, it's just easier to think about our data a certain way so having both options available can be very handy.
+
 ### Creating a Volcano Plot
 
 Now that we've made a pretty reasonable plot showing how expression levels change against their average value, we might like to create what is known as a *Volcano Plot*.

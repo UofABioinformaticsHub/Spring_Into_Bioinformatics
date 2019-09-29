@@ -2,8 +2,10 @@
 title: "Spring Into Bioinformatics"
 subtitle: "Differential expression"
 author: "Melanie Smith"
-date: "25/09/2019"
-output: html_document
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    toc: true
 ---
 
 ```{r setup, include=FALSE}
@@ -12,10 +14,35 @@ knitr::opts_chunk$set(
     message = FALSE,
     warning = FALSE,
     fig.align = "center",
+    fig.cap = "yes",
     results = "hide"
 )
 # if (interactive()) setwd(here::here("Day_2"))
 ```
+
+* TOC
+{:toc}
+
+## Session Themes and Outcomes
+
+In this session we're going to learn a few things about performing a differential expression analysis on gene expression data in `R`.
+
+At the end of this session, you should be able to do the following tasks:
+
+1. Read a counts table into `R` including:
+  + set the required delimiter
+  + selectively remove unwanted columns
+  + tidy up the column names
+2. Explore basic data paramaters such as library size
+3. Create a `DGEList` object
+4. Assess sample similarity and identify outliers using Unsupervised Clustering
+5. Perform a simple differential expression analysis
+
+### Data setup
+### Data QC
+### Estimation of library sizes
+### PCA/MDS assessment of outliers and batch effects
+### Differential expression
 
 Now that we have our data in a nicely formatted file, we can move to `R` and follow a fairly standard workflow.
 Along the way, we'll come across a few useful packages, data structures and coding tricks which will be applicable in many other contexts.
@@ -33,24 +60,26 @@ library(magrittr)
 library(scales)
 library(pander)
 library(ggrepel)
+library(RColorBrewer)
 ```
 
 ## Data Setup
 
 ### Import
 
-First we should import the file we've created using `featureCounts`.
+First we should import the file we created using `featureCounts`.
+Please take a moment to check the location of the `counts.out` file you created in the last session to ensure the assignment of the location to the _file_ object is correct.
 
-```{r counts, eval=FALSE}
+```{r counts}
 file <- "../data/2_alignedData/featureCounts/counts.out"
-counts <- read_delim(file, comment = "#", delim = "\t")
+rawCounts <- read_delim(file, comment = "#", delim = "\t")
 ```
 
 This file has the gene identifiers in the first column, followed by the chromosome number, start, end, strand and length information (recall that we have subset our data to only include mouse chromosome 1), with the remaining columns containing the name of the `bam` file and the number of reads aligning to each gene.
 The first thing we might like to do is to remove the columns which don't contain the count data we require today, and tidy up those column names.
 
 ```{r setColnames}
-counts <- dplyr::select(counts, -c(Chr, Start, End, Strand, Length)) %>%
+countData <- dplyr::select(rawCounts, -c(Chr, Start, End, Strand, Length)) %>%
   set_colnames(basename(colnames(.))) %>%
   set_colnames(str_remove(colnames(.), ".trimmedAligned.sortedByCoord.out.bam"))
 ```
@@ -60,18 +89,18 @@ The group information we need for the differential expression is locked in the s
 Next we can split the sample ID from the group information and save that information in a dataframe for later use.
 
 ```{r splitSampleID}
-sampleGroups <- as.data.frame(names(counts[-1]), stringsAsFactors = FALSE) %>%
+sampleGroups <- as.data.frame(names(countData[-1]), stringsAsFactors = FALSE) %>%
   set_colnames(., "samplename") %>%
   tidyr::separate(., col = samplename, into = c("samplename", "group"), remove = TRUE)
 ```
 
 Now we have a small table of metadata regarding our samples.
-We can also tidy up our counts table column names a little more by moving the gene IDs to row names and removing the group information after the sample name.
+We can also tidy up our countData table column names a little more by moving the gene IDs to row names and removing the group information after the sample name.
 
 ```{r sampleName}
-counts <- as.data.frame(counts) %>%
+countData <- as.data.frame(countData) %>%
   column_to_rownames("Geneid")
-colnames(counts) <- sampleGroups$samplename
+colnames(countData) <- sampleGroups$samplename
 ```
 
 ### Create a DGE List
@@ -84,14 +113,14 @@ Recall that above we have made the gene IDs the row names and the sample IDs the
 Here's one way to create a `DGEList`.
 
 ```{r dgeList}
-dgeList <- counts %>%
+dgeList <- countData %>%
     DGEList() %>%
     calcNormFactors()
 ```
 
 Here we have taken our counts table with gene IDs as row names and sample IDs as column names and put it in to a `DGEList` object, called `dgeList`, and called the `calcNormFactors()` function to calculated the normalisation factors, which can be seen in `dgeList$samples`.
 
-If we decided to fit our counts using a negative binomial model (for discrete data), these `norm.factors` would be included in the model to adjust for variations in the library size and count distributions (for an interesting post on what "fitting" a model is see https://diamondage.com/2017/06/03/what-does-it-mean-to-fit-a-model-anyway/).
+If we decided to fit our counts using a negative binomial model (for discrete data), these `norm.factors` would be included in the model to adjust for variations in the library size and count distributions (for an interesting post on what "fitting" a model is see [fit] (https://diamondage.com/2017/06/03/what-does-it-mean-to-fit-a-model-anyway/)).
 
 We have chosen to use a different approach for our analysis today, but taking the time to include the _calculation of normalisation factors_ step as we form the `DGEList` object is still good practice as it allows us to change methodology part way through our planned analysis if we determine the negative binomial model is better suited to our data.
 
@@ -225,7 +254,7 @@ You will notice that the `degList$genes` element is now populated with the infor
 
 You may have noticed that no reads aligned to a number of the genes contained in this dataset. As common practice we remove genes with zero counts across all samples before we continue with our initial data exploration.
 Rather than inspect our data one line at a time looking for zeros we can use `R` to perform a logical test to see how many genes were not detected in our dataset.
-First we'll add up the total counts for every gene and see how many received at least one count. In the following code chunk we will take the `counts` element from our `DGEList` object and pipe it into the function `rowSums()` which will output a named number vector with a single value (the sum of each gene) for each gene. This vector is in turn piped into another function `is_greater_than()` which will ask the logical question _is the value greater than the given value_, with the given value being $0$. We then pipe the **TRUE**/**FALSE** answers to this logical question into `table` which will provide us with a simple two number summary.
+First we'll add up the total counts for every gene and see how many received at least one count. In the following code chunk we will take the `counts` element from our `DGEList` object and pipe it into the function `rowSums()` which will output a named number vector with a single value (the sum of each gene) for each gene. This vector is in turn piped into another function `is_greater_than()` which will ask the logical question _"is the value greater than the given value"_, with the given value being **0**. We then pipe the **TRUE**/**FALSE** answers to this logical question into `table` which will provide us with a simple two number summary.
 
 ```{r checkZeroes}
 dgeList$counts %>% 
@@ -240,10 +269,10 @@ A common approach would be to remove undetectable genes using some metric, such 
 We could consider a gene detectable if returning more than 1CPM, in every sample, from one (usually the smaller), of the treatment groups.
 
 Although our dataset is small (6/8 libraries are < 1e6 reads), we usually deal with libraries between 20-30million reads. In the context of the more usual library size a CPM of 1 equates to 20-30 reads aligning to a gene, which we test in every sample from a treatment group.
-Here our smallest group is 4 so let's see what would happen if we applied the filter of > 1CPM in 4 samples.
+Here our smallest group is 4 so let's see what would happen if we applied the filter of > 1 CPM in 4 samples.
 
 First we'll calculate the `CPM` for each gene in each sample, and then we'll apply a logical test to each value checking whether it's greater than 1.
-Next, we'll add these up for each gene (i.e. row) and this will give us the total number of samples for each gene, that passed our criteria of $CPM > 1$.
+Next, we'll add these up for each gene (i.e. row) and this will give us the total number of samples for each gene, that passed our criteria of **CPM > 1**.
 Finally, we'll check for genes which passed our criteria in more than 4 samples, as our smallest group is 4. 
 We could also have used the function `is_weakly_greater_than()` which would test for equality ($\geq$) instead of strictly greater than ($>$).
 
@@ -268,21 +297,28 @@ genes2keep <- dgeList %>%
     rowSums() %>%
     is_greater_than(4)
 
-dgeList_Filtered <- dgeList[genes2keep,] %>% calcNormFactors()
+dgeList_Filtered <- dgeList[genes2keep,] %>%
+  calcNormFactors()
 ```
 
 Let's compare the distributions of the two datasets (cbc and skm), using CPM on the log2 scale.
 In the following, the command `par(mfrow = c(1,2))` is a base graphics approach and sets the plotting `par`ameters to be a `m`ulti=`f`eature layout, with 1 row and 2 columns.
 We set these paramaters because the convenient function `plotDensities()` we are calling below uses base graphics, not `ggplot2`.
 
-```{r plotCPM, fig.cap="Comparison of logCPM distributions before and after filtering for undetectable genes. Values o the x-axis represent logCPM"}
+```{r plotCPM, fig.cap="Comparison of logCPM distributions before (A) and after (B) filtering for undetectable genes. Values on the x-axis represent logCPM"}
+
+col <- brewer.pal(nrow(dgeList$samples), "Paired")
 par(mfrow = c(1,2))
 dgeList %>%
     cpm(log = TRUE) %>%
-    plotDensities(legend = FALSE, main = "A. Before Filtering")
+    plotDensities(legend = FALSE,
+                  main = "A. Before Filtering",
+                  col=col)
 dgeList_Filtered %>%
     cpm(log = TRUE) %>%
-    plotDensities(legend = FALSE, main = "B. After Filtering")
+    plotDensities(legend = FALSE,
+                  main = "B. After Filtering",
+                  col=col)
 par(mfrow = c(1,1))
 ```
 
@@ -319,16 +355,44 @@ An important first exploration of our sequencing data is the MDS plot.
 
 The `plotMDS()` function from the `limma` package creates a temporary log fold change between pairs and plots samples on a two-dimensional scatterplot so that distances on the plot approximate the typical $log_2$ fold changes between the samples.
 
-Here we see that the Leading logFC on dimension 1 seperates the samples by batch indicating the need for batch correction.
+```
+A simplified example of how we calculate the logFC for our MDS plot.
+```
+1. For a given counts table
 
-```{r mds}
+|     |sample_1|sample_2|sample_3|
+|------|-----:|-----:|-----:|
+Gene_1|3.0|0.25|2.8|
+Gene_2|2.9|0.8|1.0|
+Gene_3|2.2|1.0|1.5|
+....
+
+2. We take our gene counts and calculate the logFC between each pair of genes
+  + logFC Gene_1: sample_1 versus sample_2 $= log(\frac{3}{.25}) = 3.58$
+  +
+  + logFC Gene_2: sample_1 versus sample_2 $= log(\frac{2.9}{.8}) = 1.86$
+  +
+  + _Continue calculating the logFC between each pair of genes_
+3. Lastly, take the average of the absolute value of the logFC among genes
+  + nb: we take the absolute value so the negative log fold changes don't cancel out the positive ones
+4. We can now use these _distances_ between samples to plot our MDS.
+
+Thankfully we don't need to perform all of these calculations by hand, or even write our own script to do so
+
+```{r mds, fig.cap = "MDS showing two clear groups in the data. limma::plotMDS"}
 plotMDS(cpm(dgeList_Filtered, log = TRUE))
 title(main = "Multi Dimensional Scaling Plot \nMouse Chromosome 1")
 ```
 
+Here we see that the Leading logFC on dimension 1 appears to seperate the samples by tissue type suggesting that as we set out to investigate - there is a difference in gene expression between cerebellar cortex (cbc) and skeletal muscle (skm). 
+
+<span style="color:red">WARNING: it is easy to observe the difference between our groups on the MDS plot and assign them directly to tissue type. The files we are using here are part of a much larger research effort and as such there is much information not being assessed. eg. were our samples all sequenced at the same time, on the same machine? The differences we observe could be due to something we call _batch effects_.</span>
+
+Batch effects can be defined as _systematic non-biological variation between groups of samples (or batches) due to experimental artifacts_. Batch effects are a complication of high-throughput studies which occur when measurements are affected by laboratory conditions. The topic of **batch effects** and how to account for them deserves its own session but we don't have the time to delve into that here. If you are interested in reading more about batch effects and how to overcome them the [rna-seqblog](https://www.rna-seqblog.com/tag/batch-effects/) has a number of interesting articles discussing the topic.  
+
 We can use the `plotMDS()` function directly to create an MDS plot as we did above, or assign the data created to an object that we can pipe into ggplot for a presentation ready figure.
 
-```{r mdsObject}
+```{r mdsObject, }
 mds <- dgeList_Filtered %>%
   cpm(log = TRUE) %>%
   plotMDS()
@@ -345,7 +409,11 @@ plotly::ggplotly(
         rownames_to_column("sample") %>%
         as_tibble() %>%
         left_join(rownames_to_column(dgeList_Filtered$samples, "sample")) %>%
-        ggplot(aes(dim1, dim2, colour = group, label = sample)) +
+        ggplot(aes(x = dim1, y = dim2,
+                   colour = group,
+                   label = sample)) +
+    xlab("Leading logFC Dim 1") +
+    ylab("Leading logFC Dim 2") +
         geom_point(size = 3) +
         theme_bw()
 )
@@ -355,14 +423,13 @@ In the spirit of interactive plots available in `R`, run the following code chun
 
 ```{r plotMDS_Glimma}
 dgeList_Filtered %>%
-  cpm() %>%
+  cpm(log=TRUE) %>%
   glMDSPlot(., labels=rownames(dgeList_Filtered$samples),
             groups=dgeList_Filtered$samples$group,
             launch=TRUE)
 ```
 
 #### Tasks
-{:.no_toc}
 
 1. *Try clicking on the bars of the bar plot to change the pair of dimensions being plotted on the MDS.*
 2. *What might account for the variation between dimension 2 and dimension 3?*
@@ -404,7 +471,9 @@ plotly::ggplotly(
         as_tibble() %>%
         dplyr::select(sample, PC1, PC2) %>%
         left_join(rownames_to_column(dgeList_Filtered$samples, "sample")) %>%
-        ggplot(aes(PC1, PC2, colour = group, label = sample)) +
+        ggplot(aes(x = PC1, y = PC2,
+                   colour = group,
+                   label = sample)) +
         geom_point(size = 3) +
         theme_bw()
 )
@@ -417,33 +486,51 @@ Multi-Dimensional Scaling can look similar to PCA, but asks a slightly different
 
 It is common to perform one or both of these analyses before starting a differential expression analysis but rest assured that _usually_ results found under both methods will reveal similar patterns in your data.
 
-For a great tutorial on multi-dimensional scaling check out _"StatQuest: MDS and PCoA"_ at https://youtu.be/GEn-_dAyYME, and a companion vidoe about PCA titled _"StatQuest: Principal Component Analysis (PCA), Step-by-Step"_ at https://youtu.be/FgakZw6K1QQ.
+For a great tutorial on multi-dimensional scaling check out _"StatQuest: MDS and PCoA"_ [here](https://youtu.be/GEn-_dAyYME), and a companion vidoe about PCA titled _"StatQuest: Principal Component Analysis (PCA), Step-by-Step"_ [here](https://youtu.be/FgakZw6K1QQ).
 
 #### Tasks
-{:.no_toc}
 
 1. *How much variation is accounted for in PC1 and PC2 combined?*
-2. *Using the code chunk above as a template, plot PC3 and PC4 to investigate other sources of variation.*
+2. *Using the code chunk above as a template, plot PC3 and PC4 using* `ggplot` *and wrapping with* `plotly::ggplotly` *to investigate other sources of variation.*
 
 ## Differential Expression
 
-In the previous sections we have worked with read counts, which are a discrete value and formally cannot be modelled using the assumption of normally distributed data.
-This rules out linear models and t-tests for RNA-Seq, so many packages have been developed which use the negative binomial distribution to model these counts (e.g. `edgeR` and `DESeq2`).
-An alternative was proposed by [Law et al](https://genomebiology.biomedcentral.com/articles/10.1186/gb-2014-15-2-r29), where they apply a system of weights to the counts which allow the assumption of normality to be applied.
+In the previous sections we have worked with read counts, which are a discrete value and formally cannot be modelled using the assumption of normally distributed data (recall that counts data typically approximate a **negative binomial** distribution, not a **normal** distribution).
+The failure to meet the assumption of normality rules out linear models and t-tests for RNA-Seq, so many packages have been developed which use the negative binomial distribution to model these counts (e.g. `edgeR` and `DESeq2`).
+
+An alternative was proposed by [Law et al.](https://genomebiology.biomedcentral.com/articles/10.1186/gb-2014-15-2-r29), where they apply a system of weights to the counts which allow the assumption of normality to be applied.
 This method is called `voom` and we'll use this today.
 
-```{r voom}
-voomData <- voom(dgeList_Filtered)
+### Voom transformation and calculation of variance weights
+
+First, lets set up a model matrix to specify the model to be fitted.
+
+```{r modelMatrix}
+model_matrix <- model.matrix(~0 + group, data = dgeList_Filtered$samples)
 ```
 
-Note that this has added a design matrix to the data based on our `groups` column, and we can use this to perform a simple linear regression on each gene, which amounts to a t-test in this dataset.
+The above specifies a model where each coefficient corresponds to a group mean. Importantly we have used the `samples` elemenet of the `DGEList` object to set the model matrix. By using the `DGEList` object we ensure that the samples (and therefore the group assignment) has been given in the same order as the counts table.
+
+#### Tasks
+
+1. Take a moment to inspect the `model_matrix` object. You can do this by simply typing the object name into the console and hitting the <kbd>Enter</kbd> key.
+2. What information has been added here?
+3. What could happen if the group assignment wasn't given in the same order as the counts table?
+
+Next we will 
+```{r voom}
+voomData <- voom(dgeList_Filtered, model_matrix, plot = TRUE)
+```
+
+Note that running the `voom()` function without the `model_matrix` object will add a design matrix to the data based on the `group` column of the `DGEList` object but which we chose to specify explicitly. This is something of a style choice, but either way we can now use the **voom object** to perform a simple linear regression on each gene, which amounts to a t-test in this dataset.
+
 From here it's a simple matter to code the analysis and inspect results.
 
 A lot of analysis is performed in the following code chunk:
 
-1. We'll use `lmFit()` to fit the model for every gene using the design matrix in `voomData`. Note that we're not using CPM, but are instead fitting the counts directly, after incorporation of the voom-derived weights.
-2. Next we moderate the variances using an empirical Bayes approach. This uses the assumption that our variance estimates will a mix of overestimates and underestimates, and shrinks them all towards a central value. As a strategy, this is widely accepted and has been shown to increase power and reduce false positives.
-3. Finally, we'll create a list of all genes with a summary of the results which we then convert to a `tibble`. The last step will remove the gene IDs (i.e. the row names), but because we've included our gene information in the `DGEList` object, this will be added to he results and we'll still know which gene is which.
+1. We'll use `lmFit()` to fit the model for every gene using the design matrix in `voomData`. Note that we're not using CPM, but are instead fitting the counts directly, after incorporation of the [voom-derived weights](https://genomebiology.biomedcentral.com/articles/10.1186/gb-2014-15-2-r29).
+2. Next we moderate the variances using an empirical Bayes approach. This uses the assumption that our variance estimates will be a mix of overestimates and underestimates, and shrinks them all towards a central value. As a strategy, this is widely accepted and has been shown to increase power and reduce false positives.
+3. Finally, we'll create a list of all genes with a summary of the results which we then convert to a `tibble`. The last step will remove the gene IDs (i.e. the row names), but because we've included our gene information in the `DGEList` object, this will be added to the results and we'll still know which gene is which (now we see why we needed to ensure the `genesGR` object was added in the same order as the `countData` object).
 
 ```{r topTable}
 topTable <- voomData %>% 
@@ -453,10 +540,15 @@ topTable <- voomData %>%
     as_tibble()
 ```
 
+Recall from our `model_matrix` that we are comparing **groupcbc** with **groupskm** (we could rename these if we wanted to but for our purpose here we can leave them as is). This means that when we call the coefficient `groupskm` in the `topTable` function we are using the column name to specify which coefficient or contrast of the linear model is of interest
+
 Note that the GRanges information has been coerced into columns to form a `data.frame`/`tibble` and that looks a bit messy.
 To tidy things up, the following code will join all of the genomic co-ordinates into a single column, rename a few columns on the fly and by not asking for `ID.width` & `ID.gene_biotype`, we've saved ourselves dealing with a few redundant columns.
 We could actually add this to the chunk above to save forming then modifying an `R` object, but it's been left separate for clarity.
 
+### Tasks
+
+1. Take a quick look at the `topTable` object before and after the tidy up by typing `topTable %>% head()` into the console and hitting the <kbd>Enter</kbd> key.
 
 ```{r editTopTab}
 topTable <- topTable %>%
@@ -471,38 +563,40 @@ topTable <- topTable %>%
 ```
 
 Now that we have our ranked list of genes, we should really inspect these visually.
-A commonly used plot is a volcano plot, where we place the logFC estimates on the x-axis, and the position on the y-axis relates to the strength of statistical significance.
-Before plotting, we added a simple column called `DE` to indicate whether we considered a gene to be DE, based purely on an FDR-adjusted p-value < 0.05.
-We'll use this to colour points.
+A commonly used plot is a volcano plot, where the position of values on the x-axis is the logFC estimates for each gene, and the position on the y-axis relates to the strength of statistical significance for each gene.
+Before plotting, we added a simple column called `DE` to indicate whether we considered a gene to be differentially expressed (ie. the mean between the groups is different), based purely on an FDR-adjusted p-value < 0.05.
+To add some colour to the plot (and to make identifying the DE genes easy) we can use this `DE` status to colour points.
 
-```{r volcanoPlot, fig.cap="Volcano plot showing DE genes between the two timepoints"}
+```{r volcanoPlot, fig.cap="Volcano plot showing DE genes between the two tissue types."}
 topTable %>%
     mutate(DE = FDR < 0.05) %>%
     ggplot(aes(logFC, -log10(P.Value), colour = DE)) +
     geom_point(alpha = 0.5) +
-    geom_text_repel(data = . %>% 
-                        dplyr::filter(DE) %>%
-                        dplyr::filter(-log10(P.Value) > 4 | abs(logFC) > 2.5),
-                    aes(label = Symbol)) + 
-    scale_colour_manual(values = c("grey", "red")) +
+    # geom_text_repel(data = . %>%
+    #                     dplyr::filter(DE) %>%
+    #                     dplyr::filter(-log10(P.Value) > 4 | abs(logFC) > 2.5),
+    #                 aes(label = Symbol)) +
+    # scale_colour_manual(values = c("grey", "red")) +
     theme_bw() +
     theme(legend.position = "none")
+
 ```
 
+So what have we done here. Firstly we took our `topTable` object that contains the logFC values and FDR for each gene and piped the object into `mutate`. Here we have used `mutate` to create a new column called `DE` based on the logical question _is the value in the FDR column less than 0.05?_. For each row in our table if the value of the FDR column is < 0.05 a **TRUE** value will be returned, and of course a value of **FALSE** if $\geq$ 0.05.
 As another perspective, we might like to see whether these genes are at the high or low end of the range for expression values.
-This is often referred to as an MD plot, which stands for `M`ean expression vs `D`ifference, where difference is more commonly referred to as logFC.
+This is often referred to as an MD plot, which stands for **M**ean expression vs **D**ifference, where difference is more commonly referred to as logFC.
 We've added an `arrange()` call in the following to ensure our DE genes are plotted last and are the most visible in our figure.  
 
-```{r plotMD, fig.cap="Mean-Difference plot showing fold-change potted against expression level. Genes considered as DE are highlighted in red."}
+```{r plotMD, fig.cap="Mean-Difference plot showing fold-change potted against expression level. Genes considered as DE are highlighted in red.", results='asis'}
 topTable %>%
     mutate(DE = FDR < 0.05) %>%
     arrange(desc(P.Value)) %>%
     ggplot(aes(AveExpr, logFC, colour = DE)) +
     geom_point(alpha = 0.5) +
-    geom_text_repel(data = . %>% 
+    geom_text_repel(data = . %>%
                         dplyr::filter(DE) %>%
                         dplyr::filter(abs(logFC) > 2 | AveExpr > 14),
-                    aes(label = Symbol)) + 
+                    aes(label = Symbol)) +
     scale_colour_manual(values = c("grey", "red")) +
     labs(x = "Average Expression (log2 CPM)",
          y = "log Fold-Change") +
@@ -518,7 +612,23 @@ As there are more than 100 genes considered as DE here, let's restrict to those 
 topTable %>%
     dplyr::filter(FDR < 0.05, abs(logFC) > 1) %>%
     dplyr::select(ID = Geneid, Symbol, AveExpr, logFC, P.Value, FDR) %>%
-    pander(caption = paste("The", nrow(.), "most DE genes when ranked by p-value, and filtered on a logFC beyond the range $\\pm1$"))
+    pander(caption = paste("The", nrow(.), "most DE genes when ranked by p-value, and filtered on a logFC beyond the range $\\cpm1$"))
+```
+
+```{r boxPlots, fig.cap="Box plot showing mean differences in our gene of interest between tissue types.", results='asis'}
+plotly::ggplotly(
+countData %>% 
+  dplyr::filter(., rownames(countData) %in% "ENSMUSG00000034066") %>%
+  t() %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column("samplename") %>%
+  dplyr::select(., samplename, ENSMUSG00000034066 = V1) %>%
+  left_join(., sampleGroups, by = "samplename") %>%
+  ggplot() +
+  geom_boxplot(aes(x = group, y = ENSMUSG00000034066,
+                   fill = group)) +
+  theme_bw()
+)
 ```
 
 

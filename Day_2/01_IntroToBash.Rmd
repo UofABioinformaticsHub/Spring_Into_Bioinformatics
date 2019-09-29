@@ -1,5 +1,5 @@
 ---
-title: "Fall Into Bioinformatics"
+title: "Spring Into Bioinformatics"
 subtitle: "Intro to Bash"
 author: "Jimmy Breen"
 date: "17/09/2019"
@@ -64,11 +64,11 @@ Today we are going learn how to quantify aligned data and create a gene counts t
 
 - Session 3: Gene quantification and counts
   - Summarisation of aligned data to counts
+
+- Session 4: Differential Expression
   - Quality control of samples based on mapping counts
   - Estimation of library sizes
   - PCA/MDS assessment of outliers and batch effects
-
-- Session 4: Differential Expression
   - Choosing count distribution model: voom vs edgeR
   
 # A crash course in `bash`
@@ -328,10 +328,40 @@ cd
 ls Day_1
 ```
 
-### Creating a New Directory
+## Manuals and Help Pages
+
+### Accessing Manuals
+
+In order to help us find what options are able to be specified, every command built-in to the shell has a manual, or a help page which can take some time to get familiar with.
+*These help pages are displayed using the pager known as* `less` which essentially turns the terminal window into a text viewer so we can display text in the terminal window, but with no capacity for us to edit the text, almost like primitive version of Acrobat Reader.
+
+To display the help page for `ls` enter the command
+
+```
+man ls
+```
+
+As beforehand, the space between the arguments is important & in the first argument we are invoking the command `man` which then looks for the *manual* associated with the command `ls`.
+To navigate through the manual page, we need to know a few shortcuts which are part of the `less` pager.
+
+Although we can navigate through the `less` pager using up & down arrows on our keyboards, some helpful shortcuts are:
+
+| Key    | Action |
+|:---------- |:------ |
+| <kbd>Enter</kbd>    | go down one line |
+| <kbd>Spacebar</kbd> | go down one page (i.e. a screenful) |
+| <kbd>B</kbd>        | go **b**ackwards one page |
+| <kbd><</kbd>        | go to the beginning of the document |
+| <kbd>></kbd>        | go to the end of the document |
+| <kbd>Q</kbd>        | quit |
+
+
+Look through the manual page for the `ls` command.
+
+## Creating a New Directory
 
 Now we know how to move around and view the contents of a directory, we should learn how to create a new directory using `bash` instead of the GUI folder view you are used to.
-Navigate to your home folder using `bash`.
+Navigate to your home folder using `bash`.  
 
 ```
 cd ~/Day_2
@@ -344,14 +374,58 @@ To do this we use the `mkdir` command as follows:
 mkdir test
 ```
 
-You should see this appear in the GUI view, and if you now enter `ls`, you should also see this directory in your output.
+You should see this appear in the GUI view, and if you now enter `ls`, you should also see this directory in your output.  
 
 Importantly, the `mkdir` command above will only make a directory directly below the one we are currently in as we have used a relative path.
-If automating this process via a script it is very important to understand the difference between *absolute* and *relative* paths, as discussed above.
+If automating this process via a script it is very important to understand the difference between *absolute* and *relative* paths, as discussed above.  
 
+**What happens if the directory already exists?**
+
+We can prevent this error by using a parameter to the `mkdir` command.
+
+```
+man mkdir
+```
+
+**What does the `-p` flag do in the `mkdir` command?**
+
+
+### Text In the Terminal
+
+We can display a line of text in `stdout` by using the command `echo`.
+The most simple function that people learn to write in most languages is called `Hello World` and we'll do the same thing today.
+
+```
+echo 'Hello World'
+```
+
+That's pretty amazing isn't it & you can make the terminal window say anything you want without meaning it.
+
+```
+echo 'This computer will self destruct in 10 seconds!'
+```
+
+There are a few subtleties about text which are worth noting.
+If you have `man` pages accessible, inspect the `man echo` page & note the effects of the `-e` option. (Unfortunately you can't access this using `echo --help`.)
+The `-e` option allows you to specify tabs (`\t`), new lines (`\n`) & other special characters by using the backslash to signify these characters.
+This is an important concept & the use of a backslash to *escape* the normal meaning of a character is very common, as we saw with `grep` last time.
+Try the following three commands & see what effects these special characters have.  
+
+```
+echo 'Hello\tWorld'
+echo -e 'Hello\tWorld'
+echo -e 'Hello\nWorld'
+```
+
+As we've seen above, the command `echo` just repeats any subsequent text.
+Now enter
+```
+echo ~
+```
+
+**Why did this happen?**
 
 #### How To Not Panic
-{:.no_toc}
 
 It's easy for things to go wrong when working in the command-line, but if you've accidentally:
 
@@ -359,29 +433,19 @@ It's easy for things to go wrong when working in the command-line, but if you've
 - if you can't see the command prompt, or
 - if the terminal is not responsive
 
-there are some simple options for stopping a process & getting you back on track.
-Some options to try are:
-
-| Command  | Result |
-|:-------- |:------ |
-| <kbd>Ctrl</kbd>+<kbd>C</kbd> | Kill the current job |
-| <kbd>Ctrl</kbd>+<kbd>D</kbd> | End of input         |
-| <kbd>Ctrl</kbd>+<kbd>Z</kbd> | Suspend current job  |
-
-<kbd>Ctrl</kbd>+<kbd>C</kbd> is usually the first port of call when things go wrong.
-However, sometimes <kbd>Ctrl</kbd>+<kbd>C</kbd> doesn't work but <kbd>Ctrl</kbd>+<kbd>D</kbd> or <kbd>Ctrl</kbd>+<kbd>Z</kbd> will.
+<kbd>Ctrl</kbd>+<kbd>C</kbd> is usually the first port of call when things go wrong.  
 
 ## Redirection Using The Pipe Symbol
 
 Sometimes we need to build up our series of commands & send the results of one to another.
 The *pipe* symbol (`|`) is the way we do this & it can literally be taken as placing the output from one command into a pipe & redirecting it somewhere new.
 This is where thinking about the output of a command as a *data stream* can be very helpful.
-This is a very conventional approach when working in `bash` and was the motivation behind the creation of the `magrittr` package in `R`.
+This is a very conventional approach when working in `bash` and was the motivation behind the creation of the `magrittr` package in `R`.  
 
 As a simple example, we could take the output from an `ls` command & send it to the pager `less`.
-The pager `less` essentially turns the terminal window into a text viewer so we can display text in the terminal window, but with no capacity for us to edit the text, almost like primitive version of Acrobat Reader.
+The pager `less` essentially turns the terminal window into a text viewer so we can display text in the terminal window, but with no capacity for us to edit the text, almost like primitive version of Acrobat Reader.  
 
-Although we can navigate through the `less` pager using up & down arrows on our keyboards, some helpful shortcuts are:
+Although we can navigate through the `less` pager using up & down arrows on our keyboards, some helpful shortcuts are:  
 
 | Key    | Action |
 |:---------- |:------ |
@@ -398,11 +462,11 @@ For example, lets look at the how we can pipe one command into another
 ls -lh /usr/bin | less
 ```
 
-Page through the output (using <kbd>Spacebar</kbd>) until you get bored, then hit `q` to quit.
+Page through the output (using <kbd>Spacebar</kbd>) until you get bored, then hit `q` to quit.  
 
 You can do this with a number of other handy unix tools called `head`, `tail` and `wc`.
 As you can probably work out from the first two commands, they enable you to look at the head (top) or tail (bottom) of a file. 
-These commands are especially handy for looking at large files.
+These commands are especially handy for looking at large files.  
 
 ```
 ls -lh /usr/bin | head
@@ -419,7 +483,7 @@ ls -lh /usr/bin | head -n 2
 
 The command `wc` stands for "Word Count" and is a really handy tool to count the number of lines, words or characters in a file.
 It works in a very similar way to the "Word Count" command in Microsoft Word!
-Lines are output first, then words and lastly characters.
+Lines are output first, then words and lastly characters.  
 
 ```
 ls -lh /usr/bin | wc
@@ -428,7 +492,7 @@ ls -lh /usr/bin | wc
 ### Pattern matching using `grep`
 
 The built-in command which searches using "regular expressions" in the terminal is `grep`, which stands for `g`lobal `r`egular `e`xpression `p`rint.
-This function searches a file or input on a line-by-line basis, so patterns contained within a line can be found, but patterns split across lines are more difficult to find.
+This function searches a file or input on a line-by-line basis, so patterns contained within a line can be found, but patterns split across lines are more difficult to find.  
 
 If we take the example we've done above, you can use `grep` to online extract lines that contain certain characters or words. In the `/usr/bin` lets search for any line in the directory that contains the word "command" 
 
@@ -442,19 +506,82 @@ Thats quite specific, but you can also use smaller words or characters
 ls -lh /usr/bin | grep "ls"
 ```
 
-As you can see, a lot more lines contain the two consecutive characters "ls" than the word "command".
+As you can see, a lot more lines contain the two consecutive characters "ls" than the word "command".  
 
 Regular expressions more broadly are a powerful & flexible way of searching for text strings amongst a large document or file.
 Most of us are familiar with searching for a word within a file, but regular expressions allow us to search for these with more flexibility, particularly in the context of genomics.
 For example, we could search for a sequence that is either `AGT` or `ACT` by using the patterns  `A[GC]T` or  `A(G|C)T`.
 These two patterns will search for an  `A`, followed by either a  `G` or  `C`, then followed strictly by a  `T`.
-Due to time we won't go in-depth into regular expressions, but we will delve more into those during Day 3.
+Due to time we won't go in-depth into regular expressions, but we will delve more into those during Day 3.  
 
 #### Questions
 {:.no_toc}
 
 1. *How many lines were output from the `ls -lh /usr/bin` command?*
 2. *How many lines contain the word "cut"?*
+
+
+## sed: The Stream Editor
+
+One additional and very useful command in the terminal is `sed`, which is short for *stream editor*.
+Instead of the `man` page for `sed` the `info sed` page is larger but a little easier to digest.
+This is a very powerful command which can be a little overwhelming at first.
+If using this for your own scripts & you can't figure something out, remember 'Google is your friend' & sites like \url{www.stackoverflow.com} are full of people wrestling with similar problems to you.
+These are great places to start looking for help & even advanced programmers use these tools.
+
+For today, there are two key `sed` functionalities that we want to introduce.  
+
+1. Using `sed` to alter the contents of a file/input;
+2. Using `sed` to print regions of a file
+
+
+`sed` uses *regular expressions* that we have come across under the `grep` section, and we can use these to replace strings or characters within a text string.
+The command works in the form `sed 'SCRIPT' INPUT`, and the script section is where all the action happens.
+Input can be given to `sed` as either a file, or just as a text stream via the *pipe* that we have already introduced.  
+
+In the following example the script begins with an `s` to indicate that we are going to make a substitution.
+The beginning of the first pattern (i.e. the *regexp* we are searching for) is denoted with the backslash, with the identical delimiter indicating the replacement pattern, and this is in turn completed with the same delimiter.
+Try this simple example from the link \url{http://www.grymoire.com/Unix/Sed.html} which is a very detailed & helpful resource about the usage `sed`.
+Here we are sending the input (`echo Sunday`) to the command via the pipe, so no `INPUT` section is required:
+
+```
+echo Sunday | sed 's/day/night/'
+```
+
+Here you are passing `sed` the string Sunday, and `sed` takes day and turns it into night.  
+`sed` will only replace the first instance of the string on any line, so try:
+
+```
+echo Sundayday | sed 's/day/night/'
+```
+
+It only replaced the first instance of day and left the second.  You can make it 'global', where it switches every instance by using the `g` option at the end of the pattern like this:
+
+```
+echo Sundayday | sed 's/day/night/g'
+```
+
+### Using `cut`
+
+An extremely useful function when looking at delimited files, such as comma-separated or tab-separated text, is a command called `cut`.
+This command enables you to divide your files into specific columns.  
+
+Lets look at a very basic example.  
+
+```
+echo -e 'this\tis\tthe\tfirst\tline\nthis\tis\tthe\tsecond\tline'
+```
+
+What happens if we want to extract the column that contains the word "first" and "second"?
+In other words, how do we extract the 4th column **ONLY**?  
+
+```
+echo -e 'this\tis\tthe\tfirst\tline\nthis\tis\tthe\tsecond\tline' | cut -f 4
+```
+
+This is just a very basic example, but the `cut` command will become very important later when we are looking at SAM/BAM files. 
+These files have many fields, so its often helpful to reduce the output information using `cut`.  
+
 
 
 ---

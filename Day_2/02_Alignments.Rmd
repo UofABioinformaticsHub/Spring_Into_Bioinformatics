@@ -1,5 +1,5 @@
 ---
-title: "Fall Into Bioinformatics"
+title: "Spring Into Bioinformatics"
 subtitle: "Alignments"
 author: "Jimmy Breen"
 date: "17/09/2019"
@@ -137,7 +137,6 @@ samtools view SRR945375.skm.trimmedAligned.sortedByCoord.out.bam | head
 As you can see, there is a tonne of information here set out in columns which are all tab separated.
 These contain information about the where and how the read aligned to the reference genome.
 The specific information of each field is contained below:
-
 
 | Field | Name | Meaning |
 | ---- | ----- | ------- |
@@ -307,15 +306,56 @@ Lets see if thats just a one-off, or whether its a regular occurance in the file
 samtools view -F 512 SRR945375.skm.trimmedAligned.sortedByCoord.out.bam | grep "SRR945375.4599518"
 ```
 
-The primary goal of genome sequence alignment is where you identify the exact position of each read on the reference genome, however it is often the case that a read can map to multiple locations.
-These reads are what we call "multi-mapped" reads.
-As you learnt above, your MAPQ score is the probability of the read is incorrectly mapped, or more importantly, the probability that the read maps _uniquely_.
-So if you look at the 5th column of the specific "SRR945375.4599518" reads, you see that they are all have a MAPQ value of zero.
-However if you look at the SAM flag field, the reads contain different flags depending on their location.
-For example
+The primary goal of genome sequence alignment is where you identify the exact position of each read on the reference genome, however it is often the case that a read can map to multiple locations, termed "multi-mapped reads".
+In the SAM specifications you can find the full definition of multi-mapping:
+
+**Note** If you've ever found yourself in need of an exciting read, feel free to look through the full specifications of a SAM/BAM file (https://samtools.github.io/hts-specs/SAMv1.pdf). I suggest a good bottle of red wine.
+
+```
+Multiple mapping: The correct placement of a read may be ambiguous, e.g., due to repeats. In this case,
+there may be multiple read alignments for the same read. One of these alignments is considered
+primary. All the other alignments have the secondary alignment flag set in the SAM records that
+represent them. All the SAM records have the same QNAME and the same values for 0x40 and 0x80
+flags. Typically the alignment designated primary is the best alignment, but the decision may be
+arbitrary.
+```
+
+So each read has a _primary_ alignment (i.e. region which the read aligned to which is **usually** the best), and then any subsequent alignment is designated the _secondary_ alignment.
+From our multi-mapped "SRR945375.4599518" reads, we have:
+
+```
+SRR945375.4599518       272     1       3621352 0       15M3S   *       0       0       TGGCATCTACGGTTCAAA      @CA4A2<+AABB=A=111      NH:i:10 HI:i:5   AS:i:14 nM:i:0
+SRR945375.4599518       272     1       3621352 0       15M3S   *       0       0       TGGCATCTACGGTTCAAA      @CA4A2<+AABB=A=111      NH:i:10 HI:i:5   AS:i:14 nM:i:0
+SRR945375.4599518       16      1       59216019        0       3S15M   *       0       0       TGGCATCTACGGTTCAAA      @CA4A2<+AABB=A=111     NH:i:10  HI:i:1  AS:i:14 nM:i:0
+SRR945375.4599518       16      1       59216019        0       3S15M   *       0       0       TGGCATCTACGGTTCAAA      @CA4A2<+AABB=A=111     NH:i:10  HI:i:1  AS:i:14 nM:i:0
+SRR945375.4599518       256     18      85622164        0       3S15M   *       0       0       TTTGAACCGTAGATGCCA      111=A=BBAA+<2A4AC@     NH:i:10  HI:i:8  AS:i:14 nM:i:0
+...
+...
+```
 
 Multi-mapped reads are problematic because we are not confident in their position in the genome, and therefore have a high probability of being erroneous.
+And this is reflective in the MAPQ score as well.
+As you learnt previously, your MAPQ score is the probability of the read is incorrectly mapped, or more importantly, the probability that the read maps _uniquely_.
+So if you look at the 5th column of the specific "SRR945375.4599518" reads, you see that they are all have a MAPQ value of zero.
+However if you look at the SAM flag field, the reads contain different flags depending on their location.
 
+Additionally, you can check to see how many mappings a read has using the `NH:` tag in the last (12th) field of the line.
+That field is optional but many aligners, including the one that we have used i.e. STAR, add the NH tag.
+From the STAR manual ():
+
+```
+The number of loci Nmap a read maps to is given by NH:i: field. Value of 1 corresponds to
+unique mappers, while values >1 corresponds to multi-mappers. HI attrbiutes enumerates multiple
+alignments of a read starting with 1.
+```
+
+#### Tasks
+
+Using both `samtools` and other unix tools, identify:
+  
+1. The unique mapped reads in each BAM file
+2. The unique mapped reads that have a MAPQ > 30 in each BAM file
+3. The number of alignments found on Chromosome 1 in each BAM file
 
 
 ## To deduplicate or not to deduplicate? That is the question!
@@ -337,7 +377,7 @@ So do we remove duplicates for these approaches?
 
 The answer is:
 
-![](https://img.buzzfeed.com/buzzfeed-static/static/2015-03/26/19/enhanced/webdr06/original-25942-1427414325-9.jpg)
+![](https://img.buzzfeed.com/buzzfeed-static/static/2015-03/26/19/enhanced/webdr06/original-25942-1427414325-9.jpg){ width=50% }
 
 Generally for RNA sequencing or ChIP-seq experiments, we will run both raw and duplicate reads through the same pipeline to compare the results to make sure our duplicates are not effecting our final outcome.
 

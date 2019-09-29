@@ -373,15 +373,21 @@ summary {
 <div id="TOC">
 <ul>
 <li><a href="#introduction">Introduction</a></li>
-<li><a href="#go-enrichment">GO Enrichment</a></li>
+<li><a href="#go-enrichment">GO Enrichment</a><ul>
+<li><a href="#finding-the-genes-for-each-term.">Finding the genes for each term.</a></li>
+<li><a href="#kegg-enrichment">KEGG Enrichment</a></li>
+</ul></li>
+<li><a href="#conclusion">Conclusion</a><ul>
+<li><a href="#the-tidyverse">The tidyverse</a></li>
+</ul></li>
 </ul>
 </div>
 
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
 <p>Now that we’ve gone through our results a little, we should really dig a little deeper and explore which aspects of the cellular biology are impacted in our comparison. Here we are comparing two fairly dissimilar tissues, whereas in many of our experiments we are comparing a control and a treatment, or a handful of closely related cell types.</p>
-<p>The most common approach for testing for biological signal is to use a technique known as enrichment testing to see whether our set of differentially expressed genes are <em>enriched</em> for any signal. Under this approach we use pre-defined genesets and see if any of these appear to be over-represented in our set of DE genes, compared to the set of genes which are unchanged in our comparison. These genesets to be tested can be taken from any source, or assembled in any manner, but we commonly use databases such as the Gene Ontology (GO) or Kyoto Encylopedia of Genes and Genomes (KEGG). Another common database is MSigDB, however this can be a little more challenging to work with as cross-species and cross-database mappings are usually required.</p>
-<p>Today, we’ll simply look at using the hypergeometric test for enrichment. This is also known as Fisher’s Exact Test and bears a close resemblance to a <span class="math inline">\(\chi^2\)</span> test. Without going into fine statistical details, we form our data into a 2x2 table as follows.</p>
+<p>The most common approach for testing for biological signal is to use a technique known as enrichment testing to see whether our set of differentially expressed genes are <em>enriched</em> for any signal. Under this approach we use pre-defined gene sets and see if any of these appear to be over-represented in our set of DE genes, compared to the set of genes which are unchanged in our comparison. These gene sets to be tested can be taken from any source, or assembled in any manner, but we commonly use databases such as the Gene Ontology (GO) or Kyoto Encyclopaedia of Genes and Genomes (KEGG). Another common database is MSigDB, however this can be a little more challenging to work with as cross-species and cross-database mappings are usually required.</p>
+<p>Today, we’ll simply look at using the hyper-geometric test for enrichment. This is also known as Fisher’s Exact Test and bears a close resemblance to a <span class="math inline">\(\chi^2\)</span> test. Without going into fine statistical details, we form our data into a 2x2 table as follows.</p>
 <table>
 <thead>
 <tr class="header">
@@ -403,7 +409,7 @@ summary {
 </tr>
 </tbody>
 </table>
-<p>We then look to see if the number of DE genes which belong to our geneset appears to be higher (or lower) than might be expected when comparing to the unchanged genes. In the above example, 1.00% of the unchanged genes are in our geneset, whilst 10.0% of our DE genes are in the geneset. We would probably consider this geneset to be enriched in our set of DE genes.</p>
+<p>We then look to see if the number of DE genes which belong to our gene set appears to be higher (or lower) than might be expected when comparing to the unchanged genes. In the above example, 1.00% of the unchanged genes are in our gene set, whilst 10.0% of our DE genes are in the gene set. We would probably consider this gene set to be enriched in our set of DE genes.</p>
 <p>Although we are using DE genes as our framework here, this can also be applied to any two (or more) comparative groups, such as SNPs associated with differing environmental populations. Fisher’s Exact Test is also not restricted to 2x2 tables, but this is the most common form that we see.</p>
 </div>
 <div id="go-enrichment" class="section level2">
@@ -412,8 +418,8 @@ summary {
 <pre class="r"><code>library(limma)</code></pre>
 <p>Now we can check the help page using <code>?goana</code>. Here we can see both the <code>goana()</code> and <code>kegga()</code> function documented. The first two are how the function is defined for objects of class <code>MArrayLM</code>, which we haven’t used for our analysis, As a result, the function we’ll need is the one listed under <code>Default S3 method:</code>.</p>
 <p>The information we need to pass to this function is a list of identifiers from our DE genes (<code>de</code>) and the total list of genes from which these De genes are drawn (<code>universe</code>). We’ll also need to define the species, which in our case will be “Mm” for <em>Mus musculus</em></p>
-<p>Unfortunately, we need to provide our gene identifier to this function as the NCBI-based <em>EntrezGene</em> identifiers, and we have been using Ensembl identifers. In general, the opinion of the Bioinformatics Hub is that Ensembl gene-models are far better defined than EntrezGene so we tend to use Ensembl identifiers by default. However, the mappings of gene identifiers to GO terms is handled better by the EntrezGene database, and similarly the databases built by the Bioconductor community are more rich for EntrezGene identifiers, most likely as most developers are US-based. Nothing in bioinformatics is ever easy.</p>
-<p>Fortunately, we setup our <code>genesGR</code> object sensibly and you may notice that we have a column of EntrezGene identifiers. We can use these! As we noted earlier, we just need a set of identifiers which can be passed to the function for the <code>de</code> argument, whilst we need the entire set under analysis for the <code>universe</code>. Previously (in a step we’ll cover tomorrow) we removed all of our undetectable genes from our analysis, as we only want to analyse genes that are being expressed in on or more of our experimental groups. This will minimise our spurious or less meaningful results.</p>
+<p>Unfortunately, we need to provide our gene identifier to this function as the NCBI-based <em>EntrezGene</em> identifiers, and we have been using Ensembl identifiers. In general, the opinion of the Bioinformatics Hub is that Ensembl gene-models are far better defined than EntrezGene so we tend to use Ensembl identifiers by default. However, the mappings of gene identifiers to GO terms is handled better by the EntrezGene database, and similarly the databases built by the Bioconductor community are more rich for EntrezGene identifiers, most likely as most developers are US-based. Nothing in bioinformatics is ever easy.</p>
+<p>Fortunately, we set up our <code>genesGR</code> object sensibly and you may notice that we have a column of EntrezGene identifiers. We can use these! As we noted earlier, we just need a set of identifiers which can be passed to the function for the <code>de</code> argument, whilst we need the entire set under analysis for the <code>universe</code>. Previously (in a step we’ll cover tomorrow) we removed all of our undetectable genes from our analysis, as we only want to analyse genes that are being expressed in on or more of our experimental groups. This will minimise our spurious or less meaningful results.</p>
 <p>The simplest strategy here is to define these as R objects, as we need to do a few filtering steps for each.</p>
 <pre class="r"><code>uv &lt;- genesGR %&gt;%
     subset(gene_id %in% DGE_Results$GeneID) %&gt;%
@@ -425,8 +431,8 @@ summary {
 <p>This is a long code chunk, so let’s look at what we’ve done.</p>
 <p>The first <code>subset(gene_id %in% DGE_Results$GeneID)</code> line ensured that we’ll only keep genes in our ‘universe’ that are our set of expressed genes (i.e. those in the complete set of DGE_Results).</p>
 <p>The next <code>subset(!is.na(entrezid))</code> ensured that any genes without EntrezGene ids were removed, as these are essentially uninformative. There are two useful points here. The test <code>is.na()</code> is used to test for missing (<em>i.e.</em> <code>NA</code>) values in the column <code>entrezid</code>, whilst the placing of an exclamation point beforehand (<code>!</code>) reversed the results, so that <code>TRUE</code> became <code>FALSE</code> and vice-versa.</p>
-<p>After this second <code>subset()</code> operation, we just took our <code>mcols()</code> to get the metadata, then we used the double brackets just to extract the single column “entrezid”. The astute amongst you may have noticed that this column is in fact an R object called a <code>list</code>. Without going into too much detail, this enables the mapping of one Ensembl ID to one or more EntrezGene IDs as we can store more than one value for each element. By following our extraction (<code>[[]]</code>) by unlist, this converted the complex structure into a simple vector. From there we applied the function <code>unique()</code> to ensure every ID only appears once.</p>
-<p>To perform a similar operation and get the set of EntrezGene IDs from our set of DE genes, we could try the following. Note that this time we’ve setup our DE genes directly from the DGE_Results object first.</p>
+<p>After this second <code>subset()</code> operation, we just took our <code>mcols()</code> to get the metadata, then we used the double brackets just to extract the single column “entrezid”. The astute amongst you may have noticed that this column is in fact an R object called a <code>list</code>. Without going into too much detail, this enables the mapping of one Ensembl ID to one or more EntrezGene IDs as we can store more than one value for each element. By following our extraction (<code>[[]]</code>) with <code>unlist()</code>, this converted the complex structure into a simple vector. From there we applied the function <code>unique()</code> to ensure every ID only appears once.</p>
+<p>To perform a similar operation and get the set of EntrezGene IDs from our set of DE genes, we could try the following. Note that this time we’ve set up our DE genes directly from the DGE_Results object first.</p>
 <pre class="r"><code>de &lt;- DGE_Results %&gt;%
     dplyr::filter(FDR &lt; 0.01 &amp; abs(logFC) &gt; 1) %&gt;%
     left_join(as.data.frame(genesGR), by = c(&quot;GeneID&quot; = &quot;gene_id&quot;)) %&gt;%
@@ -434,7 +440,7 @@ summary {
     .[[&quot;entrezid&quot;]] %&gt;%
     unlist() %&gt;%
     unique()</code></pre>
-<p>Now we have our two lists of gene IDs, we can just call the function <code>goana()</code>. Under the hood, this will handle all of the mappings from EntrezGene ID to GO terms using a database package called <code>org.Mm.eg.db</code>. We don’t need to know any more than that, but this is wy our species is required, as this package name will be automatically loaded using our provided “Mm” abbreviation. This function has also been well written for speed.</p>
+<p>Now we have our two lists of gene IDs, we can just call the function <code>goana()</code>. Under the hood, this will handle all of the mappings from EntrezGene ID to GO terms using a database package called <code>org.Mm.eg.db</code>. We don’t need to know any more than that, but this is way our species is required, as this package name will be automatically loaded using our provided “Mm” abbreviation. This function has also been well written for speed.</p>
 <pre class="r"><code>goRes &lt;- goana(de, uv, species = &quot;Mm&quot;)</code></pre>
 <p>This has returned a standard <code>data.frame</code> (with rownames), and we like to use <code>tibble</code> objects. To make this a tibble we’ll need to shift those rownames to a column. There is a function for that in the package <code>tibble</code>, so let’s add this to our <code>loadPackages</code> chunk.</p>
 <pre class="r"><code>library(tibble)</code></pre>
@@ -443,10 +449,10 @@ summary {
     rownames_to_column(&quot;goid&quot;) %&gt;%
     as_tibble()
 goRes</code></pre>
-<p>Here we have over 9000 terms that have been tested, returned in alpha-numeric order based on the GO ID. The column <code>N</code> tells how many genes in the <code>uv</code> object were mapped to the GO term, whilst the column <code>DE</code> tells us how many genes in our <code>de</code> object wre mapped to the GO term. The column <code>P.DE</code> contains the two-sided p-value from Fisher’s Exact Test, representing an association between the GO term and the set of DE genes.</p>
+<p>Here we have over 9000 terms that have been tested, returned in alpha-numeric order based on the GO ID. The column <code>N</code> tells how many genes in the <code>uv</code> object were mapped to the GO term, whilst the column <code>DE</code> tells us how many genes in our <code>de</code> object were mapped to the GO term. The column <code>P.DE</code> contains the two-sided p-value from Fisher’s Exact Test, representing an association between the GO term and the set of DE genes.</p>
 <p>As we are testing for enrichment, we need a way of finding which p-values are from the detection of enrichment and which are from a lack of enrichment. In general, we rarely test for a lack of enrichment unless your articular biological question makes this relevant.</p>
-<p>A good way to do this might be to find the poportion of genes from the universe which mapped to this term, and the proportion of genes from <code>de</code> which mapped to this term. If the second proportion is higher, we know our p-value is associated with enrichment.</p>
-<p>An alternative approach, might be to find the proportion of genes from the universe, then mutiply this by the number of DE genes to obtain an <em>Expected</em> value. If DE &gt; Expected, we also have enrichment.</p>
+<p>A good way to do this might be to find the proportion of genes from the universe which mapped to this term, and the proportion of genes from <code>de</code> which mapped to this term. If the second proportion is higher, we know our p-value is associated with enrichment.</p>
+<p>An alternative approach, might be to find the proportion of genes from the universe, then multiply this by the number of DE genes to obtain an <em>Expected</em> value. If DE &gt; Expected, we also have enrichment.</p>
 <pre class="r"><code>goRes %&gt;%
     mutate(Expected = length(de) * N / length(uv))</code></pre>
 <p>We might also like to remove any GO terms not found in our set of DE genes, as we can only test for enrichment of terms found in our results.</p>
@@ -464,7 +470,7 @@ goRes</code></pre>
     dplyr::filter(DE &gt; 0) %&gt;%
     arrange(P.DE) %&gt;%
     mutate(adjP = p.adjust(P.DE, &quot;fdr&quot;))</code></pre>
-<p>Surprising, there are no GO terms here that appear to be enriched amongst our set of DE genes! Maybe a better approach would be to look at up-regulated and down-regulated genes individually. Let’s define a new set of DE genes for upregulated</p>
+<p>Surprising, there are no GO terms here that appear to be enriched amongst our set of DE genes! By restricting our analysis to genes on chromosome 1, we’ve certainly limited our power here, but let’s proceed anyway. Maybe a better approach would be to look at up-regulated and down-regulated genes individually. Let’s define a new set of DE genes for up-regulated</p>
 <pre class="r"><code>up &lt;- DGE_Results %&gt;%
     dplyr::filter(FDR &lt; 0.01 &amp; logFC &gt; 1) %&gt;%
     left_join(as.data.frame(genesGR), by = c(&quot;GeneID&quot; = &quot;gene_id&quot;)) %&gt;%
@@ -496,6 +502,66 @@ goRes</code></pre>
         style = &quot;rmarkdown&quot;,
         split.tables = Inf
     )</code></pre>
+<div id="task" class="section level4">
+<h4>Task</h4>
+<p>Repeat this for down-regulated genes</p>
+</div>
+<div id="finding-the-genes-for-each-term." class="section level3">
+<h3>Finding the genes for each term.</h3>
+<p>Unfortunately, this is not a particularly well-designed feature in R. The easiest strategy for us, given what we know is to just find the genes for one GO term at a time. This is performed using the <code>get()</code> function, and a mapping object. This mapping object is loaded with the package <code>org.Mm.eg.db</code>. Let’s add this to our <code>loadPackages</code> code chunk.</p>
+<pre class="r"><code>library(org.Mm.eg.db)</code></pre>
+<p>This package comes with a mapping object <code>org.Mm.egGO2ALLEGS</code> and we can just ask for the IDs for each GO term. Taking one of our highly ranked terms gives us the EntrezGene IDs</p>
+<pre class="r"><code>get(&quot;GO:0061061&quot;, org.Mm.egGO2ALLEGS)</code></pre>
+<p>This is the complete set of IDs, but we can use this to restrict our results to the genes we are interested in.</p>
+<pre class="r"><code>genesGR %&gt;%
+  subset(entrezid %in% get(&quot;GO:0061061&quot;, org.Mm.egGO2ALLEGS)) %&gt;%
+  mcols() %&gt;%
+  as.data.frame() %&gt;%
+  left_join(DGE_Results, by = c(&quot;gene_id&quot; = &quot;GeneID&quot;)) %&gt;%
+  as_tibble() %&gt;%
+  dplyr::filter(FDR &lt; 0.01, logFC &gt; 1) %&gt;%
+  dplyr::select(gene_id, gene_name, logFC, logCPM, PValue, FDR)</code></pre>
+</div>
+<div id="kegg-enrichment" class="section level3">
+<h3>KEGG Enrichment</h3>
+<p>Similarly to GO, analysis of gene sets defined by KEGG can be performed using the function <code>kegga()</code>.</p>
+<pre class="r"><code>keggRes &lt;- kegga(up, uv, species = &quot;Mm&quot;)</code></pre>
+<p>We can use the same approach as for GO enrichment to produce a table of the 10 most enriched pathways</p>
+<pre class="r"><code>keggRes %&gt;%
+  rownames_to_column(&quot;keggid&quot;) %&gt;%
+  as_tibble() %&gt;%
+  dplyr::filter(DE &gt; 0) %&gt;%
+  mutate(
+    Expected = length(up) * N / length(uv),
+    adjP = p.adjust(P.DE, &quot;fdr&quot;)
+  ) %&gt;%
+  arrange(P.DE) %&gt;%
+  dplyr::filter(DE &gt; Expected) %&gt;%
+  dplyr::slice(1:10) %&gt;%
+  mutate(DE = paste(DE, N, sep = &quot;/&quot;)) %&gt;%
+  dplyr::select(keggid, Pathway, Expected, DE, P.DE, adjP)</code></pre>
+<div id="task-1" class="section level4">
+<h4>Task</h4>
+<p><strong>Repeat this for down-regulated genes</strong></p>
+</div>
+</div>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>We’ve covered a lot of material today, so take any remaining time to create an R Markdown document, describing everything you’re doing as if you’re communicating with your collaborators, or with a future version of you who can’t remember why you’ve made your decisions.</p>
+<p>In this document:</p>
+<ol style="list-style-type: decimal">
+<li>Inspect the p-values and explain why</li>
+<li>Create an MD plot, labelling the genes of your choice</li>
+<li>Create a Volcano plot, labelling the genes of your choice</li>
+<li>Create tables of up and down-regulated genes. Choose 10 or 20 or any number you prefer</li>
+<li>Describe your criteria for considering a gene to be differentially expressed, and include the numbers of DE genes in your explanatory text</li>
+<li>Perform an enrichment test, and create a table summarising your results</li>
+</ol>
+<div id="the-tidyverse" class="section level3">
+<h3>The tidyverse</h3>
+<p>The packages, <code>dplyr</code>, <code>readr</code>, <code>ggplot2</code> and <code>tibble</code> along with two other packages we’ll learn about later (<code>stringr</code> and <code>tidyr</code>) form what is collectively known as the <code>tidyverse</code>. The package <code>tidyverse</code> is a simple wrapper which loads all of these in one line. In your <code>loadPackages</code> chunk, you can replace all of the above packages with the simple line <code>library(tidyverse)</code>.</p>
+</div>
 </div>
 
 

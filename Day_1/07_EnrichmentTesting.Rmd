@@ -47,11 +47,11 @@ Now that we've gone through our results a little, we should really dig a little 
 Here we are comparing two fairly dissimilar tissues, whereas in many of our experiments we are comparing a control and a treatment, or a handful of closely related cell types.
 
 The most common approach for testing for biological signal is to use a technique known as enrichment testing to see whether our set of differentially expressed genes are *enriched* for any signal.
-Under this approach we use pre-defined genesets and see if any of these appear to be over-represented in our set of DE genes, compared to the set of genes which are unchanged in our comparison.
-These genesets to be tested can be taken from any source, or assembled in any manner, but we commonly use databases such as the Gene Ontology (GO) or Kyoto Encylopedia of Genes and Genomes (KEGG).
+Under this approach we use pre-defined gene sets and see if any of these appear to be over-represented in our set of DE genes, compared to the set of genes which are unchanged in our comparison.
+These gene sets to be tested can be taken from any source, or assembled in any manner, but we commonly use databases such as the Gene Ontology (GO) or Kyoto Encyclopaedia of Genes and Genomes (KEGG).
 Another common database is MSigDB, however this can be a little more challenging to work with as cross-species and cross-database mappings are usually required.
 
-Today, we'll simply look at using the hypergeometric test for enrichment.
+Today, we'll simply look at using the hyper-geometric test for enrichment.
 This is also known as Fisher's Exact Test and bears a close resemblance to a $\chi^2$ test.
 Without going into fine statistical details, we form our data into a 2x2 table as follows.
 
@@ -60,9 +60,9 @@ Without going into fine statistical details, we form our data into a 2x2 table a
 | In GeneSet | 10 | 10 |
 | Not In GeneSet | 90 | 990 |
 
-We then look to see if the number of DE genes which belong to our geneset appears to be higher (or lower) than might be expected when comparing to the unchanged genes.
-In the above example, `r scales::percent(10/1000)` of the unchanged genes are in our geneset, whilst `r scales::percent(10/100)` of our DE genes are in the geneset.
-We would probably consider this geneset to be enriched in our set of DE genes.
+We then look to see if the number of DE genes which belong to our gene set appears to be higher (or lower) than might be expected when comparing to the unchanged genes.
+In the above example, `r scales::percent(10/1000)` of the unchanged genes are in our gene set, whilst `r scales::percent(10/100)` of our DE genes are in the gene set.
+We would probably consider this gene set to be enriched in our set of DE genes.
 
 Although we are using DE genes as our framework here, this can also be applied to any two (or more) comparative groups, such as SNPs associated with differing environmental populations. 
 Fisher's Exact Test is also not restricted to 2x2 tables, but this is the most common form that we see.
@@ -85,12 +85,12 @@ As a result, the function we'll need is the one listed under `Default S3 method:
 The information we need to pass to this function is a list of identifiers from our DE genes (`de`) and the total list of genes from which these De genes are drawn (`universe`).
 We'll also need to define the species, which in our case will be "Mm" for *Mus musculus*
 
-Unfortunately, we need to provide our gene identifier to this function as the NCBI-based *EntrezGene* identifiers, and we have been using Ensembl identifers.
+Unfortunately, we need to provide our gene identifier to this function as the NCBI-based *EntrezGene* identifiers, and we have been using Ensembl identifiers.
 In general, the opinion of the Bioinformatics Hub is that Ensembl gene-models are far better defined than EntrezGene so we tend to use Ensembl identifiers by default.
 However, the mappings of gene identifiers to GO terms is handled better by the EntrezGene database, and similarly the databases built by the Bioconductor community are more rich for EntrezGene identifiers, most likely as most developers are US-based. 
 Nothing in bioinformatics is ever easy.
 
-Fortunately, we setup our `genesGR` object sensibly and you may notice that we have a column of EntrezGene identifiers.
+Fortunately, we set up our `genesGR` object sensibly and you may notice that we have a column of EntrezGene identifiers.
 We can use these!
 As we noted earlier, we just need a set of identifiers which can be passed to the function for the `de` argument, whilst we need the entire set under analysis for the `universe`.
 Previously (in a step we'll cover tomorrow) we removed all of our undetectable genes from our analysis, as we only want to analyse genes that are being expressed in on or more of our experimental groups.
@@ -119,11 +119,11 @@ The test `is.na()` is used to test for missing (*i.e.* `NA`) values in the colum
 After this second `subset()` operation, we just took our `mcols()` to get the metadata, then we used the double brackets just to extract the single column "entrezid".
 The astute amongst you may have noticed that this column is in fact an R object called a `list`.
 Without going into too much detail, this enables the mapping of one Ensembl ID to one or more EntrezGene IDs as we can store more than one value for each element.
-By following our extraction (`[[]]`) by unlist, this converted the complex structure into a simple vector.
+By following our extraction (`[[]]`) with `unlist()`, this converted the complex structure into a simple vector.
 From there we applied the function `unique()` to ensure every ID only appears once.
 
 To perform a similar operation and get the set of EntrezGene IDs from our set of DE genes, we could try the following.
-Note that this time we've setup our DE genes directly from the DGE_Results object first.
+Note that this time we've set up our DE genes directly from the DGE_Results object first.
 
 ```{r}
 de <- DGE_Results %>%
@@ -137,7 +137,7 @@ de <- DGE_Results %>%
 
 Now we have our two lists of gene IDs, we can just call the function `goana()`.
 Under the hood, this will handle all of the mappings from EntrezGene ID to GO terms using a database package called `org.Mm.eg.db`.
-We don't need to know any more than that, but this is wy our species is required, as this package name will be automatically loaded using our provided "Mm" abbreviation. 
+We don't need to know any more than that, but this is way our species is required, as this package name will be automatically loaded using our provided "Mm" abbreviation. 
 This function has also been well written for speed.
 
 ```{r}
@@ -162,16 +162,16 @@ goRes
 ```
 
 Here we have over 9000 terms that have been tested, returned in alpha-numeric order based on the GO ID.
-The column `N` tells how many genes in the `uv` object were mapped to the GO term, whilst the column `DE` tells us how many genes in our `de` object wre mapped to the GO term.
+The column `N` tells how many genes in the `uv` object were mapped to the GO term, whilst the column `DE` tells us how many genes in our `de` object were mapped to the GO term.
 The column `P.DE` contains the two-sided p-value from Fisher's Exact Test, representing an association between the GO term and the set of DE genes.
 
 As we are testing for enrichment, we need a way of finding which p-values are from the detection of enrichment and which are from a lack of enrichment.
 In general, we rarely test for a lack of enrichment unless your articular biological question makes this relevant.
 
-A good way to do this might be to find the poportion of genes from the universe which mapped to this term, and the proportion of genes from `de` which mapped to this term.
+A good way to do this might be to find the proportion of genes from the universe which mapped to this term, and the proportion of genes from `de` which mapped to this term.
 If the second proportion is higher, we know our p-value is associated with enrichment.
 
-An alternative approach, might be to find the proportion of genes from the universe, then mutiply this by the number of DE genes to obtain an *Expected* value.
+An alternative approach, might be to find the proportion of genes from the universe, then multiply this by the number of DE genes to obtain an *Expected* value.
 If DE > Expected, we also have enrichment.
 
 ```{r}
@@ -207,8 +207,9 @@ goRes %>%
 ```
 
 Surprising, there are no GO terms here that appear to be enriched amongst our set of DE genes!
+By restricting our analysis to genes on chromosome 1, we've certainly limited our power here, but let's proceed anyway.
 Maybe a better approach would be to look at up-regulated and down-regulated genes individually.
-Let's define a new set of DE genes for upregulated
+Let's define a new set of DE genes for up-regulated
 
 ```{r}
 up <- DGE_Results %>%
@@ -252,4 +253,90 @@ upGoRes %>%
         split.tables = Inf
     )
 ```
+
+#### Task
+
+Repeat this for down-regulated genes
+
+### Finding the genes for each term.
+
+Unfortunately, this is not a particularly well-designed feature in R.
+The easiest strategy for us, given what we know is to just find the genes for one GO term at a time.
+This is performed using the `get()` function, and a mapping object.
+This mapping object is loaded with the package `org.Mm.eg.db`.
+Let's add this to our `loadPackages` code chunk.
+
+```{r}
+library(org.Mm.eg.db)
+```
+
+This package comes with a mapping object `org.Mm.egGO2ALLEGS` and we can just ask for the IDs for each GO term.
+Taking one of our highly ranked terms gives us the EntrezGene IDs
+
+```{r}
+get("GO:0061061", org.Mm.egGO2ALLEGS)
+```
+
+This is the complete set of IDs, but we can use this to restrict our results to the genes we are interested in.
+
+```{r}
+genesGR %>%
+  subset(entrezid %in% get("GO:0061061", org.Mm.egGO2ALLEGS)) %>%
+  mcols() %>%
+  as.data.frame() %>%
+  left_join(DGE_Results, by = c("gene_id" = "GeneID")) %>%
+  as_tibble() %>%
+  dplyr::filter(FDR < 0.01, logFC > 1) %>%
+  dplyr::select(gene_id, gene_name, logFC, logCPM, PValue, FDR)
+```
+
+
+### KEGG Enrichment
+
+Similarly to GO, analysis of gene sets defined by KEGG can be performed using the function `kegga()`.
+
+```{r}
+keggRes <- kegga(up, uv, species = "Mm")
+```
+
+We can use the same approach as for GO enrichment to produce a table of the 10 most enriched pathways
+
+```{r}
+keggRes %>%
+  rownames_to_column("keggid") %>%
+  as_tibble() %>%
+  dplyr::filter(DE > 0) %>%
+  mutate(
+    Expected = length(up) * N / length(uv),
+    adjP = p.adjust(P.DE, "fdr")
+  ) %>%
+  arrange(P.DE) %>%
+  dplyr::filter(DE > Expected) %>%
+  dplyr::slice(1:10) %>%
+  mutate(DE = paste(DE, N, sep = "/")) %>%
+  dplyr::select(keggid, Pathway, Expected, DE, P.DE, adjP)
+```
+
+#### Task
+
+**Repeat this for down-regulated genes**
+
+## Conclusion
+
+We've covered a lot of material today, so take any remaining time to create an R Markdown document, describing everything you're doing as if you're communicating with your collaborators, or with a future version of you who can't remember why you've made your decisions.
+
+In this document:
+
+1. Inspect the p-values and explain why
+2. Create an MD plot, labelling the genes of your choice
+3. Create a Volcano plot, labelling the genes of your choice
+4. Create tables of up and down-regulated genes. Choose 10 or 20 or any number you prefer
+5. Describe your criteria for considering a gene to be differentially expressed, and include the numbers of DE genes in your explanatory text
+6. Perform an enrichment test, and create a table summarising your results
+
+### The tidyverse
+
+The packages, `dplyr`, `readr`, `ggplot2` and `tibble` along with two other packages we'll learn about later (`stringr` and `tidyr`) form what is collectively known as the `tidyverse`.
+The package `tidyverse` is a simple wrapper which loads all of these in one line.
+In your `loadPackages` chunk, you can replace all of the above packages with the simple line `library(tidyverse)`.
 

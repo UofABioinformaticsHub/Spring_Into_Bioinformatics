@@ -37,14 +37,15 @@ Password for `UofA-Guest`:
 
 # Day 1
 
-| Session | Topic | RMarkdown | Data |
-| ------- |:----- |:--------- |:---- |
-| 9:00 - 10:30 | [1. Introduction To RStudio](Day_1/01_IntroRStudio.html) |  | |
-|              | [2. Introduction To R Markdown](Day_1/02_IntroRMarkdown.html) | | |
-| 11:00 - 12:30 | [3. Importing Data](Day_1/03_DataImport.html) | | |
-|               | [4. Visualising Data](Day_1/04_VisualisingData.html) | | |
-| 1:30 - 3:00 | [5. Manipulating Data](Day_1/05_WorkingWithData.html) | | |
-|             | [6. Adding Annotations](Day_1/06_AddingAnnotations.html) | | |
+| Session | Topic |
+| ------- |:----- |
+| 9:00 - 10:30 | [1. Introduction To RStudio](Day_1/01_IntroRStudio.html) |  
+|              | [2. Introduction To R Markdown](Day_1/02_IntroRMarkdown.html) | 
+| 11:00 - 12:30 | [3. Importing Data](Day_1/03_DataImport.html) | 
+|               | [4. Visualising Data](Day_1/04_VisualisingData.html) | 
+| 1:30 - 3:00 | [5. Manipulating Data](Day_1/05_WorkingWithData.html) |
+|             | [6. Adding Annotations](Day_1/06_AddingAnnotations.html) |
+| 3:30 - 5:00 | [7. Enrichment Analysis](Day_1/07_EnrichmentTesting.html) |
 
 
 # Day 2

@@ -364,7 +364,7 @@ summary {
 
 
 <h1 class="title toc-ignore">Spring Into Bioinformatics</h1>
-<h3 class="subtitle">Adding Gene-Level Annotations</h3>
+<h3 class="subtitle">Enrichment Analysis</h3>
 <h4 class="author">Steve Pederson</h4>
 <h4 class="date">02/10/2019</h4>
 
@@ -373,217 +373,129 @@ summary {
 <div id="TOC">
 <ul>
 <li><a href="#introduction">Introduction</a></li>
-<li><a href="#package-repositories">Package Repositories</a></li>
-<li><a href="#annotation-packages">Annotation Packages</a><ul>
-<li><a href="#ensdb-objects">EnsDb Objects</a></li>
-<li><a href="#genomic-ranges-objects">Genomic Ranges Objects</a></li>
-</ul></li>
-<li><a href="#integrating-our-granges-object-with-dge_results">Integrating our GRanges object with DGE_Results</a><ul>
-<li><a href="#namespace-issues">Namespace Issues</a></li>
-<li><a href="#returning-to-our-volcano-plot">Returning to our Volcano Plot</a></li>
-</ul></li>
-<li><a href="#inspecting-biotypes">Inspecting Biotypes</a></li>
+<li><a href="#go-enrichment">GO Enrichment</a></li>
 </ul>
 </div>
 
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>Now we’ve made some informative plots, the next level of information we may like to include is some information about each gene, besides just a generic identifier. Our RNA-Seq data has been aligned to the genome and summarised to genes based on Ensembl release 96. This release uses the GRCm38 genome build as the reference and has a particular set of genes, based on the available information and gene models at the time of release. It’s not uncommon for gene identifiers to exist, or not exist in different Ensembl releases. In this section of the course, we’ll look at how we can work with annotations and different databases in R.</p>
+<p>Now that we’ve gone through our results a little, we should really dig a little deeper and explore which aspects of the cellular biology are impacted in our comparison. Here we are comparing two fairly dissimilar tissues, whereas in many of our experiments we are comparing a control and a treatment, or a handful of closely related cell types.</p>
+<p>The most common approach for testing for biological signal is to use a technique known as enrichment testing to see whether our set of differentially expressed genes are <em>enriched</em> for any signal. Under this approach we use pre-defined genesets and see if any of these appear to be over-represented in our set of DE genes, compared to the set of genes which are unchanged in our comparison. These genesets to be tested can be taken from any source, or assembled in any manner, but we commonly use databases such as the Gene Ontology (GO) or Kyoto Encylopedia of Genes and Genomes (KEGG). Another common database is MSigDB, however this can be a little more challenging to work with as cross-species and cross-database mappings are usually required.</p>
+<p>Today, we’ll simply look at using the hypergeometric test for enrichment. This is also known as Fisher’s Exact Test and bears a close resemblance to a <span class="math inline">\(\chi^2\)</span> test. Without going into fine statistical details, we form our data into a 2x2 table as follows.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">DE Genes</th>
+<th align="right">Not DE Genes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">In GeneSet</td>
+<td align="right">10</td>
+<td align="right">10</td>
+</tr>
+<tr class="even">
+<td align="left">Not In GeneSet</td>
+<td align="right">90</td>
+<td align="right">990</td>
+</tr>
+</tbody>
+</table>
+<p>We then look to see if the number of DE genes which belong to our geneset appears to be higher (or lower) than might be expected when comparing to the unchanged genes. In the above example, 1.00% of the unchanged genes are in our geneset, whilst 10.0% of our DE genes are in the geneset. We would probably consider this geneset to be enriched in our set of DE genes.</p>
+<p>Although we are using DE genes as our framework here, this can also be applied to any two (or more) comparative groups, such as SNPs associated with differing environmental populations. Fisher’s Exact Test is also not restricted to 2x2 tables, but this is the most common form that we see.</p>
 </div>
-<div id="package-repositories" class="section level2">
-<h2>Package Repositories</h2>
-<p>All of the packages we have come across so far have been general R packages, and these are hosted on a repository of packages known as <a href="https://cran.r-project.org/">CRAN</a>. To install any of these packages, we can simply use the command <code>install.packages(&quot;packageName&quot;)</code>.</p>
-<p>A second repository of packages exists, known as <a href="https://bioconductor.org/">Bioconductor</a> and all of the packages hosted here are specific to working with biological data. There is one CRAN package (<code>BiocManager</code>) which provides us access to this repository. We’ve installed all of the required packages for you today, but the function (<code>install(&quot;packageName)</code>) provided by this package gives you access to packages both on CRAN and on Bioconductor. For many of us, it’s our default installation method.</p>
-<p>Bioconductor itself hosts over 1700 packages, with four primary classification categories: <em>Software</em>, <em>AnnotationData</em>, <em>ExperimentData</em> and <em>Workflow</em>. These categories (known as BiocViews) are not mutually exclusive.</p>
-</div>
-<div id="annotation-packages" class="section level2">
-<h2>Annotation Packages</h2>
-<p>To start working with gene-level information, we first need to find the appropriate annotation package for our dataset. There is a “master” package (<code>AnnotationHub</code>) which contains the metadata for all annotation packages, and allows for simple interaction with all packages.</p>
-<p>The first step will be to load this package, then form an R object which contains all of the metadata. This will automatically check with the the main repository to ensure that all metadata is up to date.</p>
-<pre class="r"><code>library(AnnotationHub)
-ah &lt;- AnnotationHub()
-ah</code></pre>
-<p>Notice that we no longer have a spreadsheet-like object. When we print the contents of this object, the first few lines will start with the <code>#</code> symbol and is essentially a header providing us with useful information. Here we can see the various data sources (<code>$dataprovider</code>), species (<code>$species</code>) and the type of R object that is returned (<code>$rdataclass</code>). Just like with a <code>data.frame</code>, we can access each of these fields using the <code>$</code> symbol, however, that will return a vector of length 45228 so may not be useful. All of the metadata is obtained using the function <code>mcols()</code>, which is a common function in Bioconductor packages, which returns a <code>DataFrame</code> of your metadata with our familiar column structure (hence, <code>mcols()</code>).</p>
-<pre class="r"><code>mcols(ah)</code></pre>
-<p>Most of this information is beyond the scope of today’s session, but you may have noticed that this time we returned a <code>DataFrame</code> instead of a <code>tibble</code> or <code>data.frame</code>. This was a version of the <code>data.frame</code> in use by the Bioconductor community long before Hadley Wickham emerged as a programmer, and this form has stayed as the primary form amongst Bioconductor packages. For those who are familiar with these things, a <code>data.frame</code> uses S3 methods, whilst a <code>DataFrame</code> uses S4 methods. If that made no sense, there’s no need to worry as this is not relevant information for those at a more entry level.</p>
-<p>What we do need to know is that we can use the data in these columns to subset our <code>ah</code> object. As this is not strictly a spreadsheet-like structure, we’ll use the relatively general function <code>subset()</code> to find what we need. We were told earlier that this is a mouse dataset, aligned to Ensembl release 96. The object type we’re going to use from here is an <code>EnsDb</code> object, which is way of storing all of the relevant information from the Ensembl database for our specific genome &amp; annotation release.</p>
-<p>We can use the combined logical test incorporating the ampersand (<code>&amp;</code>) to restrict our results to the elements of <code>ah</code> containing the relevant information.</p>
-<pre class="r"><code>subset(ah, rdataclass == &quot;EnsDb&quot; &amp; species == &quot;Mus musculus&quot;)</code></pre>
-<p>Here we have just printed the elements of <code>ah</code> which define an <code>EnsDb</code> object for <em>Mus musculus</em>, and you’ll see every Ensembl release here, going back to 87, which was the release at the time of the initial package being developed. To the left of the pipe symbol (<code>|</code>) you’ll see the relevant identifier for each annotation object, and to load this into our workspace we use the code below. If the package is not already located on your machine, it will be downloaded and installed.</p>
-<p>Also note the use of double brackets in the following code In R, if we use single brackets to subset an object we return an object of the same structure as the main one, just a smaller version of it. If we use double brackets, we only return one element of the larger object, and it will have a different underlying structure. If we’d used a single bracket (<code>ah[&quot;AH69210&quot;]</code>) we would have returned a smaller AnnotationHub object, whilst by using the double brackets, we’ve actually returned the EnsDb object at the heart of is. R objects can have rather complex structures sometimes, but this principle is consistent across all objects.</p>
-<div id="ensdb-objects" class="section level3">
-<h3>EnsDb Objects</h3>
-<pre class="r"><code>ensDb &lt;- ah[[&quot;AH69210&quot;]]
-ensDb</code></pre>
-<p>Now we have our <code>ensDb</code> object, we can see that the genome build is as expected, and we have a few additional pieces of information such as the number of genes and transcripts. Today we’ll only be working at the gene-level as transcript-level analysis is still relatively poorly understood.</p>
-</div>
-<div id="genomic-ranges-objects" class="section level3">
-<h3>Genomic Ranges Objects</h3>
-<p>To obtain our genes, we can simply use the function <code>genes()</code> and this will return an object of class <code>GRanges</code> or <code>GenomicRanges</code>. This appears to be a spreadsheet-like structure at first glance, but under the hood there have been structural restrictions placed on it, such as the requirement for a defined genome.</p>
-<pre class="r"><code>genesGR &lt;- genes(ensDb)
-genesGR</code></pre>
-<p>In this object, our <em>genomic ranges</em> associated with each gene appear on the left of the pipe symbol, whilst the metadata (accessed using <code>mcols()</code>) is on the right of these. In the metadata columns, you’ll see the type of information we’re after. Let’s have a quick look through the object.</p>
-<pre class="r"><code>seqinfo(genesGR)</code></pre>
-<p>The defined genome which underlies the object can be accessed using the <code>seqinfo()</code> function. Here you’ll see all of the key information such as whether the chromosomes are 1, 2, 3 etc., or chr1, chr2, chr3 etc. We can also see our chromosome lengths and the genome build. The <code>isCircular</code> field is rarely used, but it does exist if required.</p>
-<pre class="r"><code>mcols(genesGR)</code></pre>
-<p>If we explore the metadata columns, it appear there is some redundant information here. Although this is not strictly required, we can restrict this information to fields we care about. Let’s keep the columns <code>gene_id</code>, <code>gene_name</code>, <code>gene_biotype</code>, <code>description</code> and <code>entrezid</code>.</p>
-<pre class="r"><code>cols2Keep &lt;- c(&quot;gene_id&quot;, &quot;gene_name&quot;, &quot;gene_biotype&quot;, &quot;description&quot;, &quot;entrezid&quot;)
-mcols(genesGR) &lt;- mcols(genesGR)[,cols2Keep]
-mcols(genesGR)</code></pre>
-<p>Note that here, we overwrote the mcols data, with a modified version of itself. This strategy is often used to change column names or rownames using the <code>colnames()</code> and <code>rownames()</code> functions.</p>
-<p>Another useful trick might be to only keep the genes on chromosome 1, as we know that’s all we have in our object <code>DGE_Results</code>. Notice that the chromosome is part of our GRanges core, in a field called <code>seqnames</code>. We can use this to overwrite our original object.</p>
-<pre class="r"><code>genesGR &lt;- subset(genesGR, seqnames == &quot;1&quot;)</code></pre>
-<p>For those who feel uncomfortable just throwing away this information, remember it will only take one line of code to get the full <code>GRanges</code> object back. This is much more useful than trying <code>Undo</code> in Excel!</p>
-<p>Also note that we didn’t change the underlying defined genome. If comparing two GRanges objects, the first step an any function will be to check these builds are compatible, so these has left us with a structure that could be compared against another GRanges object, such as one containing transcription factor binding sites or SNPs. We won’t actually do that today, but it’s good practice.</p>
-</div>
-</div>
-<div id="integrating-our-granges-object-with-dge_results" class="section level2">
-<h2>Integrating our GRanges object with DGE_Results</h2>
-<p>Now we have our gene-level information, the next challenge will be to add this to our <code>DGE_Results</code> object, and this is where Hadley’s programming paradigm conflicts slight with the Bioconductor approach.</p>
-<p>The package <code>dplyr</code> is well-equipped for merging two <code>data.frame</code> (or <code>tibble</code>) objects, so a good strategy may be to convert our <code>GRanges</code> object into a <code>data.frame</code> Let’s try this and just have a look. Before we commit to anything, let’s set up a quick look using the magrittr (<code>%&gt;%</code>).</p>
-<pre class="r"><code>genesGR %&gt;%
-  as.data.frame() %&gt;%
-  head()</code></pre>
-<p>Notice how the ranges which were on the left of the pipe in the original object have now been separated into individual columns. We also have rownames, which are replicated in the <code>gene_id</code> column. A big advantage of converting the <code>GRanges</code> object into a <code>data.frame</code> is that all of the tools available to us in <code>dplyr</code> become viable.</p>
-<p>An example of this might be to summarise our gene_biotypes and see how many we have.</p>
-<pre class="r"><code>genesGR %&gt;%
-  as.data.frame() %&gt;%
-  group_by(gene_biotype) %&gt;%
-  summarise(Total = n()) %&gt;%
-  arrange(desc(Total))</code></pre>
-<p>The <code>group_by()</code> function is very useful and takes a <code>data.frame</code> as input. Unfortunately, the S4 class <code>DataFrame</code> doesn’t play well with <code>dplyr</code> so this is what underlies our need to convert to a <code>data.frame</code>.</p>
-<p>Our primary motivation is to add all of the information from our <code>GRanges</code> object onto our <code>DGE_Results</code> object. Once again, <code>dplyr</code> provides a very useful function called <code>left_join()</code> which combines two data frames based on a common column. If you consider the first data frame to be the one on the left, this explains the terminology. The second <code>data.frame</code> is essentially mapped onto the first one. Alternatively, <code>right_join</code> would map the first <code>data.frame</code> onto the second one.</p>
-<p>The common column in both our objects would be <code>GeneID</code> in <code>DGE_Results</code>, which contains the information matching <code>gene_id</code> in the <code>GRanges</code> object. If these were named identically <code>left/right_join()</code> would figure everything out for us automatically. Let’s see this in action.</p>
-<pre class="r"><code>genesGR %&gt;%
-  as.data.frame() %&gt;%
-  right_join(DGE_Results, by = c(&quot;gene_id&quot; = &quot;GeneID&quot;)) %&gt;%
-  as_tibble()</code></pre>
-<p>Notice that our <code>GRanges</code> object had <code>length(genesGR)</code> genes, whilst now have 1257 genes, as expected.</p>
-<p>Alternatively, we could have used the approach</p>
-<pre class="r"><code>DGE_Results %&gt;%
-  left_join(as.data.frame(genesGR), by = c(&quot;GeneID&quot; = &quot;gene_id&quot;))</code></pre>
-<p>The only difference is in the column order, which we can fix using <code>select()</code>, and how easily you can understand the two code chunks.</p>
-<pre class="r"><code>DGE_Results %&gt;%
-  left_join(as.data.frame(genesGR), by = c(&quot;GeneID&quot; = &quot;gene_id&quot;)) %&gt;%
-  dplyr::select(GeneID, gene_name, logFC, logCPM, PValue, FDR, gene_biotype, description, entrezid)</code></pre>
-<div id="namespace-issues" class="section level3">
-<h3>Namespace Issues</h3>
-<p>In the previous chunk, you will have noticed that instead of just using <code>select()</code>, we used <code>dplyr::select()</code>. Unfortunately, <code>dplyr</code> is not the only package with a function called <code>select</code>, and similarly for the functions <code>slice()</code>, <code>filter()</code>, <code>mutate()</code>. If you type <code>?select</code> in your R Console, the help page will turn up 4 options, and these are the packages currently loaded which have a function called <code>select</code>. By prefacing the function with the name of the package it comes from, and a double colon (<em>i.e.</em> <code>dplyr::</code>) we are telling R to use the function from that package (or more accurately referred to as a namespace). When Hadley wrote <code>dplyr</code>, he chose to use function names based on existing functions in the database language SQL. The other packages you see listed in the help page also use SQL-like syntax, so this is why they all have functions with the same name. If you see an inexplicable message from a function that usually works, this is a common way to fix it, <em>i.e.</em> call the help page using <code>?functionName</code> and if you get more than one option, explicitly call the one you want using the namespace.</p>
-</div>
-<div id="returning-to-our-volcano-plot" class="section level3">
-<h3>Returning to our Volcano Plot</h3>
-<p>Our motivation for the previous section was to add gene names to the volcano plot. We can do this using <code>geom_text()</code>. However, before we just jump into that, pause for a moment and realise that if we do this, we will print the names for all 1257 genes. This will be an unreadable mess, so let’s introduce one more trick. Inside a piped chain of commands, the object being sent to the function can be called implicitly using the <code>.</code> symbol, and we’ll take advantage of this in the code chunk below. Pay particular attention to the line <code>geom_text(data = . %&gt;% dplyr::slice(1:10))</code>.</p>
-<pre class="r"><code>DGE_Results %&gt;%
-  left_join(as.data.frame(genesGR), by = c(&quot;GeneID&quot; = &quot;gene_id&quot;)) %&gt;%
-  dplyr::select(GeneID, gene_name, logFC, logCPM, PValue, FDR) %&gt;%
-  mutate(
-    Sig = FDR &lt; 0.01 &amp; abs(logFC) &gt; 1,
-    Direction = case_when(
-      Sig &amp; logFC &gt; 0 ~ &quot;Up&quot;,
-      Sig &amp; logFC &lt; 0 ~ &quot;Down&quot;,
-      !Sig ~ &quot;Unchanged&quot;
-    )
-  ) %&gt;%
-  ggplot(aes(logFC, -log10(PValue), colour = Direction, label = gene_name)) +
-  geom_point() +
-  geom_text(data = . %&gt;% dplyr::slice(1:10)) +
-  scale_colour_manual(values = c(&quot;blue&quot;, &quot;grey&quot;, &quot;red&quot;)) +
-  labs(y = &quot;-log10(p)&quot;) +
-  theme_bw()</code></pre>
-<p>Unfortunately, those names seem to lie on top of each other, so we’re going to load another package <code>ggrepel</code> and use the function <code>geom_text_repel()</code>. This is a straight drop-in for <code>geom_text()</code>, but there is some fancy work going on behind the scenes which avoids overlapping labels.</p>
-<p>First, place this in your <code>loadPackages</code> chunk.</p>
-<pre class="r"><code>library(ggrepel)</code></pre>
-<p>Now we can swap in the new function. I’ve also added the argument <code>show.legend = FALSE</code> to hide the labels from the legend.</p>
-<pre class="r"><code>DGE_Results %&gt;%
-  left_join(as.data.frame(genesGR), by = c(&quot;GeneID&quot; = &quot;gene_id&quot;)) %&gt;%
-  dplyr::select(GeneID, gene_name, logFC, logCPM, PValue, FDR) %&gt;%
-  mutate(
-    Sig = FDR &lt; 0.01 &amp; abs(logFC) &gt; 1,
-    Direction = case_when(
-      Sig &amp; logFC &gt; 0 ~ &quot;Up&quot;,
-      Sig &amp; logFC &lt; 0 ~ &quot;Down&quot;,
-      !Sig ~ &quot;Unchanged&quot;
-    )
-  ) %&gt;%
-  ggplot(aes(logFC, -log10(PValue), colour = Direction, label = gene_name)) +
-  geom_point() +
-  geom_text_repel(data = . %&gt;% dplyr::slice(1:10), show.legend = FALSE) +
-  scale_colour_manual(values = c(&quot;blue&quot;, &quot;grey&quot;, &quot;red&quot;)) +
-  labs(y = &quot;-log10(p)&quot;) +
-  theme_bw()</code></pre>
-<p>This is now a pretty long code chunk, but hopefully every line makes sense as you read through it. Alternatively, we could’ve created a new object from our merge of <code>DGE_Results</code> with the <code>genesGR</code> data, however, keeping a clean workspace with only a few object can help us avoid some common pitfalls.</p>
-<div id="task" class="section level4">
-<h4>Task</h4>
-<p><em>Try adding labels in the same manner to a selection of differentially expressed genes in your MD plot.</em></p>
-</div>
-</div>
-</div>
-<div id="inspecting-biotypes" class="section level2">
-<h2>Inspecting Biotypes</h2>
-<p>Another task we may be interested in is seeing which genes with particular functions are differentially expressed, using our fairly broad <code>gene_biotype</code> information. We’ll look at functional enrichment a little later, but this can also be an informative part of any analysis.</p>
-<p>Lets repeat most of the above code, but adding the <code>gene_biotype</code> to the <code>dplyr::select()</code> line. What we’ll then do is use <code>group_by()</code> across both <code>gene_biotype</code> and <code>Direction</code> to count how many we have.</p>
-<pre class="r"><code>DGE_Results %&gt;%
-  left_join(as.data.frame(genesGR), by = c(&quot;GeneID&quot; = &quot;gene_id&quot;)) %&gt;%
-  dplyr::select(GeneID, gene_name, logFC, logCPM, PValue, FDR, gene_biotype) %&gt;%
-  mutate(
-    Sig = FDR &lt; 0.01 &amp; abs(logFC) &gt; 1,
-    Direction = case_when(
-      Sig &amp; logFC &gt; 0 ~ &quot;Up&quot;,
-      Sig &amp; logFC &lt; 0 ~ &quot;Down&quot;,
-      !Sig ~ &quot;Unchanged&quot;
-    )
-  ) %&gt;%
-  group_by(gene_biotype, Direction) %&gt;%
-  tally()</code></pre>
-<p>We can now use <code>geom_bar()</code> to draw a bar plot. Once again, there are a few tricks here. <code>geom_bar()</code> will try to summarise values, so setting <code>stat = &quot;identity&quot;</code> tells it to use the exact numbers we’ve given it. The other more strange looking line <code>position = position_dodge2(preserve = &quot;single&quot;)</code> is telling <code>geom_bar()</code> to preserve the width of a single bar. This is helpful when we have zero values for one or more categories, and ensure that we don’t have varying bar widths in these cases.</p>
-<pre class="r"><code>DGE_Results %&gt;%
-  left_join(as.data.frame(genesGR), by = c(&quot;GeneID&quot; = &quot;gene_id&quot;)) %&gt;%
-  dplyr::select(GeneID, gene_name, logFC, logCPM, PValue, FDR, gene_biotype) %&gt;%
-  mutate(
-    Sig = FDR &lt; 0.01 &amp; abs(logFC) &gt; 1,
-    Direction = case_when(
-      Sig &amp; logFC &gt; 0 ~ &quot;Up&quot;,
-      Sig &amp; logFC &lt; 0 ~ &quot;Down&quot;,
-      !Sig ~ &quot;Unchanged&quot;
-    )
-  ) %&gt;%
-  group_by(gene_biotype, Direction) %&gt;%
-  tally() %&gt;%
-  ggplot(aes(gene_biotype, n, fill = Direction)) +
-  geom_bar(
-    stat = &quot;identity&quot;, 
-    position = position_dodge2(preserve = &quot;single&quot;)
-  ) +
-  theme_bw()</code></pre>
-<p>A final useful trick might be to place the biotype on the y-axis, and the best method for this is to use the function <code>coord_flip()</code>.</p>
-<pre class="r"><code>DGE_Results %&gt;%
-  left_join(as.data.frame(genesGR), by = c(&quot;GeneID&quot; = &quot;gene_id&quot;)) %&gt;%
-  dplyr::select(GeneID, gene_name, logFC, logCPM, PValue, FDR, gene_biotype) %&gt;%
-  mutate(
-    Sig = FDR &lt; 0.01 &amp; abs(logFC) &gt; 1,
-    Direction = case_when(
-      Sig &amp; logFC &gt; 0 ~ &quot;Up&quot;,
-      Sig &amp; logFC &lt; 0 ~ &quot;Down&quot;,
-      !Sig ~ &quot;Unchanged&quot;
-    )
-  ) %&gt;%
-  group_by(gene_biotype, Direction) %&gt;%
-  tally() %&gt;%
-  ggplot(aes(gene_biotype, n, fill = Direction)) +
-  geom_bar(
-    stat = &quot;identity&quot;, 
-    position = position_dodge2(preserve = &quot;single&quot;)
-  ) +
-  coord_flip() +
-  theme_bw() </code></pre>
-<div id="task-1" class="section level4">
-<h4>Task</h4>
-<p>If we try making the axis labels a bit nicer, we have to call them by the original settings of the aesthetics, not what we see on the plot. <strong>Try making nicer axis labels for this plot</strong>.</p>
-</div>
-<div id="task-2" class="section level4">
-<h4>Task</h4>
-<p><strong>Remake the tables of top 10 up and down regulated genes, including the gene names</strong>.</p>
-</div>
+<div id="go-enrichment" class="section level2">
+<h2>GO Enrichment</h2>
+<p>As this is a common question we ask of our data, a function has already been written for wider use. This can be found in the Bioconductor package <code>limma</code>, which is one of the most heavily used packages of all time. The function we need in <code>goana()</code> so let’s first add the package to our <code>loadPackages</code> chunk.</p>
+<pre class="r"><code>library(limma)</code></pre>
+<p>Now we can check the help page using <code>?goana</code>. Here we can see both the <code>goana()</code> and <code>kegga()</code> function documented. The first two are how the function is defined for objects of class <code>MArrayLM</code>, which we haven’t used for our analysis, As a result, the function we’ll need is the one listed under <code>Default S3 method:</code>.</p>
+<p>The information we need to pass to this function is a list of identifiers from our DE genes (<code>de</code>) and the total list of genes from which these De genes are drawn (<code>universe</code>). We’ll also need to define the species, which in our case will be “Mm” for <em>Mus musculus</em></p>
+<p>Unfortunately, we need to provide our gene identifier to this function as the NCBI-based <em>EntrezGene</em> identifiers, and we have been using Ensembl identifers. In general, the opinion of the Bioinformatics Hub is that Ensembl gene-models are far better defined than EntrezGene so we tend to use Ensembl identifiers by default. However, the mappings of gene identifiers to GO terms is handled better by the EntrezGene database, and similarly the databases built by the Bioconductor community are more rich for EntrezGene identifiers, most likely as most developers are US-based. Nothing in bioinformatics is ever easy.</p>
+<p>Fortunately, we setup our <code>genesGR</code> object sensibly and you may notice that we have a column of EntrezGene identifiers. We can use these! As we noted earlier, we just need a set of identifiers which can be passed to the function for the <code>de</code> argument, whilst we need the entire set under analysis for the <code>universe</code>. Previously (in a step we’ll cover tomorrow) we removed all of our undetectable genes from our analysis, as we only want to analyse genes that are being expressed in on or more of our experimental groups. This will minimise our spurious or less meaningful results.</p>
+<p>The simplest strategy here is to define these as R objects, as we need to do a few filtering steps for each.</p>
+<pre class="r"><code>uv &lt;- genesGR %&gt;%
+    subset(gene_id %in% DGE_Results$GeneID) %&gt;%
+    subset(!is.na(entrezid)) %&gt;%
+    mcols() %&gt;%
+    .[[&quot;entrezid&quot;]] %&gt;%
+    unlist() %&gt;%
+    unique()</code></pre>
+<p>This is a long code chunk, so let’s look at what we’ve done.</p>
+<p>The first <code>subset(gene_id %in% DGE_Results$GeneID)</code> line ensured that we’ll only keep genes in our ‘universe’ that are our set of expressed genes (i.e. those in the complete set of DGE_Results).</p>
+<p>The next <code>subset(!is.na(entrezid))</code> ensured that any genes without EntrezGene ids were removed, as these are essentially uninformative. There are two useful points here. The test <code>is.na()</code> is used to test for missing (<em>i.e.</em> <code>NA</code>) values in the column <code>entrezid</code>, whilst the placing of an exclamation point beforehand (<code>!</code>) reversed the results, so that <code>TRUE</code> became <code>FALSE</code> and vice-versa.</p>
+<p>After this second <code>subset()</code> operation, we just took our <code>mcols()</code> to get the metadata, then we used the double brackets just to extract the single column “entrezid”. The astute amongst you may have noticed that this column is in fact an R object called a <code>list</code>. Without going into too much detail, this enables the mapping of one Ensembl ID to one or more EntrezGene IDs as we can store more than one value for each element. By following our extraction (<code>[[]]</code>) by unlist, this converted the complex structure into a simple vector. From there we applied the function <code>unique()</code> to ensure every ID only appears once.</p>
+<p>To perform a similar operation and get the set of EntrezGene IDs from our set of DE genes, we could try the following. Note that this time we’ve setup our DE genes directly from the DGE_Results object first.</p>
+<pre class="r"><code>de &lt;- DGE_Results %&gt;%
+    dplyr::filter(FDR &lt; 0.01 &amp; abs(logFC) &gt; 1) %&gt;%
+    left_join(as.data.frame(genesGR), by = c(&quot;GeneID&quot; = &quot;gene_id&quot;)) %&gt;%
+    dplyr::filter(!is.na(entrezid)) %&gt;%
+    .[[&quot;entrezid&quot;]] %&gt;%
+    unlist() %&gt;%
+    unique()</code></pre>
+<p>Now we have our two lists of gene IDs, we can just call the function <code>goana()</code>. Under the hood, this will handle all of the mappings from EntrezGene ID to GO terms using a database package called <code>org.Mm.eg.db</code>. We don’t need to know any more than that, but this is wy our species is required, as this package name will be automatically loaded using our provided “Mm” abbreviation. This function has also been well written for speed.</p>
+<pre class="r"><code>goRes &lt;- goana(de, uv, species = &quot;Mm&quot;)</code></pre>
+<p>This has returned a standard <code>data.frame</code> (with rownames), and we like to use <code>tibble</code> objects. To make this a tibble we’ll need to shift those rownames to a column. There is a function for that in the package <code>tibble</code>, so let’s add this to our <code>loadPackages</code> chunk.</p>
+<pre class="r"><code>library(tibble)</code></pre>
+<p>Now we can just use the function <code>rownames_to_column()</code></p>
+<pre class="r"><code>goRes &lt;- goRes %&gt;%
+    rownames_to_column(&quot;goid&quot;) %&gt;%
+    as_tibble()
+goRes</code></pre>
+<p>Here we have over 9000 terms that have been tested, returned in alpha-numeric order based on the GO ID. The column <code>N</code> tells how many genes in the <code>uv</code> object were mapped to the GO term, whilst the column <code>DE</code> tells us how many genes in our <code>de</code> object wre mapped to the GO term. The column <code>P.DE</code> contains the two-sided p-value from Fisher’s Exact Test, representing an association between the GO term and the set of DE genes.</p>
+<p>As we are testing for enrichment, we need a way of finding which p-values are from the detection of enrichment and which are from a lack of enrichment. In general, we rarely test for a lack of enrichment unless your articular biological question makes this relevant.</p>
+<p>A good way to do this might be to find the poportion of genes from the universe which mapped to this term, and the proportion of genes from <code>de</code> which mapped to this term. If the second proportion is higher, we know our p-value is associated with enrichment.</p>
+<p>An alternative approach, might be to find the proportion of genes from the universe, then mutiply this by the number of DE genes to obtain an <em>Expected</em> value. If DE &gt; Expected, we also have enrichment.</p>
+<pre class="r"><code>goRes %&gt;%
+    mutate(Expected = length(de) * N / length(uv))</code></pre>
+<p>We might also like to remove any GO terms not found in our set of DE genes, as we can only test for enrichment of terms found in our results.</p>
+<pre class="r"><code>goRes %&gt;%
+    mutate(Expected = length(de) * N / length(uv)) %&gt;%
+    dplyr::filter(DE &gt; 0)</code></pre>
+<p>Next, we might like to arrange by p-value.</p>
+<pre class="r"><code>goRes %&gt;%
+    mutate(Expected = length(de) * N / length(uv)) %&gt;%
+    dplyr::filter(DE &gt; 0) %&gt;%
+    arrange(P.DE)</code></pre>
+<p>Finally, we’d need to adjust those p-values to account for the fact that we have multiple hypothesis test being conducted in parallel.</p>
+<pre class="r"><code>goRes %&gt;%
+    mutate(Expected = length(de) * N / length(uv)) %&gt;%
+    dplyr::filter(DE &gt; 0) %&gt;%
+    arrange(P.DE) %&gt;%
+    mutate(adjP = p.adjust(P.DE, &quot;fdr&quot;))</code></pre>
+<p>Surprising, there are no GO terms here that appear to be enriched amongst our set of DE genes! Maybe a better approach would be to look at up-regulated and down-regulated genes individually. Let’s define a new set of DE genes for upregulated</p>
+<pre class="r"><code>up &lt;- DGE_Results %&gt;%
+    dplyr::filter(FDR &lt; 0.01 &amp; logFC &gt; 1) %&gt;%
+    left_join(as.data.frame(genesGR), by = c(&quot;GeneID&quot; = &quot;gene_id&quot;)) %&gt;%
+    dplyr::filter(!is.na(entrezid)) %&gt;%
+    .[[&quot;entrezid&quot;]] %&gt;%
+    unlist() %&gt;%
+    unique()</code></pre>
+<p>Now we can repeat our GO analysis, hut this time, we’ll do it all in one big chunk.</p>
+<pre class="r"><code>upGoRes &lt;- goana(up, uv, species = &quot;Mm&quot;) %&gt;%
+    rownames_to_column(&quot;goid&quot;) %&gt;%
+    as_tibble() %&gt;%
+    mutate(Expected = length(up) * N / length(uv)) %&gt;%
+    dplyr::filter(DE &gt; 0) %&gt;%
+    arrange(P.DE) %&gt;%
+    mutate(adjP = p.adjust(P.DE, &quot;fdr&quot;))</code></pre>
+<p>Considering we are comparing muscle cells to brain cells, this makes a fair bit of sense. Let’s produce a table for our report.</p>
+<pre class="r"><code>upGoRes %&gt;%
+    dplyr::filter(
+        adjP &lt; 0.05,
+        DE &gt; Expected
+    ) %&gt;%
+    mutate(
+        DE = paste(DE, N, sep = &quot;/&quot;) 
+    ) %&gt;%
+    dplyr::select(goid, Term, Ont, Expected, DE, P.DE, adjP) %&gt;%
+    pander(
+        caption = &quot;Enriched GO terms in the set of up-regulated genes.&quot;,
+        justify = &quot;lllrrrr&quot;,
+        style = &quot;rmarkdown&quot;,
+        split.tables = Inf
+    )</code></pre>
 </div>
 
 

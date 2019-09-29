@@ -388,4 +388,8 @@ DGE_Results %>%
 #### Task
 
 If we try making the axis labels a bit nicer, we have to call them by the original settings of the aesthetics, not what we see on the plot.
-**Try making nicer axis labels for this plot**
+**Try making nicer axis labels for this plot**.
+
+#### Task
+
+**Remake the tables of top 10 up and down regulated genes, including the gene names**.

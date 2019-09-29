@@ -583,7 +583,7 @@ topTable %>%
 
 So what have we done here. Firstly we took our `topTable` object that contains the logFC values and FDR for each gene and piped the object into `mutate`. Here we have used `mutate` to create a new column called `DE` based on the logical question _is the value in the FDR column less than 0.05?_. For each row in our table if the value of the FDR column is < 0.05 a **TRUE** value will be returned, and of course a value of **FALSE** if $\geq$ 0.05.
 As another perspective, we might like to see whether these genes are at the high or low end of the range for expression values.
-This is often referred to as an MD plot, which stands for **M**ean expression vs **D**ifference, where difference is more commonly referred to as logFC.
+This is often referred to as an MD plot, which stands for **M** ean expression vs **D** ifference, where difference is more commonly referred to as logFC.
 We've added an `arrange()` call in the following to ensure our DE genes are plotted last and are the most visible in our figure.  
 
 ```{r plotMD, fig.cap="Mean-Difference plot showing fold-change potted against expression level. Genes considered as DE are highlighted in red.", results='asis'}

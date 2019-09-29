@@ -392,7 +392,7 @@ Batch effects can be defined as _systematic non-biological variation between gro
 
 We can use the `plotMDS()` function directly to create an MDS plot as we did above, or assign the data created to an object that we can pipe into ggplot for a presentation ready figure.
 
-```{r mdsObject, }
+```{r mdsObject, fig.show = 'hold'}
 mds <- dgeList_Filtered %>%
   cpm(log = TRUE) %>%
   plotMDS()
@@ -506,7 +506,7 @@ This method is called `voom` and we'll use this today.
 First, lets set up a model matrix to specify the model to be fitted.
 
 ```{r modelMatrix}
-model_matrix <- model.matrix(~0 + group, data = dgeList_Filtered$samples)
+model_matrix <- model.matrix(~ + group, data = dgeList_Filtered$samples)
 ```
 
 The above specifies a model where each coefficient corresponds to a group mean. Importantly we have used the `samples` elemenet of the `DGEList` object to set the model matrix. By using the `DGEList` object we ensure that the samples (and therefore the group assignment) has been given in the same order as the counts table.
@@ -540,7 +540,7 @@ topTable <- voomData %>%
     as_tibble()
 ```
 
-Recall from our `model_matrix` that we are comparing **groupcbc** with **groupskm** (we could rename these if we wanted to but for our purpose here we can leave them as is). This means that when we call the coefficient `groupskm` in the `topTable` function we are using the column name to specify which coefficient or contrast of the linear model is of interest
+When we call the coefficient `groupskm` in the `topTable` function we are using the column name to specify which coefficient or contrast of the linear model is of interest
 
 Note that the GRanges information has been coerced into columns to form a `data.frame`/`tibble` and that looks a bit messy.
 To tidy things up, the following code will join all of the genomic co-ordinates into a single column, rename a few columns on the fly and by not asking for `ID.width` & `ID.gene_biotype`, we've saved ourselves dealing with a few redundant columns.
@@ -572,14 +572,13 @@ topTable %>%
     mutate(DE = FDR < 0.05) %>%
     ggplot(aes(logFC, -log10(P.Value), colour = DE)) +
     geom_point(alpha = 0.5) +
-    # geom_text_repel(data = . %>%
-    #                     dplyr::filter(DE) %>%
-    #                     dplyr::filter(-log10(P.Value) > 4 | abs(logFC) > 2.5),
-    #                 aes(label = Symbol)) +
-    # scale_colour_manual(values = c("grey", "red")) +
+    geom_text_repel(data = . %>%
+                        dplyr::filter(DE) %>%
+                        dplyr::filter(-log10(P.Value) > 4 | abs(logFC) > 5),
+                    aes(label = Symbol)) +
+    scale_colour_manual(values = c("grey", "red")) +
     theme_bw() +
     theme(legend.position = "none")
-
 ```
 
 So what have we done here. Firstly we took our `topTable` object that contains the logFC values and FDR for each gene and piped the object into `mutate`. Here we have used `mutate` to create a new column called `DE` based on the logical question _is the value in the FDR column less than 0.05?_. For each row in our table if the value of the FDR column is < 0.05 a **TRUE** value will be returned, and of course a value of **FALSE** if $\geq$ 0.05.
@@ -595,7 +594,7 @@ topTable %>%
     geom_point(alpha = 0.5) +
     geom_text_repel(data = . %>%
                         dplyr::filter(DE) %>%
-                        dplyr::filter(abs(logFC) > 2 | AveExpr > 14),
+                        dplyr::filter(abs(logFC) > 5 | AveExpr > 14),
                     aes(label = Symbol)) +
     scale_colour_manual(values = c("grey", "red")) +
     labs(x = "Average Expression (log2 CPM)",
@@ -606,29 +605,40 @@ topTable %>%
 
 If were happy with our results, we could exprt this list using `write_csv()` or `write_tsv()`.
 We could also produce a short table summarising the "big guns" in the dataset.
-As there are more than 100 genes considered as DE here, let's restrict to those with logFC beyond the range $\pm1$, which equates to 2-fold up or down-regulation.
+As there are more than 100 genes considered as DE here, let's restrict to those with logFC beyond the range $\pm2.3$, which equates to 5-fold up or down-regulation.
 
 ```{r printTopTab, results='asis'}
 topTable %>%
-    dplyr::filter(FDR < 0.05, abs(logFC) > 1) %>%
+    dplyr::filter(FDR < 0.05, abs(logFC) > 5) %>%
     dplyr::select(ID = Geneid, Symbol, AveExpr, logFC, P.Value, FDR) %>%
-    pander(caption = paste("The", nrow(.), "most DE genes when ranked by p-value, and filtered on a logFC beyond the range $\\cpm1$"))
+    pander(caption = paste("The", nrow(.), "most differentially expressed genes when ranked by p-value, and filtered on a logFC beyond the range $\\pm2.3$"))
 ```
+
+We can also take a look at our genes of interest one at a time. Because we have two groups (ie. our two tissue types) a simple box plot provides a good summary of our count data.
+
+Here we take a _gene of interest_ "ENSMUSG00000033021", and produce a box plot of expression values split by tissue type. I have considered "ENSMUSG00000033021" to be interesting because it is both significantly differentially expressed, and highy expressed in the table we created above.
 
 ```{r boxPlots, fig.cap="Box plot showing mean differences in our gene of interest between tissue types.", results='asis'}
 plotly::ggplotly(
-countData %>% 
-  dplyr::filter(., rownames(countData) %in% "ENSMUSG00000034066") %>%
+dgeList_Filtered$counts %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column() %>%
+  dplyr::filter(., rowname %in% "ENSMUSG00000033021") %>%
+  tibble::column_to_rownames() %>%
   t() %>%
   as.data.frame() %>%
   tibble::rownames_to_column("samplename") %>%
-  dplyr::select(., samplename, ENSMUSG00000034066 = V1) %>%
   left_join(., sampleGroups, by = "samplename") %>%
   ggplot() +
-  geom_boxplot(aes(x = group, y = ENSMUSG00000034066,
+  geom_boxplot(aes(x = group, y = ENSMUSG00000033021,
                    fill = group)) +
   theme_bw()
 )
 ```
+
+#### Tasks
+
+1. Use the table we created above to choose another gene of interest (or two or three) and create your own box plots based on the code chunk above.
+2. Do the box plots you create make sense in the context of the comparison we set for the differential expression analysis?
 
 

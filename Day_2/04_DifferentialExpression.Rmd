@@ -366,6 +366,45 @@ dgeList_Filtered <- dgeList[genes2keep,] %>%
   calcNormFactors()
 ```
 
+#### A note on edgeR normalisation
+
+
+`edgeR` does not use RPKM, TPM etc. to normalise
+This is because it needs to normalise for:
+
+- Sequencing depth (thats what RPKM etc. deal with)
+- Library composition (ie different samples contain different active genes)
+
+The process edgeR uses for normalisation (simplified) is as follows:
+
+Step 1: Remove all undetectable genes (remove genes with zero read counts in all samples)
+
+Step 2: Pick one sample to be the "reference sample".
+
+- this is the sample that `edgeR` will use to normalise all other samples against
+- what makes a good _reference sample_? `edgeR` avoids using _extreme_ samples and instead attempts to identify the most **average** sample
+- to pick a reference sample edgeR will:
+    + a. Scale each sample by its total read counts.
+    + b. For each sample, determine the value such that 75\% of the scaled data are equal to or smaller than it
+    + c. Average the 75^th^ quantiles
+    + d. The "reference" samples is the one who's 75^th^ quantile most closely matches the average
+
+Step 3: Select the genes for calculating the scaling factors. This is done separately for each sample relative to the _reference sample_
+
+- the genes used for calculating the scaling factors may be different for each sample
+- edgeR filters out _biased genes_ by looking at, and then excluding genes with large log fold differences
+
+Step 4: Calculate the weighted average of the remaining log~2~ ratios 
+
+Step 5: Convert the weighted average of log~2~ values to _"normal numbers"_
+
+Step 6: Centre the scaling factors around $1$
+
+- the _centering_ is done by dividing each raw scaling factor by their geometric mean
+
+More information about `edgeR` normalisation can be found [here](https://youtu.be/Wdt6jdi-NQo) and [here](https://academic.oup.com/bioinformatics/article/26/1/139/182458).
+
+
 Let's compare the distributions of the two datasets (cbc and skm), using CPM on the log2 scale.
 In the following, the command `par(mfrow = c(1,2))` is a base graphics approach and sets the plotting `par`ameters to be a `m`ulti=`f`eature layout, with 1 row and 2 columns.
 We set these parameters because the convenient function `plotDensities()` we are calling below uses base graphics, not `ggplot2`.
@@ -423,7 +462,7 @@ The `plotMDS()` function from the `limma` package creates a temporary log fold c
 ```
 A simplified example of how we calculate the logFC for our MDS plot.
 ```
-1. For a given counts table
+1. For a given counts table eg.
 
 |     |sample_1|sample_2|sample_3|
 |------|-----:|-----:|-----:|
@@ -434,10 +473,11 @@ Gene_3|2.2|1.0|1.5|
 
 2. We take our gene counts and calculate the logFC between each pair of genes
   + logFC Gene_1: sample_1 versus sample_2 $= log(\frac{3}{.25}) = 3.58$
-  +
+
   + logFC Gene_2: sample_1 versus sample_2 $= log(\frac{2.9}{.8}) = 1.86$
-  +
+
   + _Continue calculating the logFC between each pair of genes_
+  
 3. Lastly, take the average of the absolute value of the logFC among genes
   + NB: we take the absolute value so the negative log fold changes don't cancel out the positive ones
 4. We can now use these _distances_ between samples to plot our MDS.
@@ -561,6 +601,7 @@ For a great tutorial on multi-dimensional scaling check out _"StatQuest: MDS and
 ## Differential Expression
 
 In the previous sections we have worked with read counts, which are a discrete value and formally cannot be modelled using the assumption of normally distributed data (recall that counts data typically approximate a **negative binomial** distribution, not a **normal** distribution).
+
 The failure to meet the assumption of normality rules out linear models and t-tests for RNA-Seq, so many packages have been developed which use the negative binomial distribution to model these counts (e.g. `edgeR` and `DESeq2`).
 
 An alternative was proposed by [Law et al.](https://genomebiology.biomedcentral.com/articles/10.1186/gb-2014-15-2-r29), where they apply a system of weights to the counts which allow the assumption of normality to be applied.

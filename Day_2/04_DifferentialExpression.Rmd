@@ -17,11 +17,8 @@ knitr::opts_chunk$set(
     fig.cap = "yes",
     results = "hide"
 )
-# if (interactive()) setwd(here::here("Day_2"))
+if (interactive()) setwd(here::here("Day_2"))
 ```
-
-* TOC
-{:toc}
 
 ## Session Themes and Outcomes
 
@@ -38,10 +35,6 @@ At the end of this session, you should be able to do the following tasks:
 4. Assess sample similarity and identify outliers using Unsupervised Clustering
 5. Perform a simple differential expression analysis
 
-### Data setup
-### Data QC
-### Estimation of library sizes
-### PCA/MDS assessment of outliers and batch effects
 ### Differential expression
 
 Now that we have our data in a nicely formatted file, we can move to `R` and follow a fairly standard workflow.
@@ -70,38 +63,113 @@ library(RColorBrewer)
 First we should import the file we created using `featureCounts`.
 Please take a moment to check the location of the `counts.out` file you created in the last session to ensure the assignment of the location to the _file_ object is correct.
 
+<!-- The next chunk is tough. Is this the best file path? -->
+<!-- I haven't gone through Jimmy's stuff, but maybe it is.  -->
+<!-- I've put it in the repo in a directory Day_2/data if that's even vaguely useful...  -->
+
 ```{r counts}
 file <- "../data/2_alignedData/featureCounts/counts.out"
 rawCounts <- read_delim(file, comment = "#", delim = "\t")
 ```
 
 This file has the gene identifiers in the first column, followed by the chromosome number, start, end, strand and length information (recall that we have subset our data to only include mouse chromosome 1), with the remaining columns containing the name of the `bam` file and the number of reads aligning to each gene.
-The first thing we might like to do is to remove the columns which don't contain the count data we require today, and tidy up those column names.
+The first thing we might like to do is to remove the columns which don't contain the count data we require today.
+After this we can tidy up those column names to remove some uninformative parts of the column names.
+
+The columns we need are `Geneid` and from column 7 onwards.
+All of the counts columns end with `bam` as they have been generated from a bam file, so we can use this using `dplyr::select()` that we saw yesterday.
+
+Once we've done this, we'll use the function `basename()` to remove all of the file path information, except for the actual file name itself.
+Finally, we'll introduce the function `str_remove()` from the `stringr` package, which is art of the core tidyverse.
+Considering that all of our bam files finish with `".trimmedAligned.sortedByCoord.out.bam"`, which is not particularly informative, we'll remove this from the end of the column names.
 
 ```{r setColnames}
-countData <- dplyr::select(rawCounts, -c(Chr, Start, End, Strand, Length)) %>%
+countData <- rawCounts %>%
+  dplyr::select(Geneid, ends_with("bam")) %>%
   set_colnames(basename(colnames(.))) %>%
   set_colnames(str_remove(colnames(.), ".trimmedAligned.sortedByCoord.out.bam"))
 ```
 
-That looks much cleaner and we haven't lost any important information but we're not quite done.
-The group information we need for the differential expression is locked in the samplename.
-Next we can split the sample ID from the group information and save that information in a dataframe for later use.
+If you'd like to see some of these steps in action a bit more closely, try the following commands in the R Console (only keep them in your R Markdown notes if you think they're helpful)
+
+```{r}
+colnames(rawCounts)
+colnames(rawCounts) %>% basename()
+colnames(rawCounts) %>% 
+  basename() %>%
+  str_remove(".trimmedAligned.sortedByCoord.out.bam")
+```
+
+The package `stringr` contains many other useful functions such as `str_to_upper()`, `str_to_lower()`, `str_to_title()`.
+We'll see a few more in action soon too.
+
+Now our `countData` object looks much cleaner and we haven't lost any important information, but we're not quite done.
+The group information we need for the differential expression is locked in the sample name.
+Next we can split the sample ID from the group information and save that information in a `tibble` with our metadata for later use.
 
 ```{r splitSampleID}
-sampleGroups <- as.data.frame(names(countData[-1]), stringsAsFactors = FALSE) %>%
-  set_colnames(., "samplename") %>%
-  tidyr::separate(., col = samplename, into = c("samplename", "group"), remove = TRUE)
+sampleGroups <- tibble(
+  samplename = str_subset(colnames(countData), "SRR")
+) %>%
+  tidyr::separate(col = samplename, into = c("samplename", "group"), remove = TRUE)
 ```
 
 Now we have a small table of metadata regarding our samples.
 We can also tidy up our countData table column names a little more by moving the gene IDs to row names and removing the group information after the sample name.
 
+We really need to do this for the steps that are coming.
+The fundamentl data structure we need to perform Differential Gene Expression analysis, needs gene identifiers as rownames, meaning a `tibble ` is not really viable for this step.
+
 ```{r sampleName}
-countData <- as.data.frame(countData) %>%
-  column_to_rownames("Geneid")
-colnames(countData) <- sampleGroups$samplename
+countData <- countData %>%
+  as.data.frame() %>%
+  column_to_rownames("Geneid") %>%
+  set_colnames(
+    str_extract(colnames(.), "SRR[0-9]+")
+  )
 ```
+
+#### Regular Expressions
+
+In this final line, we've seen a very important thing called a regular expression, inside the function `str_extract()`.
+This function looks inside a text string and grabs out the section that matches our string.
+An example might be:
+
+```{r}
+parents <- c("Mother", "Father") 
+str_extract(parents, "ther")
+```
+
+We can also modify text.
+
+```{r}
+str_replace(parents, "ther", "m")
+```
+
+And capture text that matches patterns
+
+```{r}
+str_replace(parents, "(.+)(ther)", "\\1m")
+```
+
+In this last line, we've introduced:
+
+1. the single wild-card character for regular expressions: `.`
+2. the symbol for match any number of the previous patterns: `+`
+3. the way we "capture" text by using round braces.
+
+In this example we've capture two pieces of text:
+
+1. Anything (`.`), any number of times (`+`)
+2. The pattern `ther`
+
+If we'd entered `"\\2m"` we would've returned the string `therm` from both elements of parents.
+
+Instead of using wild-cards, we can also restrict our wild-cards to specific values, such as `[0-9]` which would be any number, or `[0-9]+` which is any number, any number of times.
+This is what we've done when we dropped the `.cbc` and `.skm` extensions from our smaple names.
+We matched "SRR[0-9]+" which will capture the sample IDs, but as soon as it hits the period (.) before the cbc/skm text fragment, the match would stop, and we have used `str_extract()` to return only the tet fragment that matches.
+
+After our brief excursion, we can move on to setting or data up for DGE analysis.
 
 ### Create a DGE List
 
@@ -144,9 +212,9 @@ Take another moment now to inspect the `samples` data frame again and you will n
 dgeList$samples
 ```
 
-As a small note of warning, keep in mind that we did not at any time alter the order in which our samples were being reported. This allowed us to simply _cut_ the information from one table and _paste_ it into another. There are ways of using _mutating joins_ to ensure order is never corrupted including `left_join`, `right_join`, `inner_join` and others.
+As a small note of warning, keep in mind that we did not at any time alter the order in which our samples were being reported. This allowed us to simply _cut_ the information from one table and _paste_ it into another. There are ways of using _mutating joins_ to ensure order is never corrupted including `left_join()`, `right_join()`, `inner_join()` and others.
 
-It is always worth taking the time to perform a "sanity check" to ensure the sample names and groups are correctly aligned before you continue.
+**It is always worth taking the time to perform a "sanity check" to ensure the sample names and groups are correctly aligned before you continue.**
 
 ### Add Gene Information
 
@@ -154,16 +222,13 @@ A common, but optional element that we can include in a `DGEList`, is one called
 This is where we can place information such as the genomic location, the gene symbol and anything else we think is going to be relevant.
 First, we need to find this information though, and we'll use the package `AnnotationHub` which contains the *metadata* for all of the annotation packages included in Bioconductor.
 
+
 ```{r ah}
 ah <- AnnotationHub()
-```
-
-The structure of this new object `ah` is quite advanced. Take a moment to type in the object name and run the line, you'll get an informative summary of all available annotation packages.
-
-```{r viewAh}
 ah
 ```
 
+We saw these yesterday, so hopefully they're not as scary today.
 Note that we have numerous data providers, species and data classes.
 The column on the left (AH####) is a shorthand ID we can use to retrieve any of these annotation objects.
 
@@ -175,28 +240,28 @@ The final line looks for an object of class `EnsDb` which is a database object c
 ```{r subset_ah}
 ah <- ah %>%
   subset(species == "Mus musculus") %>%
-  subset(dataprovider == "Ensembl") %>%
   subset(rdataclass == "EnsDb")
 ```
 
-We have now subset `ah` and removed most of the information we don't need (ie infromation related to other species and other data providors). The step is to ensure we are only using data from an appropriate release. `ah` currently contains data from release 87-92, which will be close enough to match the data we have generated so far (which was Ensembl 93).
-Ideally, these should be the same, but there is no EnsDb object for Ensembl 93.
-I'm sure one will be made available in the next release of Bioconductor.
-When we inspected `ah` above we saw that the latest release was **AH60992 | Ensembl 92 EnsDb for Mus Musculus**.
+We have now subset `ah` and removed most of the information we don't need (ie infromation related to other species and other data providors). 
+When we inspected `ah` above we saw that the latest release was **AH69210 | Ensembl 96 EnsDb for Mus Musculus**.
 Today we will use this annotation record and define it as the object `ensDb`
 
 ```{r ensDb}
-ensDb <- ah[["AH60992"]]
+ensDb <- ah[["AH69210"]]
 ensDb
 ```
 
 There are many helper functions for extracting data from this package, such as `transcripts()`, `promoters()` and `genes()`.
 We want gene information today, so let's just use that function. 
-Note that after we obtain the data, we're using `subset()` to ensure we only keep the data from chromosome 1.
+<!-- Note that after we obtain the data, we're using `subset()` to ensure we only keep the data from chromosome 1. -->
+
+<!-- NO! We can't do this now. The counts.out object will contain data from other chromosomes unless we provide a different gtf. -->
+<!-- I'm going off the object Mark provided in his repo, which I'm expecting is what we have? -->
+<!-- If not, my code will still work as the line you had below for adding the genesGR object was also wrong so I've changed it.  -->
 
 ```{r genes}
-genesGR <- genes(ensDb) %>%
-    subset(seqnames == 1)
+genesGR <- genes(ensDb) 
 ```
 
 This object is a `GenomicRanges` (or `GRanges`) object and these are the bread & butter of genomic analysis in R. 
@@ -235,7 +300,7 @@ To fix this, we will use the `rownames` of our `DGEList` object to reorder the `
 Taking the time to ensure that the two gene lists are in the same order is important because `R` will give no warning or error to inform us if the two gene lists are in different orders. `R` will not check that these two objects are compatible.
 
 ```{r addGenes}
-dgeList$genes <- genesGR[genesGR$gene_id %in% rownames(dgeList),]
+dgeList$genes <- genesGR[rownames(dgeList)]
 ```
 
 Here we have used square brackets `[]` to subset and reorder the `genesGR` object such that it now only contains the genes in our `dgeList` object, and in the same order.
@@ -424,7 +489,7 @@ In the spirit of interactive plots available in `R`, run the following code chun
 ```{r plotMDS_Glimma}
 dgeList_Filtered %>%
   cpm(log=TRUE) %>%
-  glMDSPlot(., labels=rownames(dgeList_Filtered$samples),
+  glMDSPlot(labels=rownames(dgeList_Filtered$samples),
             groups=dgeList_Filtered$samples$group,
             launch=TRUE)
 ```

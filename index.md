@@ -17,7 +17,7 @@ University of Adelaide
 
 # Computer Setup
 
-- The instructions you'll need to follow to connect to your VM are [here](setup)
+- The instructions you'll need to follow to connect to your VM are [here](vm_connection.md)
 
 
 

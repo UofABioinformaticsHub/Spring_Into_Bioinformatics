@@ -187,4 +187,129 @@ This will give us data in a nice easy format for importing into R.
 
 - Run `featureCounts` with the an unstranded library parameter (`-s 1`). How do they differ?
 
+## Count Summaries
+
+So we ran `featureCounts` and you would have got a good deal of output written to your screen.
+This output contained a lot of important information about alignment rates etc, which is now lost.
+The good thing is that all this information is contained in a nice little summary file, that should be in the same directory as your `counts.out` file.
+
+The next session we will also be working in the `R` console for our differential expression analysis, so before that let's switch over to `R` and read our summary file into a dataframe.
+
+Firstly, lets load our required packags. There will only be two in this case, as we only need to read in our dataframe, fix up the samplenames, and then output it as a table
+
+```{r loadPackages}
+library(tidyverse)
+library(pander)
+```
+
+Now let's read in the file (which is tab-separated) into a dataframe with the `readr` package `read_delim`.
+
+```{r readFile}
+summary <- read_delim("./data/2_alignedData/featureCounts/counts.out.summary", 
+                      delim = "\t") %>%
+  as.data.frame()
+```
+
+If you look at the `summary` dataframe you'll see that the column names are all very very long and contain the full path from our original pipeline. 
+Let's clean that up so we can see the sample names by removing the path names from the front of the name (i.e. the `/data/biohub/2019_SIB/2_alignedData/bam/`) and the bam suffixes at the end of the name (i.e. `.trimmedAligned.sortedByCoord.out.bam`).
+We will also 
+
+
+```{r tidyUp}
+rownames(summary) <- summary$Status
+summary$Status <- NULL
+
+colnames(summary) <- gsub("^/data/biohub/2019_SIB/2_alignedData/bam/", "", colnames(summary))
+colnames(summary) <- gsub(".trimmedAligned.sortedByCoord.out.bam$", "", colnames(summary))
+```
+
+Notice that I added a `^` in the first line and a `$` for the second.
+These are regular expressions as we saw at the first session of the day, and they indicate the start of the line (or field in this case) and the end of the line/field.
+
+The column names are still a not in the right order, so lets order those to make it easier to read.
+Because we don't have many samples, lets just define them in a separate vector and then use that to define the table columns.
+
+```{r reorderSummary}
+columnOrder <- c("SRR945375.skm", "SRR945377.skm", 
+                 "SRR945379.skm", "SRR945381.skm", 
+                 "SRR945419.cbc", "SRR945421.cbc", 
+                 "SRR945423.cbc", "SRR945427.cbc")
+
+table <- summary[, columnOrder]
+```
+
+Now that we're all tidied up, we should have some reasonable looking column names to plot a table.
+
+```{r panderTable}
+table %>%
+  pander(split.tables = Inf)
+```
+
+Ok, this is the results of our `featureCounts` analysis.
+As you can see, we have a column called `Status` which has eleven rows with read classes. 
+Most of the rows will be all zeros except for rows named "Assigned", "Unassigned_Ambiguity", "Unassigned_NoFeatures" and "Unassigned_MappingQuality".
+
+What do those categories actually mean?
+These are all detailed in the featureCounts user guide (http://gensoft.pasteur.fr/docs/subread/1.4.6-p3/SubreadUsersGuide.pdf):
+
+| Status  | Meaning |
+|:-------:|:------- |
+| Assigned  | assigned to a feature |
+| Unassigned_Ambiguity | overlapping with two or more features (feature-level summarization) or meta-features (meta-feature-level) summarization |
+| Unassigned_MultiMapping | reads marked as multi-mapping in SAM/BAM input (the ‘NH’ tag is checked by the program) |
+| Unassigned_NoFeatures | not overlapping with any features included in the annotation |
+| Unassigned_Unmapped | reads are reported as unmapped in SAM/BAM input |
+| Unassigned_MappingQuality | mapping quality scores lower than the specified threshold |
+| Unassigned_FragmentLength | length of fragment does not satisfy the criteria |
+| Unassigned_Chimera | two reads from the same pair are mapped to different chromosomes or have incorrect orientation |
+| Unassigned_Secondary | reads marked as second alignment in the FLAG field in SAM/BAM input |
+| Unassigned_Nonjunction | reads do not span two or more exons |
+| Unassigned_Duplicate |  reads marked as duplicate in the FLAG field in SAM/BAM input |
+
+Maybe a table isn't the best way of looking at these summaries.
+Let's now plot this with what we learnt in Day 1.
+Firstly, we will need to transpose our table a little bit to make it easier for ggplot using gather to convert all the columns to a long table.
+Let's also split the sample names to generate a group variable for our plot using the separate command from the `tidyverse` package `tidyr`.
+This splits the "Sample" column and makes two new columns that we'll call "Name" and "Group".
+
+```{r makePlotData}
+plotTable <- table %>%
+  t %>%
+  as.data.frame %>%
+  mutate(Sample=rownames(.)) %>%
+  separate(Sample, c("Name", "Group")) %>%
+  select(Name, Group, Assigned:Unassigned_NoFeatures) %>%
+  gather(Assignment, ReadCounts, -Name, -Group)
+```
+
+Now let's first plot a bar graph.
+
+```{r barPlot}
+plotTable %>% 
+  ggplot(aes(Assignment, ReadCounts)) + 
+  geom_bar(stat="identity", aes(fill=Name), position="dodge") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 10, hjust = 1))
+```
+
+These numbers look pretty good. 
+We have good assigned reads compared to the other "Unassigned" categories.  
+
+**Handy Hint!** Our category names are very long, so to make sure they don't overlap you can rotate the x axis text!  
+
+Bar plots for each sample are great, but what we really want to know is whether our groups have major differences in each category.
+Let's create some boxplots that summarise the read numbers via a "Group" variable.
+
+```{r boxplot}
+plotTable %>% 
+  ggplot(aes(Assignment, ReadCounts, fill = Group)) + 
+  geom_boxplot() +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 10, hjust = 1))
+```
+
+There are some slight differences between cbc and skm, but not massive changes.
+skm seems to have slightly less "Assigned", but also less "Unassigned_NoFeatures" so this looks ok
+
+
 

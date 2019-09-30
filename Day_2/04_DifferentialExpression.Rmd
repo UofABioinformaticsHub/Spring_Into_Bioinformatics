@@ -2,7 +2,7 @@
 title: "Spring Into Bioinformatics"
 subtitle: "Differential expression"
 author: "Melanie Smith"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
+date: "3rd October, 2019"
 output: 
   html_document:
     toc: true
@@ -30,7 +30,7 @@ At the end of this session, you should be able to do the following tasks:
   + set the required delimiter
   + selectively remove unwanted columns
   + tidy up the column names
-2. Explore basic data paramaters such as library size
+2. Explore basic data parameters such as library size
 3. Create a `DGEList` object
 4. Assess sample similarity and identify outliers using Unsupervised Clustering
 5. Perform a simple differential expression analysis
@@ -115,10 +115,10 @@ sampleGroups <- tibble(
 ```
 
 Now we have a small table of metadata regarding our samples.
-We can also tidy up our countData table column names a little more by moving the gene IDs to row names and removing the group information after the sample name.
+We can also tidy up our `countData` table column names a little more by moving the gene IDs to row names and removing the group information after the sample name.
 
 We really need to do this for the steps that are coming.
-The fundamentl data structure we need to perform Differential Gene Expression analysis, needs gene identifiers as rownames, meaning a `tibble ` is not really viable for this step.
+The fundamental data structure we need to perform Differential Gene Expression analysis, needs gene identifiers as rownames, meaning a `tibble ` is not really viable for this step.
 
 ```{r sampleName}
 countData <- countData %>%
@@ -166,15 +166,15 @@ In this example we've capture two pieces of text:
 If we'd entered `"\\2m"` we would've returned the string `therm` from both elements of parents.
 
 Instead of using wild-cards, we can also restrict our wild-cards to specific values, such as `[0-9]` which would be any number, or `[0-9]+` which is any number, any number of times.
-This is what we've done when we dropped the `.cbc` and `.skm` extensions from our smaple names.
-We matched "SRR[0-9]+" which will capture the sample IDs, but as soon as it hits the period (.) before the cbc/skm text fragment, the match would stop, and we have used `str_extract()` to return only the tet fragment that matches.
+This is what we've done when we dropped the `.cbc` and `.skm` extensions from our sample names.
+We matched "SRR[0-9]+" which will capture the sample IDs, but as soon as it hits the period (.) before the cbc/skm text fragment, the match would stop, and we have used `str_extract()` to return only the text fragment that matches.
 
 After our brief excursion, we can move on to setting or data up for DGE analysis.
 
 ### Create a DGE List
 
 The main object type we like to use for differential gene expression is a `DGEList`, which stands for Digital Gene Expression List, and is an object used by _edgeR_ to store count data.
-This object is more complex than others we have looked at in `R` so far because it contains a number of _slots_ for storing not only our data, but also different paramaters _about_ the data.
+This object is more complex than others we have looked at in `R` so far because it contains a number of _slots_ for storing not only our data, but also different parameters _about_ the data.
 The `DGEList` objects have two mandatory elements, with the first being our counts data, and the second being our sample information.
 Recall that above we have made the gene IDs the row names and the sample IDs the column names.
 
@@ -243,7 +243,7 @@ ah <- ah %>%
   subset(rdataclass == "EnsDb")
 ```
 
-We have now subset `ah` and removed most of the information we don't need (ie infromation related to other species and other data providors). 
+We have now subset `ah` and removed most of the information we don't need (*i.e.* information related to other species and other data providers). 
 When we inspected `ah` above we saw that the latest release was **AH69210 | Ensembl 96 EnsDb for Mus Musculus**.
 Today we will use this annotation record and define it as the object `ensDb`
 
@@ -265,7 +265,7 @@ genesGR <- genes(ensDb)
 ```
 
 This object is a `GenomicRanges` (or `GRanges`) object and these are the bread & butter of genomic analysis in R. 
-We could spend hours just looking at these, but the main point is that on the right of the gene IDs we have the chromosome (`seqnames`) followed by the range of bases the genes is contained within and the strand the gene is located on (note that _start_ and _end_ positions are both **1-based** relative to the 5' end of the plus strand of the choromosome, even when the range is on the minus strand).
+We could spend hours just looking at these, but the main point is that on the right of the gene IDs we have the chromosome (`seqnames`) followed by the range of bases the genes is contained within and the strand the gene is located on (note that _start_ and _end_ positions are both **1-based** relative to the 5' end of the plus strand of the chromosome, even when the range is on the minus strand).
 This is the core `GRanges` element. Run the following code chunk to return this information using the function `granges()`
 
 ```{r granges}
@@ -328,7 +328,7 @@ dgeList$counts %>%
     table
 ```
 
-Any genes that fail our test (ie the sum of which are not greater than zero) will be counted in the **FALSE** column, and any genes that pass our test (ie the sum of which is greater than zero) will be counted in the **TRUE** column.
+Any genes that fail our test (*i.e.* the sum of which are not greater than zero) will be counted in the **FALSE** column, and any genes that pass our test (*i.e.* the sum of which is greater than zero) will be counted in the **TRUE** column.
 We can see that a proportion of genes were not expressed or were _undetectable_ in our original samples.
 A common approach would be to remove undetectable genes using some metric, such as **Counts per Million reads**, also known as `CPM`.
 We could consider a gene detectable if returning more than 1CPM, in every sample, from one (usually the smaller), of the treatment groups.
@@ -368,7 +368,7 @@ dgeList_Filtered <- dgeList[genes2keep,] %>%
 
 Let's compare the distributions of the two datasets (cbc and skm), using CPM on the log2 scale.
 In the following, the command `par(mfrow = c(1,2))` is a base graphics approach and sets the plotting `par`ameters to be a `m`ulti=`f`eature layout, with 1 row and 2 columns.
-We set these paramaters because the convenient function `plotDensities()` we are calling below uses base graphics, not `ggplot2`.
+We set these parameters because the convenient function `plotDensities()` we are calling below uses base graphics, not `ggplot2`.
 
 ```{r plotCPM, fig.cap="Comparison of logCPM distributions before (A) and after (B) filtering for undetectable genes. Values on the x-axis represent logCPM"}
 
@@ -418,7 +418,7 @@ One of the first steps in exploring our gene expression data is that of unsuperv
 
 An important first exploration of our sequencing data is the MDS plot.
 
-The `plotMDS()` function from the `limma` package creates a temporary log fold change between pairs and plots samples on a two-dimensional scatterplot so that distances on the plot approximate the typical $log_2$ fold changes between the samples.
+The `plotMDS()` function from the `limma` package creates a temporary log fold change between pairs and plots samples on a two-dimensional scatter-plot so that distances on the plot approximate the typical $log_2$ fold changes between the samples.
 
 ```
 A simplified example of how we calculate the logFC for our MDS plot.
@@ -439,7 +439,7 @@ Gene_3|2.2|1.0|1.5|
   +
   + _Continue calculating the logFC between each pair of genes_
 3. Lastly, take the average of the absolute value of the logFC among genes
-  + nb: we take the absolute value so the negative log fold changes don't cancel out the positive ones
+  + NB: we take the absolute value so the negative log fold changes don't cancel out the positive ones
 4. We can now use these _distances_ between samples to plot our MDS.
 
 Thankfully we don't need to perform all of these calculations by hand, or even write our own script to do so
@@ -449,11 +449,11 @@ plotMDS(cpm(dgeList_Filtered, log = TRUE))
 title(main = "Multi Dimensional Scaling Plot \nMouse Chromosome 1")
 ```
 
-Here we see that the Leading logFC on dimension 1 appears to seperate the samples by tissue type suggesting that as we set out to investigate - there is a difference in gene expression between cerebellar cortex (cbc) and skeletal muscle (skm). 
+Here we see that the Leading logFC on dimension 1 appears to separate the samples by tissue type suggesting that as we set out to investigate - there is a difference in gene expression between cerebellar cortex (cbc) and skeletal muscle (skm). 
 
-<span style="color:red">WARNING: it is easy to observe the difference between our groups on the MDS plot and assign them directly to tissue type. The files we are using here are part of a much larger research effort and as such there is much information not being assessed. eg. were our samples all sequenced at the same time, on the same machine? The differences we observe could be due to something we call _batch effects_.</span>
+<span style="color:red">WARNING: it is easy to observe the difference between our groups on the MDS plot and assign them directly to tissue type. The files we are using here are part of a much larger research effort and as such there is much information not being assessed. e.g.. were our samples all sequenced at the same time, on the same machine? The differences we observe could be due to something we call _batch effects_.</span>
 
-Batch effects can be defined as _systematic non-biological variation between groups of samples (or batches) due to experimental artifacts_. Batch effects are a complication of high-throughput studies which occur when measurements are affected by laboratory conditions. The topic of **batch effects** and how to account for them deserves its own session but we don't have the time to delve into that here. If you are interested in reading more about batch effects and how to overcome them the [rna-seqblog](https://www.rna-seqblog.com/tag/batch-effects/) has a number of interesting articles discussing the topic.  
+Batch effects can be defined as _systematic non-biological variation between groups of samples (or batches) due to experimental artefacts_. Batch effects are a complication of high-throughput studies which occur when measurements are affected by laboratory conditions. The topic of **batch effects** and how to account for them deserves its own session but we don't have the time to delve into that here. If you are interested in reading more about batch effects and how to overcome them the [rna-seqblog](https://www.rna-seqblog.com/tag/batch-effects/) has a number of interesting articles discussing the topic.  
 
 We can use the `plotMDS()` function directly to create an MDS plot as we did above, or assign the data created to an object that we can pipe into ggplot for a presentation ready figure.
 
@@ -466,7 +466,7 @@ mds <- dgeList_Filtered %>%
 The following chunk wraps the plotting of our MDS plot inside `plotly::ggplotly()` which takes a `ggplot` object and makes it interactive.
 You may notice that `label` was included as a plotting aesthetic, but no labels were added as a layer in ggplot2.
 These will instead be added once the plot is made interactive (try hovering the mouse over one of the points on the plot to see what we mean by _interactive_).
-Interactive plots will only be interactive in the **Viewer** tab or when compiling an RMarkdown document to an html format, and will remain static if rendering to an MS Word document or pdf.
+Interactive plots will only be interactive in the **Viewer** tab or when compiling an R Markdown document to an html format, and will remain static if rendering to an MS Word document or pdf.
 
 ```{r plotMDS, fig.cap = "MDS showing two clear groups in the data", results='asis'}
 plotly::ggplotly(
@@ -503,7 +503,7 @@ dgeList_Filtered %>%
 
 Next we might choose to perform a Principal Component Analysis on our data, commonly abbreviated to PCA.
 This time, let's take our CPM values & asses them on the log2 scale to make sure our PCA results are not heavily skewed by highly expressed genes.
-Our first step is to create a new object to hold the PCA results. In the following code chunk we take our filtered DGEList obeject `dgeList_Filtered` and pipe it to the `cpm()` function we used earlier to calculate the CPM values for each gene prior to setting the filtering threshold. We have made one small change here by including $log - TRUE$ in the function call. By default this is $log_2$. Next we pipe the $log2$CPM values into the `t()` function. This will _transpose_ the matrix of counts such that the matrix now has genes in the columns and samples in the rows, which we then pipe into `prcomp` from the `stats` package. `prcomp()` returns a list with class "prcomp" containing a number of useful components.
+Our first step is to create a new object to hold the PCA results. In the following code chunk we take our filtered DGEList object `dgeList_Filtered` and pipe it to the `cpm()` function we used earlier to calculate the CPM values for each gene prior to setting the filtering threshold. We have made one small change here by including $log - TRUE$ in the function call. By default this is $log_2$. Next we pipe the $log2$CPM values into the `t()` function. This will _transpose_ the matrix of counts such that the matrix now has genes in the columns and samples in the rows, which we then pipe into `prcomp` from the `stats` package. `prcomp()` returns a list with class "prcomp" containing a number of useful components.
 
 To find out more about `prcomp` try typing `help("prcomp")` into the console. This will open the R Documentation for this function in the `Help` tab.
 
@@ -525,7 +525,7 @@ summary(pca)$importance %>%
   pander(split.tables = Inf)
 ```
 
-Just as we did with the MDS plot, we can plot our PCA results to see if samples group clearly with their tissue type based on our main two principal components (ie PC1 and PC2).
+Just as we did with the MDS plot, we can plot our PCA results to see if samples group clearly with their tissue type based on our main two principal components (*i.e.* PC1 and PC2).
 Much the same as the MDS plot, any clear separation of our groups of interest can be considered a positive sign that we will find differentially expressed genes.
 
 ```{r plotPCA, fig.cap = "PCA showing two clear groups in the data", results='asis'}
@@ -551,7 +551,7 @@ Multi-Dimensional Scaling can look similar to PCA, but asks a slightly different
 
 It is common to perform one or both of these analyses before starting a differential expression analysis but rest assured that _usually_ results found under both methods will reveal similar patterns in your data.
 
-For a great tutorial on multi-dimensional scaling check out _"StatQuest: MDS and PCoA"_ [here](https://youtu.be/GEn-_dAyYME), and a companion vidoe about PCA titled _"StatQuest: Principal Component Analysis (PCA), Step-by-Step"_ [here](https://youtu.be/FgakZw6K1QQ).
+For a great tutorial on multi-dimensional scaling check out _"StatQuest: MDS and PCoA"_ [here](https://youtu.be/GEn-_dAyYME), and a companion video about PCA titled _"StatQuest: Principal Component Analysis (PCA), Step-by-Step"_ [here](https://youtu.be/FgakZw6K1QQ).
 
 #### Tasks
 
@@ -574,7 +574,7 @@ First, lets set up a model matrix to specify the model to be fitted.
 model_matrix <- model.matrix(~ + group, data = dgeList_Filtered$samples)
 ```
 
-The above specifies a model where each coefficient corresponds to a group mean. Importantly we have used the `samples` elemenet of the `DGEList` object to set the model matrix. By using the `DGEList` object we ensure that the samples (and therefore the group assignment) has been given in the same order as the counts table.
+The above specifies a model where each coefficient corresponds to a group mean. Importantly we have used the `samples` element of the `DGEList` object to set the model matrix. By using the `DGEList` object we ensure that the samples (and therefore the group assignment) has been given in the same order as the counts table.
 
 #### Tasks
 
@@ -629,7 +629,7 @@ topTable <- topTable %>%
 
 Now that we have our ranked list of genes, we should really inspect these visually.
 A commonly used plot is a volcano plot, where the position of values on the x-axis is the logFC estimates for each gene, and the position on the y-axis relates to the strength of statistical significance for each gene.
-Before plotting, we added a simple column called `DE` to indicate whether we considered a gene to be differentially expressed (ie. the mean between the groups is different), based purely on an FDR-adjusted p-value < 0.05.
+Before plotting, we added a simple column called `DE` to indicate whether we considered a gene to be differentially expressed (*i.e.*. the mean between the groups is different), based purely on an FDR-adjusted p-value < 0.05.
 To add some colour to the plot (and to make identifying the DE genes easy) we can use this `DE` status to colour points.
 
 ```{r volcanoPlot, fig.cap="Volcano plot showing DE genes between the two tissue types."}
@@ -668,7 +668,7 @@ topTable %>%
     theme(legend.position = "none")
 ```
 
-If were happy with our results, we could exprt this list using `write_csv()` or `write_tsv()`.
+If were happy with our results, we could export this list using `write_csv()` or `write_tsv()`.
 We could also produce a short table summarising the "big guns" in the dataset.
 As there are more than 100 genes considered as DE here, let's restrict to those with logFC beyond the range $\pm2.3$, which equates to 5-fold up or down-regulation.
 
@@ -679,9 +679,9 @@ topTable %>%
     pander(caption = paste("The", nrow(.), "most differentially expressed genes when ranked by p-value, and filtered on a logFC beyond the range $\\pm2.3$"))
 ```
 
-We can also take a look at our genes of interest one at a time. Because we have two groups (ie. our two tissue types) a simple box plot provides a good summary of our count data.
+We can also take a look at our genes of interest one at a time. Because we have two groups (*i.e.*. our two tissue types) a simple box plot provides a good summary of our count data.
 
-Here we take a _gene of interest_ "ENSMUSG00000033021", and produce a box plot of expression values split by tissue type. I have considered "ENSMUSG00000033021" to be interesting because it is both significantly differentially expressed, and highy expressed in the table we created above.
+Here we take a _gene of interest_ "ENSMUSG00000033021", and produce a box plot of expression values split by tissue type. I have considered "ENSMUSG00000033021" to be interesting because it is both significantly differentially expressed, and highly expressed in the table we created above.
 
 ```{r boxPlots, fig.cap="Box plot showing mean differences in our gene of interest between tissue types.", results='asis'}
 plotly::ggplotly(

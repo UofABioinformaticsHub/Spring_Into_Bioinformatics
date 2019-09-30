@@ -174,14 +174,12 @@ ah <- ah %>%
   subset(rdataclass == "EnsDb")
 ```
 
-We have now subset `ah` and removed most of the information we don't need (ie infromation related to other species and other data providors). The step is to ensure we are only using data from an appropriate release. `ah` currently contains data from release 87-92, which will be close enough to match the data we have generated so far (which was Ensembl 93).
-Ideally, these should be the same, but there is no EnsDb object for Ensembl 93.
-I'm sure one will be made available in the next release of Bioconductor.
-When we inspected `ah` above we saw that the latest release was **AH60992 | Ensembl 92 EnsDb for Mus Musculus**.
+We have now subset `ah` and removed most of the information we don't need (ie infromation related to other species and other data providors). 
+When we inspected `ah` above we saw that the latest release was **AH69210 | Ensembl 96 EnsDb for Mus Musculus**.
 Today we will use this annotation record and define it as the object `ensDb`
 
 ```{r ensDb}
-ensDb <- ah[["AH60992"]]
+ensDb <- ah[["AH69210"]]
 ensDb
 ```
 

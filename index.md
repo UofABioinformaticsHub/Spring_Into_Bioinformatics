@@ -50,6 +50,13 @@ Password for `UofA-Guest`:
 
 # Day 2
 
+| Session | Topic |
+| ------- |:----- |
+| 9:00 - 10:30 | [1. Introduction To Bash](Day_2/01_IntroToBash.html) |  
+| 11:00 - 12:30 | [2. Working With Alignments](Day_2/02_Alignments.html) | 
+| 1:30 - 3:00 | [3. From Alignments To Counts](Day_2/03_Counts.html) |
+| 3:30 - 5:00 | [4. Differential Gene Expression](Day_2/04_DifferentialExpression.html) |
+
 # Day 3
 
 

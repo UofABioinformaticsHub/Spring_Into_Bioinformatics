@@ -1,0 +1,315 @@
+---
+title: "Fall Into Bioinformatics"
+subtitle: "Gene quantification and counts"
+author: "Jimmy Breen"
+date: "17/09/2019"
+output: 
+  html_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    message = FALSE,
+    warning = FALSE,
+    fig.align = "center",
+    results = "hide"
+)
+if (interactive()) setwd(here::here("Day_2"))
+```
+
+
+## Session Themes and Outcomes
+
+In this session we're going to learn a few things for you to use when analysing count data. Counts can be a quantity of any biological process, but generating count data is most commonly applied to RNA sequencing experiments. For those of you that don't use RNA sequencing in your own work, this session will still be valuable to learn techniques. These could be counts of any particular annotation. For example, for people doing metagenomics, you could use counts of bacteria. If you are studying proteomics using Mass Spectromony, you can use counts of bacteria.
+
+We will use `featureCounts` to summarise the aligned reads that overlap genes and exons.
+
+## Summarisation of aligned data to counts
+
+### Gene Annotation
+
+In the last session we looked at our aligned sample RNA (cDNA) fragments to the Mouse GRCm38/mm10 reference genome which contains the location of each fragment and the quality of each alignment. However the alignment process will only tell you _where_ a RNA fragment has mapped, but not _what_ it has mapped too. The primary of an RNA-seq experiment is to quantify the level of expression of each gene, so in this session we are going to use the reference gene annotation to add context to our previous alignments. 
+
+If the genome is a road in which you drive on, then the genome annotation would be the map that identifies where everything is located. For example, the Foxp3 (forkhead box P3) gene, an important transcription factor in the regulation of T cells in mice, is located on the X chromosome between 7,579,676bp and 7,595,245bp. We can use this information to count all the reads that align to that region to establish the quantity of RNA we have in our sample. 
+
+Genome annotations not only contain information about genes, but all other genomic features across the genome. Locations of things like transposable elements (TEs) and repeats, centromere and telomere locations and non-coding RNAs can all be contained within these files
+
+### GFF/GTF Files
+
+There are many files that can contain gene annotation information however today we will be using [General Feature Format (GFF)](https://en.wikipedia.org/wiki/General_feature_format) or [General Transfer Format (GTF)](http://mblab.wustl.edu/GTF22.html) files.
+GFF files have version 2 and version 3 formats, which are slightly different and today, we'll just look at GTF files, which are best considered as GFF2.2. The differ only by the restrictions that are placed on the type of entries that can be placed in some columns.
+
+GTF files are basically text files with columns that contain standard information. Columns are tab-separated with no line provided that gives the column names.
+These are fixed by design, and as such, explicit column names are not required.
+
+1. **seqname** - name of the chromosome or scaffold; chromosome names can be given with or without the 'chr' prefix. Important note: the seqname must be one used within Ensembl, _i.e._ a standard chromosome name or an Ensembl identifier such as a scaffold ID, without any additional content such as species or assembly. See the example GFF output below.
+2. **source** - name of the program that generated this feature, or the data source (database or project name)
+3. **feature** - feature type name, can only take the values "CDS", "start_codon", "stop_codon", "5UTR", "3UTR", "inter", "inter_CNS", "intron_CNS" and "exon" (CNS stands for Conserved Noncoding Sequence)
+4. **start** - Start position of the feature, with sequence numbering starting at 1.
+5. **end** - End position of the feature, with sequence numbering starting at 1.
+6. **score** - A floating point value (_i.e._ decimal points are allowed)
+7. **strand** - defined as + (forward) or - (reverse).
+8. **frame** - One of '0', '1' or '2'. '0' indicates that the first base of the feature is the first base of a codon, '1' that the second base is the first base of a codon, and so on...
+9. **attribute** - A *semicolon-separated* list of tag-value pairs, providing additional information about each feature. In the GTF format two mandatory features are required here, although they can be an empty string, _i.e._ `""`:
+    + **gene_id** *value*
+    + **transcript_id** *value*
+
+An example is given below.
+Note that header rows are not controlled, but must start with the comment character `#`
+
+```
+# Data taken from http://mblab.wustl.edu/GTF22.html
+381 Twinscan  CDS          380   401   .   +   0  gene_id "001"; transcript_id "001.1";
+381 Twinscan  CDS          501   650   .   +   2  gene_id "001"; transcript_id "001.1";
+381 Twinscan  CDS          700   707   .   +   2  gene_id "001"; transcript_id "001.1";
+381 Twinscan  start_codon  380   382   .   +   0  gene_id "001"; transcript_id "001.1";
+381 Twinscan  stop_codon   708   710   .   +   0  gene_id "001"; transcript_id "001.1";
+```
+
+**Note**: People variously use GFF and GTF to talk about GFF version 2, and GFF to talk about GFF version 3. GFF2 is not compatible with GFF3, so make sure you have the correct file format if you are given a GFF file. There are conversion tools available to inter-convert them, they are rarely reliable.
+
+### Mouse Chromosome 1
+
+For today, we’ll need the GTF from MouseChromosome 1. Tomorrow we will also need the Mouse Chromosome 1 sequence, so lets download them all and put them in a location on our VM. We’ll get these from Ensembl, so cut and paste the following code directly into your VM.
+
+**Note**: For those of you that are unfamilar with coding, in bash we can add comments to code to explain what we are doing. This is good practise for anyone working on the command-line, as its open easy to forget why you are running something. Any line starting with a `#` will be ignored by the program. 
+
+```
+cd
+
+# Create a directory for the mouse genome and change into it
+mkdir -p genomes/Mmusculus
+cd genomes/Mmusculus
+
+# Dowload the Chromosome 1 fasta file from a weblink
+wget ftp://ftp.ensembl.org/pub/release-93/fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna.chromosome.1.fa.gz
+
+# Uncompress the file (its gzipped at the moment) so we can use it later
+gunzip Mus_musculus.GRCm38.dna.chromosome.1.fa.gz
+
+# Download the genome annotation (but keep this gzipped up)
+wget ftp://ftp.ensembl.org/pub/release-93/gtf/mus_musculus/Mus_musculus.GRCm38.93.chr.gtf.gz
+```
+
+You may have already realised that this gtf contains all the information for the entire genome, rather than just chromosome 1, so we’ll need to create one containing just the gene information for that sequence.
+
+First we’ll copy the file header.
+
+```
+zcat Mus_musculus.GRCm38.93.chr.gtf.gz | egrep "^#!" > Mus_musculus.GRCm38.93.chr1.gtf
+```
+
+Then we’ll just get the gene information for chr1. The first field in a gtf file is the chromosome, we this will be easy to extract using `egrep`
+
+```
+zcat Mus_musculus.GRCm38.93.chr.gtf.gz | egrep "^1\s" >> Mus_musculus.GRCm38.93.chr1.gtf
+```
+
+To avoid confusing ourselves, let’s delete the full gtf so we only have the one.
+
+```
+rm Mus_musculus.GRCm38.93.chr.gtf.gz
+```
+
+### Questions
+
+1. How many genes and exons are found on chromosome 1?
+
+## Read Summarisation
+
+There are numerous methods for counting reads which align to genes.
+Common tools include HTSeq and kallisto (which is actually an aligner as well), or this can even be done inside R itself.
+Today we'll use `featureCounts` from the `Subread` suite of tools as we've found it to be the fastest and most accurate tool for this task.
+Here's a snapshot of the lines we use for this from one of our RNASeq pipelines.
+You can copy-paste this into the terminal and will run featureCounts and the cleaning steps
+
+```
+CORES=2
+GTF=~/genomes/Mmusculus/Mus_musculus.GRCm38.93.chr1.gtf
+ALIGNDIR=~/Spring_into_Bioinformatics/Day_2/data/2_alignedData
+
+## Feature Counts - obtaining all sorted bam files
+SAMPLES=`find ${ALIGNDIR}/bam -name "*out.bam" | tr '\n' ' '`
+
+## Running featureCounts on the sorted bam files
+featureCounts -Q 10 \
+  -s 2 \
+  --fracOverlap 1 \
+  -T ${CORES} \
+  -a ${GTF} \
+  -o ${ALIGNDIR}/counts/counts.out \ 
+  ${SAMPLES}
+  
+## Storing the output in a single file
+cut -f1,7- ${ALIGNDIR}/featureCounts/user_counts.out | \
+    sed 1d > ${ALIGNDIR}/featureCounts/user_genes.out
+```
+
+Let's talk through these three steps:
+
+#### 1. Declare variables
+
+Here we need to declare variables that will be used in the command, such as the number of cores that the program will run parallel, the file path of the GTF file that we downloaded above and the directory that contains our alignment data.
+Generally we run this as a script on the command-line, however today we have just run it on the terminal interactively.
+
+#### 2. Find our samples
+
+Note that we've used a different strategy for finding our files this time.
+Instead of using `$(ls ...)`, we've used `find`.
+This is probably a superior approach and can withstand difficult file paths more easily.
+Output from `find` will give you each result on a new line, so after this we've used `tr` to `tr`anslate line breaks `\n` to spaces.
+
+#### 3. Count our alignments
+
+Here we've called `featureCounts` and passed several parameters to it.
+The help page is quite extensive for this tool, so feel free to browse it in your terminal or on pages 37-42 of [the manual pdf](http://bioinf.wehi.edu.au/subread-package/SubreadUsersGuide.pdf).
+
+| Parameter | Meaning |
+|:---------:|:------- |
+| `-Q 10` | The minimum mapping quality (MAPQ) score for a read to be counted. These scores can vary between aligners, but this value should capture uniquely aligning reads only. These values are generally documented very poorly & cause much confusion. |
+| `-s 2`  | Specifies a reverse stranded library. Only reads which map to the opposite strand as the gene will be counted. If the library is forward stranded you would set this to `-s 1`. |
+| `--fracOverlap 1` | The fraction of a read which must overlap a feature. Here every base must overlap an exon |
+| `-T ${CORES}` | The number of cores we wish to use |
+| `-a ${GTF}` | The gene description file |
+| `-o ${ALIGNDIR}/featureCounts/user_counts.out` | The output file |
+| `${SAMPLES}` | The input files |
+
+#### 4. Tidy up our output
+
+The output from `featureCounts` contains a few columns which we ignore, even though others may find them useful (exon coordinates, gene lengths etc)
+In the final line, we're using `cut` to just return columns 1, then everything beyond 7.
+`sed` is then used to delete the first line.
+This will give us data in a nice easy format for importing into R.
+
+### Tasks
+
+- Run `featureCounts` with the an unstranded library parameter (`-s 1`). How do they differ?
+
+## Count Summaries
+
+So we ran `featureCounts` and you would have got a good deal of output written to your screen.
+This output contained a lot of important information about alignment rates etc, which is now lost.
+The good thing is that all this information is contained in a nice little summary file, that should be in the same directory as your `counts.out` file.
+
+The next session we will also be working in the `R` console for our differential expression analysis, so before that let's switch over to `R` and read our summary file into a dataframe.
+
+Firstly, lets load our required packags. There will only be two in this case, as we only need to read in our dataframe, fix up the samplenames, and then output it as a table
+
+```{r loadPackages}
+library(tidyverse)
+library(pander)
+```
+
+Now let's read in the file (which is tab-separated) into a dataframe with the `readr` package `read_delim`.
+
+```{r readFile}
+summary <- read_delim("./data/2_alignedData/featureCounts/counts.out.summary", 
+                      delim = "\t") %>%
+  as.data.frame()
+```
+
+If you look at the `summary` dataframe you'll see that the column names are all very very long and contain the full path from our original pipeline. 
+Let's clean that up so we can see the sample names by removing the path names from the front of the name (i.e. the `/data/biohub/2019_SIB/2_alignedData/bam/`) and the bam suffixes at the end of the name (i.e. `.trimmedAligned.sortedByCoord.out.bam`).
+We will also 
+
+
+```{r tidyUp}
+rownames(summary) <- summary$Status
+summary$Status <- NULL
+
+colnames(summary) <- gsub("^/data/biohub/2019_SIB/2_alignedData/bam/", "", colnames(summary))
+colnames(summary) <- gsub(".trimmedAligned.sortedByCoord.out.bam$", "", colnames(summary))
+```
+
+Notice that I added a `^` in the first line and a `$` for the second.
+These are regular expressions as we saw at the first session of the day, and they indicate the start of the line (or field in this case) and the end of the line/field.
+
+The column names are still a not in the right order, so lets order those to make it easier to read.
+Because we don't have many samples, lets just define them in a separate vector and then use that to define the table columns.
+
+```{r reorderSummary}
+columnOrder <- c("SRR945375.skm", "SRR945377.skm", 
+                 "SRR945379.skm", "SRR945381.skm", 
+                 "SRR945419.cbc", "SRR945421.cbc", 
+                 "SRR945423.cbc", "SRR945427.cbc")
+
+table <- summary[, columnOrder]
+```
+
+Now that we're all tidied up, we should have some reasonable looking column names to plot a table.
+
+```{r panderTable}
+table %>%
+  pander(split.tables = Inf)
+```
+
+Ok, this is the results of our `featureCounts` analysis.
+As you can see, we have a column called `Status` which has eleven rows with read classes. 
+Most of the rows will be all zeros except for rows named "Assigned", "Unassigned_Ambiguity", "Unassigned_NoFeatures" and "Unassigned_MappingQuality".
+
+What do those categories actually mean?
+These are all detailed in the featureCounts user guide (http://gensoft.pasteur.fr/docs/subread/1.4.6-p3/SubreadUsersGuide.pdf):
+
+| Status  | Meaning |
+|:-------:|:------- |
+| Assigned  | assigned to a feature |
+| Unassigned_Ambiguity | overlapping with two or more features (feature-level summarization) or meta-features (meta-feature-level) summarization |
+| Unassigned_MultiMapping | reads marked as multi-mapping in SAM/BAM input (the ‘NH’ tag is checked by the program) |
+| Unassigned_NoFeatures | not overlapping with any features included in the annotation |
+| Unassigned_Unmapped | reads are reported as unmapped in SAM/BAM input |
+| Unassigned_MappingQuality | mapping quality scores lower than the specified threshold |
+| Unassigned_FragmentLength | length of fragment does not satisfy the criteria |
+| Unassigned_Chimera | two reads from the same pair are mapped to different chromosomes or have incorrect orientation |
+| Unassigned_Secondary | reads marked as second alignment in the FLAG field in SAM/BAM input |
+| Unassigned_Nonjunction | reads do not span two or more exons |
+| Unassigned_Duplicate |  reads marked as duplicate in the FLAG field in SAM/BAM input |
+
+Maybe a table isn't the best way of looking at these summaries.
+Let's now plot this with what we learnt in Day 1.
+Firstly, we will need to transpose our table a little bit to make it easier for ggplot using gather to convert all the columns to a long table.
+Let's also split the sample names to generate a group variable for our plot using the separate command from the `tidyverse` package `tidyr`.
+This splits the "Sample" column and makes two new columns that we'll call "Name" and "Group".
+
+```{r makePlotData}
+plotTable <- table %>%
+  t %>%
+  as.data.frame %>%
+  mutate(Sample=rownames(.)) %>%
+  separate(Sample, c("Name", "Group")) %>%
+  select(Name, Group, Assigned:Unassigned_NoFeatures) %>%
+  gather(Assignment, ReadCounts, -Name, -Group)
+```
+
+Now let's first plot a bar graph.
+
+```{r barPlot}
+plotTable %>% 
+  ggplot(aes(Assignment, ReadCounts)) + 
+  geom_bar(stat="identity", aes(fill=Name), position="dodge") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 10, hjust = 1))
+```
+
+These numbers look pretty good. 
+We have good assigned reads compared to the other "Unassigned" categories.  
+
+**Handy Hint!** Our category names are very long, so to make sure they don't overlap you can rotate the x axis text!  
+
+Bar plots for each sample are great, but what we really want to know is whether our groups have major differences in each category.
+Let's create some boxplots that summarise the read numbers via a "Group" variable.
+
+```{r boxplot}
+plotTable %>% 
+  ggplot(aes(Assignment, ReadCounts, fill = Group)) + 
+  geom_boxplot() +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 10, hjust = 1))
+```
+
+There are some slight differences between cbc and skm, but not massive changes.
+skm seems to have slightly less "Assigned", but also less "Unassigned_NoFeatures" so this looks ok
+
+
+

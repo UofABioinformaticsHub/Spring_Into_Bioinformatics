@@ -75,8 +75,9 @@ mcols(ah)
 
 Most of this information is beyond the scope of today's session, but you may have noticed that this time we returned a `DataFrame` instead of a `tibble` or `data.frame`.
 This was a version of the `data.frame` in use by the Bioconductor community long before Hadley Wickham emerged as a programmer, and this form has stayed as the primary form amongst Bioconductor packages.
-For those who are familiar with these things, a `data.frame` uses S3 methods, whilst a `DataFrame` uses S4 methods.
-If that made no sense, there's no need to worry as this is not relevant information for those at a more entry level.
+Again, it's very similar to a `data.frame` just with slightly different wrapping paper on it than a `tibble`.
+However, it doesn't play nicely with the `dplyr` set of functions, so every time we do come across one that we wish to use `dplyr` functions on, we need to convert to a generic `data.frame` using the function `as.data.frame()`.
+This is one of the perils of a large and fragmented open-source community with particular fragments having diverse requirements, for example, those using genomic information have completely different requirements to those analysing social media.
 
 What we do need to know is that we can use the data in these columns to subset our `ah` object.
 As this is not strictly a spreadsheet-like structure, we'll use the relatively general function `subset()` to find what we need.

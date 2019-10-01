@@ -107,7 +107,7 @@ Once we've chosen `From Text (readr)...`, you should see the following dialog bo
 knitr::include_graphics("images/initialGuiDialog.png")
 ```
 
-Click the `Browse` button and navigate to the file `data/DGE_Results.tsv`.
+Click the <kbd>Browse</kbd> button and navigate to the file `data/DGE_Results.tsv`.
 At this point, you should see something very similar to the following:
 
 ```{r, echo=FALSE, out.width='100%', results='asis'}
@@ -168,7 +168,7 @@ Make sure you reset it to `Tab` once you're done though.
 The argument `trim_ws = TRUE` tells R to remove any white-space around the values in each 'cell'.
 
 **Using your mouse/touchpad select all of the code in this box and copy it to your clipboard.**
-Once you've done that, click the Import button and see what happens.
+Once you've done that, click the <kbd>Import</kbd> button and see what happens.
 
 You'll see that data preview tab appear in your script window in a familiar spreadsheet-like layout.
 We never work with data in that tab.

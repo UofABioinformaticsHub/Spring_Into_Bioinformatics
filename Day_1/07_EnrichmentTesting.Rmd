@@ -163,13 +163,13 @@ goRes
 
 Here we have over 9000 terms that have been tested, returned in alpha-numeric order based on the GO ID.
 The column `N` tells how many genes in the `uv` object were mapped to the GO term, whilst the column `DE` tells us how many genes in our `de` object were mapped to the GO term.
-The column `P.DE` contains the two-sided p-value from Fisher's Exact Test, representing an association between the GO term and the set of DE genes.
+The column `P.DE` contains the two-sided $p$-value from Fisher's Exact Test, representing an association between the GO term and the set of DE genes.
 
-As we are testing for enrichment, we need a way of finding which p-values are from the detection of enrichment and which are from a lack of enrichment.
+As we are testing for enrichment, we need a way of finding which $p$-values are from the detection of enrichment and which are from a lack of enrichment.
 In general, we rarely test for a lack of enrichment unless your articular biological question makes this relevant.
 
 A good way to do this might be to find the proportion of genes from the universe which mapped to this term, and the proportion of genes from `de` which mapped to this term.
-If the second proportion is higher, we know our p-value is associated with enrichment.
+If the second proportion is higher, we know our $p$-value is associated with enrichment.
 
 An alternative approach, might be to find the proportion of genes from the universe, then multiply this by the number of DE genes to obtain an *Expected* value.
 If DE > Expected, we also have enrichment.
@@ -187,7 +187,7 @@ goRes %>%
     dplyr::filter(DE > 0)
 ```
 
-Next, we might like to arrange by p-value.
+Next, we might like to arrange by $p$-value.
 
 ```{r}
 goRes %>%
@@ -196,7 +196,7 @@ goRes %>%
     arrange(P.DE)
 ```
 
-Finally, we'd need to adjust those p-values to account for the fact that we have multiple hypothesis test being conducted in parallel.
+Finally, we'd need to adjust those $p$-values to account for the fact that we have multiple hypothesis test being conducted in parallel.
 
 ```{r}
 goRes %>%
@@ -327,7 +327,7 @@ We've covered a lot of material today, so take any remaining time to create an R
 
 In this document:
 
-1. Inspect the p-values and explain why
+1. Inspect the $p$-values and explain why
 2. Create an MD plot, labelling the genes of your choice
 3. Create a Volcano plot, labelling the genes of your choice
 4. Create tables of up and down-regulated genes. Choose 10 or 20 or any number you prefer

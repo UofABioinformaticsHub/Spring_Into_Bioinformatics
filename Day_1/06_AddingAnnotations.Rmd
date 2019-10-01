@@ -81,7 +81,7 @@ If that made no sense, there's no need to worry as this is not relevant informat
 What we do need to know is that we can use the data in these columns to subset our `ah` object.
 As this is not strictly a spreadsheet-like structure, we'll use the relatively general function `subset()` to find what we need.
 We were told earlier that this is a mouse dataset, aligned to Ensembl release 96.
-The object type we're going to use from here is an `EnsDb` object, which is way of storing all of the relevant information from the Ensembl database for our specific genome & annotation release.
+The object type we're going to use from here is an `EnsDb` object, which is way of storing all of the relevant information from the Ensembl database for our specific genome and annotation release.
 
 We can use the combined logical test incorporating the ampersand (`&`) to restrict our results to the elements of `ah` containing the relevant information.
 

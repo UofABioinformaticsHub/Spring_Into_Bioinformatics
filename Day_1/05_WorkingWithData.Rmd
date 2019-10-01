@@ -29,7 +29,7 @@ DGE_Results <- read_tsv("data/DGE_Results.tsv")
 
 ## Introduction
 
-Now we have learned how to make a few plots with `ggplot2`, to really get things moving we should learn how manipulate `tibble` objects to add extra columns, sort columns, perform filtering steps etc., just like we do with Excel.
+Now we have learned how to make a few plots with `ggplot2`, to really get things moving we should learn how manipulate `tibble` objects to add extra columns, sort columns, perform filtering steps *etc.*, just like we do with Excel.
 
 ### Tibbles and Data Frames
 
@@ -47,8 +47,8 @@ Whilst a `data.frame` can have row names, a `tibble` cannot, and will drop them.
 This can initially seem a little strange, but it does provide a little more flexibility when dealing with non-trivial data structures.
 Other features which make tibble objects a slightly more convenient version of a `data.frame` are:
 
-1. Only the first few rows are displayed when you type the object name. A `data.frame` will dump the entire contents into your R Console if you just type it's name
-2. Only the first few columns are displayed, with a summary of the remaining columns given. Once again, a `data.frame` will dump it's entire contents into your R Console
+1. Only the first few rows are displayed when you type the object name. A `data.frame` will dump the entire contents into your R Console if you just type its name
+2. Only the first few columns are displayed, with a summary of the remaining columns given. Once again, a `data.frame` will dump its entire contents into your R Console
 3. The type of value contained in each column is shown
 4. The dimensions of the object are shown
 
@@ -56,7 +56,7 @@ Beyond this, they are essentially identical structures and a `tibble` can just b
 Sometimes, you will hear `tibble` objects referred to as `data.frame` objects as this is their basic class, so hopefully this won't cause any confusion.
 
 Even though we have restricted our results to the genes on chromosome 1, we still have over 1000 genes in our dataset.
-If we wish to look as specific values, we can use the square brackets (`[r,c]`) just to pull out the rows & columns of interest.
+If we wish to look as specific values, we can use the square brackets (`[r,c]`) just to pull out the rows and columns of interest.
 Rows go before the comma, whilst columns go after the comma.
 In the following, we'll just grab the first row, and the first two columns. 
 
@@ -184,7 +184,7 @@ The final thing we might like to do with our `tibble` object is to add a column.
 A common strategy might be to add a column denoting whether we consider each gene to be differentially expressed by some individual, or combined criteria.
 To add columns using `dplyr`, we can use the function `mutate()`.
 
-In the following code, we're adding a new column called `Sig` and adding a logical (or boolean) value based in the gene matching a combined criteria of an FDR-adjusted p-value < 0.01, and logFC beyond the range $\pm1$
+In the following code, we're adding a new column called `Sig` and adding a logical (or boolean) value based in the gene matching a combined criteria of an FDR-adjusted $p$-value < 0.01, and logFC beyond the range $\pm1$
 
 ```{r}
 mutate(DGE_Results, Sig = FDR < 0.01 & abs(logFC) > 1)
@@ -213,7 +213,7 @@ mutate(
 ### Combining functions
 
 In the above, we introduced our key functions from `dplyr` and have already started to perform a few relatively complex operations in a fairly intuitive manner.
-We also made a point of mentioning that every one of the above functions takes a `tibble` (or `data.frame`) as input & returns the same.
+We also made a point of mentioning that every one of the above functions takes a `tibble` (or `data.frame`) as input and returns the same.
 This makes it very easy to chain together multiple operations and produce a series of simple steps to get our data in the form we need it to be.
 There is an additional function from the package `magrittr` which is imported by `dplyr`.
 For those of you familiar with the pipe symbol in bash, this is R's equivalent operator.

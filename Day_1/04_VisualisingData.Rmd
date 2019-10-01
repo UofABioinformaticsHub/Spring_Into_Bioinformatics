@@ -27,7 +27,7 @@ It's probably quite important to know what we're working with here.
 ### Data Description
 
 What we have provided is the results of a gene expression analysis in mice, where we have compared the expression patterns in brain with skeletal muscle.
-The value we have in our file are the Ensembl gene identifiers (`GeneID`), the difference in gene expression between the two cell types (`logFC`) the average expression of each gene (`logCPM`), the $p$-value for the statistical test comparing expression levels and the expected false discovery rate (`FDR`) if we used that raw p-value as our cutoff threshold for significance.
+The value we have in our file are the Ensembl gene identifiers (`GeneID`), the difference in gene expression between the two cell types (`logFC`) the average expression of each gene (`logCPM`), the $p$-value for the statistical test comparing expression levels and the expected false discovery rate (`FDR`) if we used that raw $p$-value as our cutoff threshold for significance.
 In order to keep this dataset manageable over these 3 days, we have restricted our genes to Chromosome 1 only. 
 
 ### Setting up our R Markdown Document
@@ -116,7 +116,7 @@ This will automatically format them as italic and place the ampersand (`&`) befo
 ## Visualising Data
 
 Now that we've loaded our data and described it, we should actually see what it looks like.
-A very common thing to check might be the distribution of p-values.
+A very common thing to check might be the distribution of $p$-values.
 In statistics, when $H_0$ is true (_i.e._ nothing is happening), these will be drawn from a uniform distribution ranging between 0 and 1.
 If $H_0$ is not true (_i.e._ something **is** happening), they will be biased towards zero in a manner that somewhat resembles an exponential distribution.
 In our data, we expect to see a combination of these noting that some genes will not be differentially expressed between cell types ($H_0$ is true), whilst others will be differentially expressed ($H_0$ is false).
@@ -139,11 +139,11 @@ Try a few if you'd like.
 Returning to our plot, we might like to add a figure caption to this, and some text explaining what we've done.
 Write some text after the chunk saying something along the lines of:
 
-> After loading our data we inspected the distribution of p-values and noticed a large number of values near zero, indicating the likelihood that we will see many differentially expressed genes.
+> After loading our data we inspected the distribution of $p$-values and noticed a large number of values near zero, indicating the likelihood that we will see many differentially expressed genes.
 
 In the chunk header, add the argument `fig.cap = "Distribution of $p$-values across all genes"`, then recompile the document.
 
-```{r histOfPActual, echo=FALSE, fig.cap = "Distribution of p-values across all genes"}
+```{r histOfPActual, echo=FALSE, fig.cap = "Distribution of $p$-values across all genes"}
 hist(DGE_Results$PValue, breaks = 50)
 ```
 
@@ -257,11 +257,11 @@ We can use this to change the labels for any attribute we plot, such as the x an
 
 ### Revisiting Our Histogram
 
-Right at the beginning, we made a histogram of our p-values using the base plotting function `hist()`.
+Right at the beginning, we made a histogram of our $p$-values using the base plotting function `hist()`.
 An alternative methed would be to make this plot using `ggplot2`.
 By default, the histograms don't look great in `ggplot2`, but with a bit of tweaking, they can be an improvement on those made using the base function.
 
-To set this up for `ggplot2`, our `x` aesthetic would be the p-values themselves, whilst the `y` aesthetic would be the counts in each bin along the x-axis.
+To set this up for `ggplot2`, our `x` aesthetic would be the $p$-values themselves, whilst the `y` aesthetic would be the counts in each bin along the x-axis.
 When using the geometry function `geom_histogram()`, `ggplot2` will generate these summaries internally, as did the function `hist()`.
 The default number of bins is generated internally by `geom_histogram()` using a function called `stat_bin()`, with the number of bins set to 30.
 If you don't set the number of bins, you'll see a friendly message that looks angry, telling you to pick a better value.
@@ -300,10 +300,10 @@ Sometimes, it's just easier to think about our data a certain way so having both
 
 Now that we've made a pretty reasonable plot showing how expression levels change against their average value, we might like to create what is known as a *Volcano Plot*.
 In this type of plot, we would place the difference in expression (*i.e.* `logFC`) on the x-axis, and a measure of statistical significance on the y-axis.
-A common measure of significance is the p-value and for the purposes of plotting, a useful transformation is $-\log_{10}$.
+A common measure of significance is the $p$-value and for the purposes of plotting, a useful transformation is $-\log_{10}$.
 Using this approach, $-\log_{10}(0.01) = 2$ and $-\log_{10}(0.001) = 3$ and so on.
 This is a way of obtaining an increasing score for significance which looks informative on a plot.
-Additionally, we know that p-values between 0.05 and 1 are not very interesting, so this transformation will squash them together whilst highlighting the differences in significance for low p-values (*i.e.* p < 0.05).
+Additionally, we know that $p$-values between 0.05 and 1 are not very interesting, so this transformation will squash them together whilst highlighting the differences in significance for low $p$-values (*i.e.* p < 0.05).
 We can perform this transformation directly in `ggplot()`!
 
 ```{r, fig.show='hide'}
@@ -314,10 +314,10 @@ ggplot(DGE_Results, aes(logFC, -log10(PValue))) +
     theme_bw()
 ```
 
-As you can see, we have some highly-significant genes here with p-values < 10^-100^!
+As you can see, we have some highly-significant genes here with $p$-values < 10^-100^!
 This is slightly uncommon, but considering we are comparing two vastly different tissues, it's not unrealistic here.
 
-This is a pretty reasonable looking plot already, but wouldn't it be great to show a few extra things like: 1) gene names, 2) which genes are considered DE, or 3) which p-value corresponds to an FDR (*i.e* False Discovery Rate) of 0.05?
+This is a pretty reasonable looking plot already, but wouldn't it be great to show a few extra things like: 1) gene names, 2) which genes are considered DE, or 3) which $p$-value corresponds to an FDR (*i.e* False Discovery Rate) of 0.05?
 For that, we'll need to have a look at another extremely useful package called `dplyr`.
 
 

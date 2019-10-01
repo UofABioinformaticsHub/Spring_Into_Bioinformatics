@@ -54,7 +54,7 @@ Once you have that New R Markdown form open
 4. Save the file as `RMarkdownTutorial.Rmd`
 
 Notice there are a few different colours here indicating sections and R code, but in essence this is all just plain text.
-From here, click the **Knit** button at the top of the R Markdown document, and this will produce a beautifully formatted HTML report.
+From here, click the <kbd>Knit</kbd> button at the top of the R Markdown document, and this will produce a beautifully formatted HTML report.
 
 ```{r, echo=FALSE, out.width = '50%', fig.align = "center", results='asis'}
 knitr::include_graphics("images/knit.png")

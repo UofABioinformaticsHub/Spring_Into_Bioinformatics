@@ -84,6 +84,21 @@ and run through a NGS pipeline from raw sequencing data through to aligning the 
   - Introduction to IGV
   - Viewing aligned and indexed files with IGViewer
   - Wrap up and Close
+
+## Setup the directory for today
+
+Just as we've created a new R Project for Days 1 and 2, let's create a new one for today to make sure we're all in the same place.
+We will not be writing R code today, but we will be using the terminal from within R studio to run bash commands.
+
+- Using the `File` menu at the top left, select `New Project`
+- Select `New Directory`
+- Select `New Project`
+- If you're not already asked to create this project as a subdirectory of `~`, navigate to your home directory using the <kbd>Browse</kbd> button 
+- In the `Directory Name` space, enter `Day_3`, then hit the <kbd>Create Project</kbd> button.
+
+This again helps us keep our code organised and is good practice.
+To run bash commands, open RStudio as you have for the previous practicals and make sure the `Console` window is visible.
+Inside this pane, you will see a **Terminal** Tab so click on this and you will be at an interactive terminal running `bash`.
   
 # Next Generation Sequencing
 
@@ -91,7 +106,7 @@ and run through a NGS pipeline from raw sequencing data through to aligning the 
 Before we can begin to analyse any data, it is helpful to understand how it was generated. Whilst there are numerous platforms for generation of NGS data, today we will look at the Illumina Sequencing by Synthesis method, which is one of the most common methods in use today.
 Many of you will be familiar with the process involved, but it may be worth looking at the following [5-minute video from Illumina](http://youtu.be/womKfikWlxM).
 As setting up the sound with the VMs can be tricky, it will be easier to view this from your own regular browser.
-Briefly minimise the VM, open your regular browser & please use your headphones if you brought them.
+Briefly minimise the VM, open your regular browser and please use your headphones if you brought them.
 
 This video refers to the process tagmentation.
 This is a relatively recent method for fragmenting and attaching adapters to DNA, with an alternative, more traditional methods being sonication, poly-adenylation & attachment of appropriate adaptors in separate steps.
@@ -100,6 +115,69 @@ These include 1) the sequencing primers, 2) index & /or barcode sequences, and 3
 To demonstrate these concepts further, observe the following figure that shows the DNA construct needed to run an illumina sequencing run, and the amplification steps required:
 
 ![library preparation](../images/libprep.jpg)
-  
+
+
+## FASTQ File Format
+
+As the sequences are extended during the sequencing reaction, an image is recorded which is effectively a movie or series of frames at which the addition of bases is recorded & detected.
+We mostly don’t deal with these image files, but will handle data generated from these in fastq format, which can commonly have the file suffix .fq or .fastq.
+As these files are often very large, they will often be zipped using gzip or bzip.
+Whilst we would instinctively want to unzip these files using the command gunzip, most NGS tools are able to work with zipped fastq files, so decompression (or extraction) is usually unnecessary.
+This can save considerable hard drive space, which is an important consideration when handling NGS datasets as the quantity of data can easily push your storage capacity to its limit.
+
+We should still have a terminal open from the previous section (See `Setup the directory for today`).
+If necessary, use the cd command to make sure you are in the `Day_3` folder within the home (~/Day_3) directory.
+
+```
+cd ~/Day_3/
+```
+
+You must ensure that you use this _exact_ path as any variations will undoubtedly cause you problems and lead to unnecessary confusion later on.
+You can use the command `pwd` to ensure the path you are in is correct.
+
+Use the `mkdir` command to create a new folder called `rawData` within your `Day_3` folder, which will be the location for raw FASTQ files we have obtained from a sequencing system.
+
+```
+mkdir rawData
+```
+
+We now want to use the `cp` command to copy the raw FASTQ files to your new rawData folder
+
+```
+cp ~/data/Day_3/rawData/* ~/Day_3/rawData/
+ls ~/Day_3/rawData/
+```
+
+The command `zcat` unzips a file & prints the output to the terminal, or standard output (stdout).
+If we did this to these files, we would see a stream of data whizzing past in the terminal, but instead we can just pipe the output of zcat to the command head to view the first 10 lines of a file.
+
+```
+cd ~/Day_3/rawData
+zcat SRR945375.skm.fastq.gz | head
+```
+
+Using the argument `-n` we can modify the behaviour of head to return a specified number of lines, for example `-n8` will return the first 8 lines of a file.
+
+```
+zcat SRR945375.skm.fastq.gz | head -n8
+```
+
+You may also remember the pipe symbol `|` from the above command from day 2.
+In this example we have taken the output of the zcat command (`zcat SRR945375.skm.fastq.gz`) and redirected it to another command (`head`).
+There are no limits to the number of commands we can string together using pipe commands, allowing us to create pipelines for data from a source through to a destination via different transformations.
+
+In the output from the above terminal command, we have obtained the first 8 lines of the gzipped fastq file.
+This gives a clear view of the fastq file format, where each individual read spans four lines.
+These lines are:
+
+
+    1. The read identifier
+    2. The sequence read
+    3. An alternate line for the identifier (commonly left blank as just a + symbol acting as a placeholder)
+    4. The quality scores for each position along the read as a series of ascii text characters.
+
+Let’s have a brief look at each of these lines and what they mean.
+
+## The read identifier
 
 

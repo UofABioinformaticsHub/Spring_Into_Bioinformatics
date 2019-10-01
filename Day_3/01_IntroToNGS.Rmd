@@ -85,6 +85,14 @@ and run through a NGS pipeline from raw sequencing data through to aligning the 
   - Viewing aligned and indexed files with IGViewer
   - Wrap up and Close
   
+# Next Generation Sequencing
+
+## Introduction to NGS
+Before we can begin to analyse any data, it is helpful to understand how it was generated. Whilst there are numerous platforms for generation of NGS data, today we will look at the Illumina Sequencing by Synthesis method, which is one of the most common methods in use today. Many of you will be familiar with the process involved, but it may be worth looking at the following [5-minute video from Illumina](http://youtu.be/womKfikWlxM). As setting up the sound with the VMs can be tricky, it will be easier to view this from your own regular browser. Briefly minimise the VM, open your regular browser & please use your headphones if you brought them.
+
+This video refers to the process tagmentation. This is a relatively recent method for fragmenting & attaching adapters to DNA, with an alternative, more traditional methods being sonication, poly-adenylation & attachment of appropriate adaptors in separate steps. This step may vary depending on your experiment, but the important concept to note during sample preparation is that the DNA insert has multiple sequences ligated to either end. These include 1) the sequencing primers, 2) index & /or barcode sequences, and 3) the flow-cell binding oligos. To demonstrate these concepts further, observe the following figure that shows the DNA construct needed to run an illumina sequencing run, and the amplification steps required:
+
+![library preparation](https://github.com/UofABioinformaticsHub/Spring_Into_Bioinformatics/images/libprep.jpg)
   
 
 

@@ -449,9 +449,9 @@ summary {
     rownames_to_column(&quot;goid&quot;) %&gt;%
     as_tibble()
 goRes</code></pre>
-<p>Here we have over 9000 terms that have been tested, returned in alpha-numeric order based on the GO ID. The column <code>N</code> tells how many genes in the <code>uv</code> object were mapped to the GO term, whilst the column <code>DE</code> tells us how many genes in our <code>de</code> object were mapped to the GO term. The column <code>P.DE</code> contains the two-sided p-value from Fisher’s Exact Test, representing an association between the GO term and the set of DE genes.</p>
-<p>As we are testing for enrichment, we need a way of finding which p-values are from the detection of enrichment and which are from a lack of enrichment. In general, we rarely test for a lack of enrichment unless your articular biological question makes this relevant.</p>
-<p>A good way to do this might be to find the proportion of genes from the universe which mapped to this term, and the proportion of genes from <code>de</code> which mapped to this term. If the second proportion is higher, we know our p-value is associated with enrichment.</p>
+<p>Here we have over 9000 terms that have been tested, returned in alpha-numeric order based on the GO ID. The column <code>N</code> tells how many genes in the <code>uv</code> object were mapped to the GO term, whilst the column <code>DE</code> tells us how many genes in our <code>de</code> object were mapped to the GO term. The column <code>P.DE</code> contains the two-sided <span class="math inline">\(p\)</span>-value from Fisher’s Exact Test, representing an association between the GO term and the set of DE genes.</p>
+<p>As we are testing for enrichment, we need a way of finding which <span class="math inline">\(p\)</span>-values are from the detection of enrichment and which are from a lack of enrichment. In general, we rarely test for a lack of enrichment unless your articular biological question makes this relevant.</p>
+<p>A good way to do this might be to find the proportion of genes from the universe which mapped to this term, and the proportion of genes from <code>de</code> which mapped to this term. If the second proportion is higher, we know our <span class="math inline">\(p\)</span>-value is associated with enrichment.</p>
 <p>An alternative approach, might be to find the proportion of genes from the universe, then multiply this by the number of DE genes to obtain an <em>Expected</em> value. If DE &gt; Expected, we also have enrichment.</p>
 <pre class="r"><code>goRes %&gt;%
     mutate(Expected = length(de) * N / length(uv))</code></pre>
@@ -459,12 +459,12 @@ goRes</code></pre>
 <pre class="r"><code>goRes %&gt;%
     mutate(Expected = length(de) * N / length(uv)) %&gt;%
     dplyr::filter(DE &gt; 0)</code></pre>
-<p>Next, we might like to arrange by p-value.</p>
+<p>Next, we might like to arrange by <span class="math inline">\(p\)</span>-value.</p>
 <pre class="r"><code>goRes %&gt;%
     mutate(Expected = length(de) * N / length(uv)) %&gt;%
     dplyr::filter(DE &gt; 0) %&gt;%
     arrange(P.DE)</code></pre>
-<p>Finally, we’d need to adjust those p-values to account for the fact that we have multiple hypothesis test being conducted in parallel.</p>
+<p>Finally, we’d need to adjust those <span class="math inline">\(p\)</span>-values to account for the fact that we have multiple hypothesis test being conducted in parallel.</p>
 <pre class="r"><code>goRes %&gt;%
     mutate(Expected = length(de) * N / length(uv)) %&gt;%
     dplyr::filter(DE &gt; 0) %&gt;%
@@ -551,7 +551,7 @@ goRes</code></pre>
 <p>We’ve covered a lot of material today, so take any remaining time to create an R Markdown document, describing everything you’re doing as if you’re communicating with your collaborators, or with a future version of you who can’t remember why you’ve made your decisions.</p>
 <p>In this document:</p>
 <ol style="list-style-type: decimal">
-<li>Inspect the p-values and explain why</li>
+<li>Inspect the <span class="math inline">\(p\)</span>-values and explain why</li>
 <li>Create an MD plot, labelling the genes of your choice</li>
 <li>Create a Volcano plot, labelling the genes of your choice</li>
 <li>Create tables of up and down-regulated genes. Choose 10 or 20 or any number you prefer</li>

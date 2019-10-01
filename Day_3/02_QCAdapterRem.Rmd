@@ -1,0 +1,60 @@
+---
+title: "Spring Into Bioinformatics"
+subtitle: "FastQC of Raw Data and Adapter Removal"
+author: "Mark Armstrong"
+date: "01/10/2019"
+output: 
+  html_document:
+    toc: true
+---
+
+# Day 3
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    message = FALSE,
+    warning = FALSE,
+    fig.align = "center",
+    results = "hide"
+)
+if (interactive()) setwd(here::here("Day_2"))
+```
+## Our Dataset
+
+For the majority of today, we'll be working with an RNA-Seq dataset.
+As mentioned over the last 2 days, this is part of a larger aging study from a group researching differences between brain and muscle tissue in mice and humans during their evolutionary divergence. 
+We have 4 skeletal muscle samples and 4 cerebellar cortex samples to compare for expression differences, which you performed on day 2.
+Our goal here on day three is to produce an aligned dataset suitable for gene expression analysis.
+
+# Quality Control
+
+
+## Using FastQC
+
+A common tool for checking the quality of a FASTQ file is the program FastQC.
+As with all programs on the command line, we need to see how it works before we use it.
+The following command will open the help file in the less pager which we used earlier.
+To navigate through the file, use the `<spacebar>` to move forward a page, `<b>` to move back a page & `<q>` to exit the manual.
+
+```
+fastqc -h | less
+```
+
+FastQC will create an html report for each file you provide, which can then be opened from any web browser such as firefox.
+As seen in the help page, FastQC can be run from the command line or from a graphic user interface (GUI).
+Using a GUI is generally intuitive so today we will look at the command line usage, as that will give you more flexibility & options going forward.
+Some important options for the command can be seen in the manual.
+As you will see in the manual, setting the `-h` option as above will call the help page.
+Look up the following options to find what they mean.
+
+| Option | Usage |
+|:------ |:------|
+| `-o`     |       |
+| `-t`     |       |
+
+The VMs we're all using have two cores so we can set the parameter `-t 2`.
+We can also write to the output folder that we've already created above.
+Let's run FastQC on all of our files and see what we get.
+(Make sure you're in the `~/Day_3/rawData/` folder first.)
+

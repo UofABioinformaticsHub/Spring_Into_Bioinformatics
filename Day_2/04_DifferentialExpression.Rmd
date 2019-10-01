@@ -751,7 +751,7 @@ dgeList_Filtered$counts %>%
 
 #### Tasks
 
-1. Use the table we created above to choose another gene of interest (or two or three) and create your own box plots based on the code chunk above.
-2. Do the box plots you create make sense in the context of the comparison we set for the differential expression analysis?
+1. *Use the table we created above to choose another gene of interest (or two or three) and create your own box plots based on the code chunk above.*
+2. *Do the box plots you create make sense in the context of the comparison we set for the differential expression analysis?*
 
 

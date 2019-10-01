@@ -64,8 +64,8 @@ and run through a NGS pipeline from raw sequencing data through to aligning the 
 
 - Session 1: A rundown of NGS concepts and setting up the VM.
   - What is Next Generation Sequencing
-  - Effect of library preparation on raw data
   - NGS pipelines in bash
+  - Effect of library preparation on raw data
 
 - Session 2: FastQC and Adapter Removal
   - Data quality checks on raw data
@@ -109,9 +109,9 @@ As setting up the sound with the VMs can be tricky, it will be easier to view th
 Briefly minimise the VM, open your regular browser and please use your headphones if you brought them.
 
 This video refers to the process tagmentation.
-This is a relatively recent method for fragmenting and attaching adapters to DNA, with an alternative, more traditional methods being sonication, poly-adenylation & attachment of appropriate adaptors in separate steps.
+This is a relatively recent method for fragmenting and attaching adapters to DNA, with an alternative, more traditional methods being sonication, poly-adenylation and attachment of appropriate adaptors in separate steps.
 This step may vary depending on your experiment, but the important concept to note during sample preparation is that the DNA insert has multiple sequences ligated to either end.
-These include 1) the sequencing primers, 2) index & /or barcode sequences, and 3) the flow-cell binding oligos.
+These include 1) the sequencing primers, 2) index and/or barcode sequences, and 3) the flow-cell binding oligos.
 To demonstrate these concepts further, observe the following figure that shows the DNA construct needed to run an illumina sequencing run, and the amplification steps required:
 
 ![library preparation](../images/libprep.jpg)
@@ -119,7 +119,7 @@ To demonstrate these concepts further, observe the following figure that shows t
 
 ## FASTQ File Format
 
-As the sequences are extended during the sequencing reaction, an image is recorded which is effectively a movie or series of frames at which the addition of bases is recorded & detected.
+As the sequences are extended during the sequencing reaction, an image is recorded which is effectively a movie or series of frames at which the addition of bases is recorded and detected.
 We mostly don’t deal with these image files, but will handle data generated from these in fastq format, which can commonly have the file suffix .fq or .fastq.
 As these files are often very large, they will often be zipped using gzip or bzip.
 Whilst we would instinctively want to unzip these files using the command gunzip, most NGS tools are able to work with zipped fastq files, so decompression (or extraction) is usually unnecessary.
@@ -148,7 +148,7 @@ cp ~/data/Day_3/rawData/* ~/Day_3/rawData/
 ls ~/Day_3/rawData/
 ```
 
-The command `zcat` unzips a file & prints the output to the terminal, or standard output (stdout).
+The command `zcat` unzips a file and prints the output to the terminal, or standard output (stdout).
 If we did this to these files, we would see a stream of data whizzing past in the terminal, but instead we can just pipe the output of zcat to the command head to view the first 10 lines of a file.
 
 ```
@@ -179,5 +179,85 @@ These lines are:
 Let’s have a brief look at each of these lines and what they mean.
 
 ## The read identifier
+
+This line begins with an @ symbol and although there is some variability, it traditionally has several components.
+The data we have been working with over the last 3 days was sourced from an EBI data repository, and this particular file has the identifier SRR945375.
+For the first sequence in this file, we have the full identifier `@SRR945375.39 HWI-ST1145:52:D0PV8ACXX:3:1101:14387:1975:213/1` which has the following components:
+
+
+    | @SRR945375.39 | The aforementioned EBI identifier and the sequence ID within the file.
+        If this was the first read, we would have the number 1.
+        However as this is a chromosome 1 subset from a genome dataset, so this particular file begins at read number 39.
+        NB: This identifier is not present when data is obtained directly from the machine or service provider.|
+    | HWI-ST1145:52:D0PV8ACXX | The unique machine ID |
+    | 3 | The flowcell lane |
+    | 1101 | The tile within the flowcell lane |
+    | 14387 | |
+    | 1975 | The x-coordinate of the cluster within the tile |
+    | 213 | The y-coordinate of the cluster within the tile |
+    | /1 | Indicates that this is the first read in a set of paired-end reads |
+
+As seen in the subsequent sections, these pieces of information can be helpful in identifying if any spatial effects have affected the quality of the reads.
+By and large you won’t need to utilise most of this information, but it can be handy for times of serious data exploration.
+
+## Quality Scores
+
+The only other line in the fastq format that really needs some introduction is the quality score information.
+These are presented as single ascii text characters for simple visual alignment with the sequence, and each character corresponds to a numeric value, which is the quality score.
+In the ascii text system, each character has a numeric value which we can interpret as an integer.
+Head to the website with a description of these at [ASCII Code table](http://en.wikipedia.org/wiki/ASCII#ASCII_printable_code_chart).
+
+The first 31 ASCII characters are non-printable and contain things like end-of-line marks and tab spacings, and note that the first printable character after the space (character 32) is "!" which corresponds to the value 33.
+In short, the values 33-47 are symbols like !, #, $ etc, whereas the values 48-57 are the characters 0-9.
+Next are some more symbols (including @ for the value 64), with the upper case characters representing the values 65-90 and the lower case letters representing the values 97-122.
+
+## The PHRED +33/64 Scoring System
+
+Now that we understand how to turn the quality scores from an ascii character into a numeric value, we need to know what these numbers represent.
+The two main systems in common usage are PHRED +33 and PHRED +64 and for each of these coding systems we either subtract 33 or 64 from the numeric value associated with each ascii character to give us a PHRED score.
+As will be discussed later, this score ranges between 0 and about 41.
+
+The PHRED system used is determined by the software installed on the sequencing machine, with early machines using PHRED + 64 (casava <1.5), and more recent machines tending to use PHRED + 33.
+For example, in PHRED +33, the @ symbol corresponds to Q = 64 - 33 = 31, whereas in PHRED +64 it corresponds to Q = 64 - 64 = 0.
+
+The following table demonstrates the comparative coding scale for the different formats:
+
+```
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS.....................................................
+..........................XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX......................
+...............................IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII......................
+.................................JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ......................
+LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL....................................................
+!"#$%&’()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]ˆ_‘abcdefghijklmnopqrstuvwxyz{|}~
+|                         |    |        |                              |                     |
+33                       59   64       73                             104                   126
+S - Sanger Phred+33, raw reads typically (0, 40)
+X - Solexa Solexa+64, raw reads typically (-5, 40)
+I - Illumina 1.3+ Phred+64, raw reads typically (0, 40)
+J - Illumina 1.5+ Phred+64, raw reads typically (3, 40)
+L - Illumina 1.8+ Phred+33, raw reads typically (0, 41)
+```
+
+## Interpretation of PHRED Scores
+
+The quality scores are related to the probability of calling an incorrect base through the
+formula
+
+*Q =* −10log<sub>10</sub>*P*  
+
+where *P* is the probability of calling the incorrect base.
+This is more easily seen in the following table:
+
+| PHRED Score | Probability of Incorrect Base Call | Accuracy of Base Call |
+|:----------- |:---------------------------------- |:----------------------|
+| 0           | 1 in 1          | 0%          |
+| 10          | 1 in 10         | 90%         |
+| 20          | 1 in 100        | 99%         |
+| 30          | 1 in 1000       | 99.9%       |
+| 40          | 1 in 10000      | 99.99%      |
+
+Now we understand how quality scores are encoded in the FASTQ file, it gives us a basis for understanding how the rest of quality control process works.
+The FastQC application which compiles and reports on FASTQ file data quality is covered in the next session.
+
 
 

@@ -66,6 +66,7 @@ and run through a NGS pipeline from raw sequencing data through to aligning the 
   - What is Next Generation Sequencing
   - NGS pipelines in bash
   - Effect of library preparation on raw data
+  - Introduction FASTQ file format
 
 - Session 2: FastQC and Adapter Removal
   - Data quality checks on raw data
@@ -115,6 +116,13 @@ These include 1) the sequencing primers, 2) index and/or barcode sequences, and 
 To demonstrate these concepts further, observe the following figure that shows the DNA construct needed to run an illumina sequencing run, and the amplification steps required:
 
 ![library preparation](../images/libprep.jpg)
+
+## Library preparation batch effects
+
+It is important to be aware that as there are multiple library preparation steps, each of these offer opportunities for confounding factors and biases to be introduced.
+Variation and bias can be introduced during library construction due to random hexamer mispriming, contamination by off-target transcripts, fragmentation size or the amplification of PCR artifacts.
+With different runs on different machines you can get other sources of variability due to sequencing protocols, the device used (e.g. IonTorrent, Illumina, PacBio) and the sequencing depth.
+All of these sources of variability with the data can lead to so-called `batch effects` which may need to be compensated for in the experimental design if the samples being compared were not processed in the same experimental run.
 
 
 ## FASTQ File Format

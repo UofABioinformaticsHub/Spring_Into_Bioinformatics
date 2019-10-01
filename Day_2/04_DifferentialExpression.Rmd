@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
     fig.cap = "yes",
     results = "hide"
 )
-# if (interactive()) setwd(here::here("Day_2"))
+if (interactive()) setwd(here::here("Day_2"))
 ```
 
 * TOC
@@ -115,7 +115,7 @@ dgeList <- countData %>%
 
 Here we have taken our counts table with gene IDs as row names and sample IDs as column names and put it in to a `DGEList` object, called `dgeList`, and called the `calcNormFactors()` function to calculated the normalisation factors, which can be seen in `dgeList$samples`.
 
-If we decided to fit our counts using a negative binomial model (for discrete data), these `norm.factors` would be included in the model to adjust for variations in the library size and count distributions (for an interesting post on what "fitting" a model is see [fit] (https://diamondage.com/2017/06/03/what-does-it-mean-to-fit-a-model-anyway/)).
+If we decided to fit our counts using a negative binomial model (for discrete data), these `norm.factors` would be included in the model to adjust for variations in the library size and count distributions (for an interesting post on what "fitting" a model is see [fit] (https://diamondage.com/2017/06/03/what-does-it-mean-to-fit-a-model-anyway/).
 
 We have chosen to use a different approach for our analysis today, but taking the time to include the _calculation of normalisation factors_ step as we form the `DGEList` object is still good practice as it allows us to change methodology part way through our planned analysis if we determine the negative binomial model is better suited to our data.
 
@@ -294,11 +294,15 @@ dgeList_Filtered <- dgeList[genes2keep,] %>%
   calcNormFactors()
 ```
 
-#### A note on edgeR normalisation
+#### A note on normalisation
 
+There are many different metrics used for count data normalisation including **T** ranscripts **P** er **M** illion mapped reads (TPM), **C** ounts **P** er **M** illion mapped reads (CPM) and  **R** eads **P** er **K** ilobase per **M** illion mapped reads (RPKM). We have already use **CPM** in our anlaysis. The _Counts Per Million_ metric takes our raw counts and performs a simple normalisation to account for differences in library size between samples. Put simply, the `cpm()` function we use takes the raw/estimated counts and divides each count by the sample library size before multiplying each count by 10^6^ with the equation:
+$CPM_i = 10^6.(\frac{X_i}{N})$
+Where $X_i$ is the gene in consideration and $N$ is the sample library size. Often in RNA-seq we use **TPM** which is based on a standard gene size compared to **RPKM** which takes gene length into account. Normalisation is a bigger topic than you might think at first and is (mostly) outside of the scope of our session today. For an accessible introduction to RNA-seq normalisation you can read this [blog post](http://robpatro.com/blog/?p=235) from Rob Patro, or [this one](https://haroldpimentel.wordpress.com/2014/05/08/what-the-fpkm-a-review-rna-seq-expression-units/) written by Harold Pimentel.
 
-`edgeR` does not use RPKM, TPM etc. to normalise
-This is because it needs to normalise for:
+In our session today we will be using `edgeR`s normalisation strategy. `edgeR` does not use RPKM, TPM _etc_. to normalise but rather has its own `calcNormFactors()` function.
+
+This is because `edgeR` needs to normalise for:
 
 - Sequencing depth (thats what RPKM etc. deal with)
 - Library composition (ie different samples contain different active genes)

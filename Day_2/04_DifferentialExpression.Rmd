@@ -664,8 +664,8 @@ topTable %>%
 
 Take another look at the `topTable` object.
 
-1. What does it mean if we have a positive log fold change?
-2. What does it mean if we have a negative log fold change?
+1. *What does it mean if we have a positive log fold change?*
+2. *What does it mean if we have a negative log fold change?*
 
 We can also take a look at our genes of interest one at a time. Because we have two groups (ie. our two tissue types) a simple box plot provides a good summary of our count data.
 
@@ -691,7 +691,7 @@ dgeList_Filtered$counts %>%
 
 #### Tasks
 
-1. Use the table we created above to choose another gene of interest (or two or three) and create your own box plots based on the code chunk above.
-2. Do the box plots you create make sense in the context of the comparison we set for the differential expression analysis?
+1. *Use the table we created above to choose another gene of interest (or two or three) and create your own box plots based on the code chunk above.*
+2. *Do the box plots you create make sense in the context of the comparison we set for the differential expression analysis?*
 
 

@@ -188,7 +188,7 @@ dgeList <- countData %>%
 
 Here we have taken our counts table with gene IDs as row names and sample IDs as column names and put it in to a `DGEList` object, called `dgeList`, and called the `calcNormFactors()` function to calculated the normalisation factors, which can be seen in `dgeList$samples`.
 
-If we decided to fit our counts using a negative binomial model (for discrete data), these `norm.factors` would be included in the model to adjust for variations in the library size and count distributions (for an interesting post on what "fitting" a model is see [fit] (https://diamondage.com/2017/06/03/what-does-it-mean-to-fit-a-model-anyway/).
+If we decided to fit our counts using a negative binomial model (for discrete data), these `norm.factors` would be included in the model to adjust for variations in the library size and count distributions (for an interesting post on what "fitting" a model is see [fit](https://diamondage.com/2017/06/03/what-does-it-mean-to-fit-a-model-anyway/)).
 
 We have chosen to use a different approach for our analysis today, but taking the time to include the _calculation of normalisation factors_ step as we form the `DGEList` object is still good practice as it allows us to change methodology part way through our planned analysis if we determine the negative binomial model is better suited to our data.
 
@@ -199,7 +199,8 @@ dgeList$samples
 ```
 
 `R` understood that the column names from our counts table contained the sample IDs for our project and created the `samples` data frame inside the `DGEList` object. `lib.size` and `norm.factors` have also been calculated from the counts table and incorporated into the element.
-We haven't yet included any information describing our samples. In the `samples` element, we can set the group variable we previously took from the sample IDs by running:
+We haven't yet included any information describing our samples.
+In the `samples` element, we can set the group variable we previously took from the sample IDs by running:
 
 ```{r setGroups}
 dgeList$samples$group <- sampleGroups$group %>%
@@ -289,7 +290,9 @@ If you want to use the `dplyr` functions on them, you will need to go through th
 mcols(genesGR)
 ```
 
-Before we place this information into the `genes` element of our `DGEList` object we will remove columns that are redundant for our purposes today, and keep only the four most useful ones. We can achieve this by calling the `mcols()` function on our `GRanges` object. Firstly we use the square brackets to subset the `genesGR` object we created earlier, and then by using the assignment operator (<-) to overwrite this subsetted element back into the object.
+Before we place this information into the `genes` element of our `DGEList` object we will remove columns that are redundant for our purposes today, and keep only the four most useful ones.
+We can achieve this by calling the `mcols()` function on our `GRanges` object.
+Firstly we use the square brackets to subset the `genesGR` object we created earlier, and then by using the assignment operator (<-) to overwrite this subsetted element back into the object.
 
 ```{r newMcols}
 mcols(genesGR) <- mcols(genesGR)[c("gene_id", "gene_name", "gene_biotype", "entrezid")]
@@ -305,7 +308,8 @@ dgeList$genes <- genesGR[rownames(dgeList)]
 
 Here we have used square brackets `[]` to subset and reorder the `genesGR` object such that it now only contains the genes in our `dgeList` object, and in the same order.
 
-Now when we subset our `DGEList` by gene, the `genes` element will also be subset accordingly and the initial relationships will be maintained. Take a moment to inspect the first four elements of our `dgeList` object by running the code chunk below.
+Now when we subset our `DGEList` by gene, the `genes` element will also be subset accordingly and the initial relationships will be maintained.
+Take a moment to inspect the first four elements of our `dgeList` object by running the code chunk below.
 
 ```{r dge1to4}
 dgeList[1:4,]
@@ -317,9 +321,13 @@ You will notice that the `degList$genes` element is now populated with the infor
 
 ### Undetectable genes
 
-You may have noticed that no reads aligned to a number of the genes contained in this dataset. As common practice we remove genes with zero counts across all samples before we continue with our initial data exploration.
+You may have noticed that no reads aligned to a number of the genes contained in this dataset.
+As common practice we remove genes with zero counts across all samples before we continue with our initial data exploration.
 Rather than inspect our data one line at a time looking for zeros we can use `R` to perform a logical test to see how many genes were not detected in our dataset.
-First we'll add up the total counts for every gene and see how many received at least one count. In the following code chunk we will take the `counts` element from our `DGEList` object and pipe it into the function `rowSums()` which will output a named number vector with a single value (the sum of each gene) for each gene. This vector is in turn piped into another function `is_greater_than()` which will ask the logical question _"is the value greater than the given value"_, with the given value being **0**. We then pipe the **TRUE**/**FALSE** answers to this logical question into `table` which will provide us with a simple two number summary.
+First we'll add up the total counts for every gene and see how many received at least one count.
+In the following code chunk we will take the `counts` element from our `DGEList` object and pipe it into the function `rowSums()` which will output a named number vector with a single value (the sum of each gene) for each gene.
+This vector is in turn piped into another function `is_greater_than()` which will ask the logical question _"is the value greater than the given value"_, with the given value being **0**.
+We then pipe the `TRUE`/`FALSE` answers to this logical question into `table` which will provide us with a simple two number summary.
 
 ```{r checkZeroes}
 dgeList$counts %>% 
@@ -333,7 +341,8 @@ We can see that a proportion of genes were not expressed or were _undetectable_ 
 A common approach would be to remove undetectable genes using some metric, such as **Counts per Million reads**, also known as `CPM`.
 We could consider a gene detectable if returning more than 1CPM, in every sample, from one (usually the smaller), of the treatment groups.
 
-Although our dataset is small (6/8 libraries are < 1e6 reads), we usually deal with libraries between 20-30million reads. In the context of the more usual library size a CPM of 1 equates to 20-30 reads aligning to a gene, which we test in every sample from a treatment group.
+Although our dataset is small (6/8 libraries are < 1e6 reads), we usually deal with libraries between 20-30million reads.
+In the context of the more usual library size a CPM of 1 equates to 20-30 reads aligning to a gene, which we test in every sample from a treatment group.
 Here our smallest group is 4 so let's see what would happen if we applied the filter of > 1 CPM in 4 samples.
 
 First we'll calculate the `CPM` for each gene in each sample, and then we'll apply a logical test to each value checking whether it's greater than 1.
@@ -368,11 +377,18 @@ dgeList_Filtered <- dgeList[genes2keep,] %>%
 
 #### A note on normalisation
 
-There are many different metrics used for count data normalisation including **T** ranscripts **P** er **M** illion mapped reads (TPM), **C** ounts **P** er **M** illion mapped reads (CPM) and  **R** eads **P** er **K** ilobase per **M** illion mapped reads (RPKM). We have already use **CPM** in our anlaysis. The _Counts Per Million_ metric takes our raw counts and performs a simple normalisation to account for differences in library size between samples. Put simply, the `cpm()` function we use takes the raw/estimated counts and divides each count by the sample library size before multiplying each count by 10^6^ with the equation:
+There are many different metrics used for count data normalisation including **T** ranscripts **P** er **M** illion mapped reads (TPM), **C** ounts **P** er **M** illion mapped reads (CPM) and  **R** eads **P** er **K** ilobase per **M** illion mapped reads (RPKM).
+We have already use **CPM** in our anlaysis.
+The _Counts Per Million_ metric takes our raw counts and performs a simple normalisation to account for differences in library size between samples.
+Put simply, the `cpm()` function we use takes the raw/estimated counts and divides each count by the sample library size before multiplying each count by 10^6^ with the equation:
 $CPM_i = 10^6.(\frac{X_i}{N})$
-Where $X_i$ is the gene in consideration and $N$ is the sample library size. Often in RNA-seq we use **TPM** which is based on a standard gene size compared to **RPKM** which takes gene length into account. Normalisation is a bigger topic than you might think at first and is (mostly) outside of the scope of our session today. For an accessible introduction to RNA-seq normalisation you can read this [blog post](http://robpatro.com/blog/?p=235) from Rob Patro, or [this one](https://haroldpimentel.wordpress.com/2014/05/08/what-the-fpkm-a-review-rna-seq-expression-units/) written by Harold Pimentel.
+Where $X_i$ is the gene in consideration and $N$ is the sample library size.
+Often in RNA-seq we use **TPM** which is based on a standard gene size compared to **RPKM** which takes gene length into account.
+Normalisation is a bigger topic than you might think at first and is (mostly) outside of the scope of our session today.
+For an accessible introduction to RNA-seq normalisation you can read this [blog post](http://robpatro.com/blog/?p=235) from Rob Patro, or [this one](https://haroldpimentel.wordpress.com/2014/05/08/what-the-fpkm-a-review-rna-seq-expression-units/) written by Harold Pimentel.
 
-In our session today we will be using `edgeR`s normalisation strategy. `edgeR` does not use RPKM, TPM _etc_. to normalise but rather has its own `calcNormFactors()` function.
+In our session today we will be using `edgeR`s normalisation strategy.
+`edgeR` does not use RPKM, TPM _etc_. to normalise but rather has its own `calcNormFactors()` function.
 
 This is because `edgeR` needs to normalise for:
 
@@ -381,7 +397,7 @@ This is because `edgeR` needs to normalise for:
 
 The process edgeR uses for normalisation (simplified) is as follows:
 
-Step 1: Remove all undetectable genes (remove genes with zero read counts in all samples)
+Step 1: Remove all undetectable genes (remove genes with zero read counts in all samples).
 
 Step 2: Pick one sample to be the "reference sample".
 
@@ -393,16 +409,17 @@ Step 2: Pick one sample to be the "reference sample".
     + c. Average the 75^th^ quantiles
     + d. The "reference" samples is the one who's 75^th^ quantile most closely matches the average
 
-Step 3: Select the genes for calculating the scaling factors. This is done separately for each sample relative to the _reference sample_
+Step 3: Select the genes for calculating the scaling factors.
+This is done separately for each sample relative to the _reference sample_.
 
 - the genes used for calculating the scaling factors may be different for each sample
 - edgeR filters out _biased genes_ by looking at, and then excluding genes with large log fold differences
 
-Step 4: Calculate the weighted average of the remaining log~2~ ratios 
+Step 4: Calculate the weighted average of the remaining log~2~ ratios.
 
-Step 5: Convert the weighted average of log~2~ values to _"normal numbers"_
+Step 5: Convert the weighted average of log~2~ values to _"normal numbers"_.
 
-Step 6: Centre the scaling factors around $1$
+Step 6: Centre the scaling factors around $1$.
 
 - the _centering_ is done by dividing each raw scaling factor by their geometric mean
 
@@ -413,7 +430,8 @@ Let's compare the distributions of the two datasets (cbc and skm), using CPM on 
 In the following, the command `par(mfrow = c(1,2))` is a base graphics approach and sets the plotting `par`ameters to be a `m`ulti=`f`eature layout, with 1 row and 2 columns.
 We set these parameters because the convenient function `plotDensities()` we are calling below uses base graphics, not `ggplot2`.
 
-```{r plotCPM, fig.cap="Comparison of logCPM distributions before (A) and after (B) filtering for undetectable genes. Values on the x-axis represent logCPM"}
+```{r plotCPM, fig.cap="Comparison of logCPM distributions before (A) and after (B) filtering for undetectable genes.
+Values on the x-axis represent logCPM"}
 
 col <- brewer.pal(nrow(dgeList$samples), "Paired")
 par(mfrow = c(1,2))
@@ -433,12 +451,14 @@ par(mfrow = c(1,1))
 Note the peak at the left in the first plot around zero.
 This is all of the genes with near-zero counts.
 Then note that this peak is missing the second plot, confirming that we have removed most of the undetectable genes.
-Ideally we would like to see that the peak around zero has been removed after filtering, and that the samples all have approximately the same distribution of counts. Keeping in mind that we have significantly subset our original `fastq` data during alignment earlier such that we only have genes from mouse chromosome 1.
+Ideally we would like to see that the peak around zero has been removed after filtering, and that the samples all have approximately the same distribution of counts.
+Keeping in mind that we have significantly subset our original `fastq` data during alignment earlier such that we only have genes from mouse chromosome 1.
 
 ### Library Sizes
 
 Next we should check our library sizes.
-It does appear that the two tissue types have a different profile of reads. There could be a number of reasons for seeing differences between groups including sequencing batch effects, differences in the RNA quality from different tissues or extractions, or lab operations being performed by different staff.
+It does appear that the two tissue types have a different profile of reads.
+There could be a number of reasons for seeing differences between groups including sequencing batch effects, differences in the RNA quality from different tissues or extractions, or lab operations being performed by different staff.
 This is not ideal but most modelling approaches will be able to handle this.
 
 ```{r plotLibSizes, fig.cap = "Library Sizes after filtering for undetectable genes."}
@@ -455,7 +475,10 @@ For most vertebrate datasets we expect libraries of >20million reads, but as we'
 
 ### Unsupervised clustering of samples
 
-One of the first steps in exploring our gene expression data is that of unsupervised clustering in the form of a multi-dimensional scaling plot (MDS), Principal Component Analysis (PCA) or similar. By _unsupervised_ here we mean to say that we haven't _told_ `R` how many groups we are expecting to see, or given any information about which samples we expect to see clustering closely together. Visually inspecting the data in this way allows us to start to understand the extent to which any differential expression can be detected before we have performed any statistical tests. It may also help us to identify any outliers in our samples, or perhaps a factor we haven't yet considered that should be included when fitting our model later.
+One of the first steps in exploring our gene expression data is that of unsupervised clustering in the form of a multi-dimensional scaling plot (MDS), Principal Component Analysis (PCA) or similar.
+By _unsupervised_ here we mean to say that we haven't _told_ `R` how many groups we are expecting to see, or given any information about which samples we expect to see clustering closely together.
+Visually inspecting the data in this way allows us to start to understand the extent to which any differential expression can be detected before we have performed any statistical tests.
+It may also help us to identify any outliers in our samples, or perhaps a factor we haven't yet considered that should be included when fitting our model later.
 
 #### Multi-dimensional Scaling Plot (MDS)
 
@@ -528,7 +551,8 @@ plotly::ggplotly(
 )
 ```
 
-In the spirit of interactive plots available in `R`, run the following code chunk to create an interactive MDS plot as an HTML page using `Glimma::glMDSPlot`. If you set $launch=TRUE$ this code chunk will open a new browser window containing an MDS plot in the left panel and a bar plot showing the proportion of variation explained by each dimension in the right panel. 
+In the spirit of interactive plots available in `R`, run the following code chunk to create an interactive MDS plot as an HTML page using `Glimma::glMDSPlot`.
+If you set `launch = TRUE` this code chunk will open a new browser window containing an MDS plot in the left panel and a bar plot showing the proportion of variation explained by each dimension in the right panel. 
 
 ```{r plotMDS_Glimma}
 dgeList_Filtered %>%
@@ -549,7 +573,8 @@ Next we might choose to perform a Principal Component Analysis on our data, comm
 This time, let's take our CPM values and asses them on the log2 scale to make sure our PCA results are not heavily skewed by highly expressed genes.
 Our first step is to create a new object to hold the PCA results. In the following code chunk we take our filtered DGEList object `dgeList_Filtered` and pipe it to the `cpm()` function we used earlier to calculate the CPM values for each gene prior to setting the filtering threshold. We have made one small change here by including $log - TRUE$ in the function call. By default this is $log_2$. Next we pipe the $log2$CPM values into the `t()` function. This will _transpose_ the matrix of counts such that the matrix now has genes in the columns and samples in the rows, which we then pipe into `prcomp` from the `stats` package. `prcomp()` returns a list with class "prcomp" containing a number of useful components.
 
-To find out more about `prcomp` try typing `help("prcomp")` into the console. This will open the R Documentation for this function in the `Help` tab.
+To find out more about `prcomp` try typing `help("prcomp")` into the console.
+This will open the R Documentation for this function in the `Help` tab.
 
 ```{r pca}
 pca <- dgeList_Filtered %>%
@@ -588,7 +613,9 @@ plotly::ggplotly(
 )
 ```
 
-Multi-Dimensional Scaling can look similar to PCA, but asks a slightly different question of the data. PCA creates plots based on _correlations between samples_, MDS creates plots based on _distances between samples_ (here logFC between genes). Both methods return the results:
+Multi-Dimensional Scaling can look similar to PCA, but asks a slightly different question of the data.
+PCA creates plots based on _correlations between samples_, MDS creates plots based on _distances between samples_ (here logFC between genes).
+Both methods return the results:
 1. Coordinates for a graph
 2. Percent of variation each axis accounts for
 3. Loading scores (to determine which variables have the largest effect)
@@ -613,7 +640,8 @@ This method is called `voom` and we'll use this today.
 
 ### Voom transformation and calculation of variance weights
 
-`voom()` is a function in the `limma` package that modifies RNA-Seq data for use with limma. First, lets set up a model matrix to specify the model to be fitted.
+`voom()` is a function in the `limma` package that modifies RNA-Seq data for use with limma.
+First, lets set up a model matrix to specify the model to be fitted.
 
 ```{r modelMatrix}
 model_matrix <- model.matrix(~ + group, data = dgeList_Filtered$samples)
@@ -623,7 +651,8 @@ The above specifies a model where each coefficient corresponds to a group mean. 
 
 #### Tasks
 
-1. *Take a moment to inspect the `model_matrix` object. You can do this by simply typing the object name into the console and hitting the <kbd>Enter</kbd> key.*
+1. *Take a moment to inspect the `model_matrix` object.
+You can do this by simply typing the object name into the console and hitting the <kbd>Enter</kbd> key.*
 2. *What information has been added here?*
 3. *What could happen if the group assignment wasn't given in the same order as the counts table?*
 
@@ -633,7 +662,8 @@ Next we will create our **voom object** using the `limma::voom()` function.
 voomData <- voom(dgeList_Filtered, model_matrix, plot = TRUE)
 ```
 
-Note that running the `voom()` function without the `model_matrix` object will add a design matrix to the data based on the `group` column of the `DGEList` object but which we chose to specify explicitly. This is something of a style choice, but either way we can now use the **voom object** to perform a simple linear regression on each gene, which amounts to a t-test in this dataset.
+Note that running the `voom()` function without the `model_matrix` object will add a design matrix to the data based on the `group` column of the `DGEList` object but which we chose to specify explicitly.
+This is something of a style choice, but either way we can now use the **voom object** to perform a simple linear regression on each gene, which amounts to a t-test in this dataset.
 
 From here it's a simple matter to code the analysis and inspect results.
 
@@ -694,10 +724,14 @@ topTable %>%
     theme(legend.position = "none")
 ```
 
-So what have we done here. Firstly we took our `topTable` object that contains the logFC values and FDR for each gene and piped the object into `mutate`. Here we have used `mutate` to create a new column called `DE` based on the logical question _is the value in the FDR column less than 0.05?_. For each row in our table if the value of the FDR column is < 0.05 a **TRUE** value will be returned, and of course a value of **FALSE** if $\geq$ 0.05. We have used `geom_text_repel()` to add gene names to the volcano plot - and we have used `dplyr::filter()` inside the call to add the gene names such that we will only add labels if the gene meets both a `P.Value` and `logFC` threshold.
+So what have we done here.
+Firstly we took our `topTable` object that contains the logFC values and FDR for each gene and piped the object into `mutate`.
+Here we have used `mutate` to create a new column called `DE` based on the logical question _is the value in the FDR column less than 0.05?_.
+For each row in our table if the value of the FDR column is < 0.05 a `TRUE` value will be returned, and of course a value of `FALSE` if $\geq$ 0.05.
+We have used `geom_text_repel()` to add gene names to the volcano plot - and we have used `dplyr::filter()` inside the call to add the gene names such that we will only add labels if the gene meets both a `P.Value` and `logFC` threshold.
 As another perspective, we might like to see whether these genes are at the high or low end of the range for expression values.
 This is often referred to as an MD plot, which stands for **M** ean expression vs **D** ifference, where difference is more commonly referred to as logFC.
-We've added an `arrange()` call in the following to ensure our DE genes are plotted last and are the most visible in our figure.  
+We've added an `arrange()` call in the following to ensure our DE genes are plotted last and are the most visible in our figure.
 
 ```{r plotMD, fig.cap="Mean-Difference plot showing fold-change potted against expression level. Genes considered as DE are highlighted in red.", results='asis'}
 topTable %>%

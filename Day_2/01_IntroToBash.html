@@ -409,13 +409,13 @@ summary {
 <div id="welcome" class="section level2">
 <h2>Welcome</h2>
 <p>Welcome to Spring Into Bioinformatics for 2019. Over this 3 day course we’ll hopefully cover enough concepts to get you started with your data and analyses. This course will provide the most benefit if you continue to use the skills in the weeks directly after the course, and is aimed at those with minimal to no prior bioinformatics expertise. Course material will be available at this URL indefinitely.</p>
-<p>Most of the sessions will be self-guided, with key direction provided sporadically at important times. Please ask as many questions as you’d like. The tutors are specifically here to help you understand &amp; develop your skills, so please ensure you take full advantage of their availability.</p>
+<p>Most of the sessions will be self-guided, with key direction provided sporadically at important times. Please ask as many questions as you need. The tutors are specifically here to help you understand and develop your skills, so please ensure you take full advantage of their availability.</p>
 <p>We strongly encourage you to a) read all of the notes, and b) manually type <strong>all of the code</strong> (unless directed otherwise). This will provide you with the the most benefit.</p>
 <div id="tutors" class="section level3">
 <h3>Tutors</h3>
 <p>This course was primarily written by members of the Bioinformatics Hub and the tutors across the three days will be:</p>
 <ul>
-<li>Nathan Watson-Haigh, Dan Kortschak &amp; Mark Armstrong (Bioinformatics Hub Staff)</li>
+<li>Nathan Watson-Haigh, Dan Kortschak and Mark Armstrong (Bioinformatics Hub Staff)</li>
 <li>Jimmy Breen (Bioinformatics Hub / SAHMRI)</li>
 <li>Nhi Hin (PhD Candidate, Bioinformatics Hub)</li>
 <li>Melanie Smith (PhD Candidate, Robinson Research Institute)</li>
@@ -454,7 +454,7 @@ summary {
 </div>
 <div id="a-crash-course-in-bash" class="section level1">
 <h1>A crash course in <code>bash</code></h1>
-<p>Pardon the pun</p>
+<p>Pardon the pun.</p>
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
 <p>Yesterday we introduced the language <code>R</code>, which is heavily used in bioinformatics. <code>R</code> is particularly effective for interacting with and visualising data, as well as performing statistical analyses. However, in modern bioinformatics <code>R</code> is commonly used in the middle to late stage of many analyses. Today we’re going to be interacting with programs and data using the command-line and using the language called <code>bash</code>.</p>
@@ -467,7 +467,7 @@ summary {
 </div>
 <div id="setup-the-directory-for-today" class="section level2">
 <h2>Setup the directory for today</h2>
-<p>Just as we’ve created a new <code>R Project</code> for Day 1, let’s create a new one for today to make sure we’re all in the same place.</p>
+<p>Just as we’ve created a new R Project for Day 1, let’s create a new one for today to make sure we’re all in the same place.</p>
 <ul>
 <li>Using the <code>File</code> menu at the top left, select <code>New Project</code></li>
 <li>Select <code>New Directory</code></li>
@@ -479,17 +479,17 @@ summary {
 </div>
 <div id="running-bash-on-your-vm" class="section level2">
 <h2>Running <code>bash</code> on your VM</h2>
-<p>All computers running MacOS and Linux have a terminal built-in as part of the standard setup, whilst for Windows there are several options, including <code>git bash</code> which also enables use of version control for your scripts. To keep everything consistent for this practical, we’ll use the terminal which is available inside <code>RStudio</code>. Note that even though we’re using <code>RStudio</code>, we won’t be interacting with <code>R</code> today as <code>R</code> runs interactively in the <code>Console</code>. Instead we’ll be using one of the other features provided by <code>RStudio</code> to access <code>bash</code></p>
-<p>To access this, open <code>RStudio</code> as you have for the previous practicals and make sure the <code>Console</code> window is visible. Inside this pane, you will see a <strong>Terminal</strong> Tab so click on this and you will be at an interactive terminal running <code>bash</code>.</p>
+<p>All computers running MacOS and Linux have a terminal built-in as part of the standard setup, whilst for Windows there are several options, including <code>git bash</code> which also enables use of version control for your scripts. To keep everything consistent for this practical, we’ll use the terminal which is available inside RStudio. Note that even though we’re using RStudio, we won’t be interacting with <code>R</code> today as <code>R</code> runs interactively in the <code>Console</code>. Instead we’ll be using one of the other features provided by RStudio to access <code>bash</code></p>
+<p>To access this, open RStudio as you have for the previous practicals and make sure the <code>Console</code> window is visible. Inside this pane, you will see a <strong>Terminal</strong> Tab so click on this and you will be at an interactive terminal running <code>bash</code>.</p>
 <p>Historically, <code>bash</code> is a replacement for the earlier Bourne Shell, written by Stephen Bourne, so the name is actually a hilarious joke. We’ll explore a few important commands below, and the words <em>shell</em> and <em>bash</em> will often be used interchangeably with the terminal window.</p>
-<p>Although we haven’t specifically mentioned this up until now, your virtual machines are actually running the <em>Ubuntu</em> flavour of Linux, and we can access these machines by logging in remotely, as well as through the <code>RStudio</code> interface which you used yesterday. Most High-Performance Computing (HPC) systems you use will require a knowledge of Linux so these practicals will give you the basics skills for working in this environment. Most of the data analysis performed by the Bioinformatics Hub relies on the University of Adelaide HPC for data storage and data processing.</p>
+<p>Although we haven’t specifically mentioned this up until now, your virtual machines are actually running the <em>Ubuntu</em> flavour of Linux, and we can access these machines by logging in remotely, as well as through the RStudio interface which you used yesterday. Most High-Performance Computing (HPC) systems you use will require a knowledge of Linux so these practicals will give you the basics skills for working in this environment. Most of the data analysis performed by the Bioinformatics Hub relies on the University of Adelaide HPC for data storage and data processing.</p>
 </div>
 <div id="finding-your-way-around" class="section level2">
 <h2>Finding your way around</h2>
-<p>Once you’re in the <code>Terminal</code> section of <code>RStudio</code>, you will notice some text describing your computer of the form</p>
+<p>Once you’re in the <code>Terminal</code> section of RStudio, you will notice some text describing your computer of the form</p>
 <pre><code>biotech7005@2019-biotech7005-xx:~/Day_2$</code></pre>
 <p>The first section of this describes your username (<code>XXXXXXX</code>) and the machine <code>XXXXXXXXX</code>. The end of the machine identifier is marked with a colon (<code>:</code>).</p>
-<p>After the colon, the string (<code>~/Day_2</code>) represents your current directory, whilst the dollar sign (<code>$</code>) indicates the end of this path &amp; the beginning of where you will type commands. This is the standard interface for the Bourne-again Shell, or <code>bash</code>.</p>
+<p>After the colon, the string (<code>~/Day_2</code>) represents your current directory, whilst the dollar sign (<code>$</code>) indicates the end of this path and the beginning of where you will type commands. This is the standard interface for the Bourne-again Shell, or <code>bash</code>.</p>
 <div id="where-are-we" class="section level3">
 <h3>Where are we?</h3>
 <div id="pwd" class="section level4">
@@ -501,7 +501,7 @@ summary {
 <p>Check with your neighbour to see if you get the same thing. If not, see if you can figure out why.</p>
 <p>At the beginning of this section we mentioned that <code>~/Day_2</code> represented your current directory, but now our machine is telling us that our directory is <code>/home/biotech7005/Day_2</code>. This raises an important and very useful point. In <code>bash</code> the <code>~</code> symbol is a shortcut for the home directory of the current user. If Dan was logged in, this would be <code>/home/Dan</code> whilst if Steve was logged in this would be <code>/home/Steve</code>. As we are all logged on as <code>biotech7005</code>, this now stands for <code>/home/biotech7005</code>. (Formally, <code>~</code> is a variable, but we’ll deal with variables later.)</p>
 <p>Importantly every user with an account on a machine will have their own home directory of the format <code>/home/username1</code>, <code>/home/username2</code> etc.. Notice that they will all live in the directory <code>/home</code> which is actually the parent directory that all users will have a home directory in, as we’ve just tried to explain. This can be confusing for many people, so hopefully we’ll clear this up in the next section or two.</p>
-<p>In the above, the <code>/home</code> directory itself began with a slash, i.e. <code>/</code>. On a unix-based system (i.e. MacOS &amp; Linux), the <code>/</code> directory is defined to be the root directory of the file system. Windows users would be more familiar with seeing <code>C:\</code> as the root of the computer, and this is an important difference in the two directory structures. Note also that whilst Windows uses the <strong>backslash</strong> (<code>\</code>) to indicate a new directory, a Linux-based system uses the <strong>forward slash</strong> (<code>/</code>), or more commonly just referred to simply as “slash”, marking another but very important difference between the two.</p>
+<p>In the above, the <code>/home</code> directory itself began with a slash, i.e. <code>/</code>. On a unix-based system (i.e. MacOS and Linux), the <code>/</code> directory is defined to be the root directory of the file system. Windows users would be more familiar with seeing <code>C:\</code> as the root of the computer, and this is an important difference in the two directory structures. Note also that whilst Windows uses the <strong>backslash</strong> (<code>\</code>) to indicate a new directory, a Linux-based system uses the <strong>forward slash</strong> (<code>/</code>), or more commonly just referred to simply as “slash”, marking another but very important difference between the two.</p>
 </div>
 <div id="cd" class="section level4">
 <h4>cd</h4>
@@ -538,7 +538,7 @@ pwd</code></pre>
 <p>This is where we started the session.</p>
 <div id="tab-auto-completion" class="section level4">
 <h4>Tab auto-completion</h4>
-<p>In a similar way that <code>RStudio</code> offered ‘suggestions’ when we start typing the name of a function, <code>bash</code> has the capacity for <code>auto-completion</code> as well. This will help you avoid a ridiculous number of typos.</p>
+<p>In a similar way that RStudio offered ‘suggestions’ when we start typing the name of a function, <code>bash</code> has the capacity for <code>auto-completion</code> as well. This will help you avoid a ridiculous number of typos.</p>
 <p>If you start typing something bash will complete as far as it can, then will wait for you to complete the path, command or file name. If it can complete all the way, it will.</p>
 <p>Let’s see this in action and start becoming keyboard heroes. Change into your home folder.</p>
 <pre><code>cd</code></pre>
@@ -557,7 +557,7 @@ cd ..</code></pre>
 <h3>Looking at the Contents of a Directory</h3>
 <p>There is another built-in command (<code>ls</code>) that we can use to <strong>list</strong> the contents of a directory. This is a way to get our familiar folder view in the terminal. Making sure you are in your home directory (<code>cd ~</code>), enter the <code>ls</code> command as it is and it will print the contents of the current directory.</p>
 <pre><code>ls</code></pre>
-<p>This is the list of files that we normally see in our traditional folder view that Windows and MacOS show us by default. We can actually check this output using <code>RStudio</code> too, so head to the <strong>Files</strong> tab in the <code>Files</code> window. Click on the Home icon (<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAVCAIAAADNQonCAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wcbDBQ0bzwVhgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAACHUlEQVQ4y6WTPW8TQRCGZz9u784mCRSAscBEBEFBQeQCJBqixAhEnaTjj/AT6FKAW0okEkqEkBAIWYbIEYgClFgJRcA4jg0H2Gd7z7czFCGQMxcDyXQ77+yzs69mmB8Y2A7CEP4/5N6uRRC12uY+EczXwSCdcylFGBpA3LWEBoauVl5eOqerlQE1fFe2rfzV8nIui+vl5amsv1rmtoqvxLgOmRBeaXFzNldJpdIPlxonM7WZKa+0yISIKW58/eY4Tl82qNfe57LvDh289viNhSF3ko+unh+rbpx68lodPvqHF9EuuK38tfLK5PjG8RMTCwUeBGGIQfP75fnnX8ZOr0yO+2v9P4p4wTj3XhTqs1c+plJn8/OWtFC6JF2yEoRwJn+/nsnUZ3JescA4j0cYrb27+WeMXVwoOgeGUKjS3PSrOzdKc9MolFDOhQfFp4LX7+WN1r9HK9KSUulbt48tveVhLzQEhpq+FoqbQKMhY4i32+JmfvT6BFcKiGIQQJQcGlGABgkROVHT78geC4MOESEiIhcmTA6P6B0DKTnnUQgBwa8XOl0tSYTbbRMAAdG2+hNhqYi9DCA0Zv1TlYiEZfeGR9Gyja0/VCqmp4UQiNQ/F62ujpwZa3z2Wu02AyAAYSkgAAamF2xlbGWlU0d2gvoRe1l232/HrzDbsuYfEJyzWKHZbCUSrohbin6E67qxQrerHceRUv4VwWHf8QMmlkG6c5FbcAAAAABJRU5ErkJggg==" alt="home" />) and look at the folders &amp; files you can see there. <strong>Do they match the output from <code>ls</code>?</strong> Ask for help if not.</p>
+<p>This is the list of files that we normally see in our traditional folder view that Windows and MacOS show us by default. We can actually check this output using RStudio too, so head to the <strong>Files</strong> tab in the <code>Files</code> window. Click on the Home icon (<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAVCAIAAADNQonCAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wcbDBQ0bzwVhgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAACHUlEQVQ4y6WTPW8TQRCGZz9u784mCRSAscBEBEFBQeQCJBqixAhEnaTjj/AT6FKAW0okEkqEkBAIWYbIEYgClFgJRcA4jg0H2Gd7z7czFCGQMxcDyXQ77+yzs69mmB8Y2A7CEP4/5N6uRRC12uY+EczXwSCdcylFGBpA3LWEBoauVl5eOqerlQE1fFe2rfzV8nIui+vl5amsv1rmtoqvxLgOmRBeaXFzNldJpdIPlxonM7WZKa+0yISIKW58/eY4Tl82qNfe57LvDh289viNhSF3ko+unh+rbpx68lodPvqHF9EuuK38tfLK5PjG8RMTCwUeBGGIQfP75fnnX8ZOr0yO+2v9P4p4wTj3XhTqs1c+plJn8/OWtFC6JF2yEoRwJn+/nsnUZ3JescA4j0cYrb27+WeMXVwoOgeGUKjS3PSrOzdKc9MolFDOhQfFp4LX7+WN1r9HK9KSUulbt48tveVhLzQEhpq+FoqbQKMhY4i32+JmfvT6BFcKiGIQQJQcGlGABgkROVHT78geC4MOESEiIhcmTA6P6B0DKTnnUQgBwa8XOl0tSYTbbRMAAdG2+hNhqYi9DCA0Zv1TlYiEZfeGR9Gyja0/VCqmp4UQiNQ/F62ujpwZa3z2Wu02AyAAYSkgAAamF2xlbGWlU0d2gvoRe1l232/HrzDbsuYfEJyzWKHZbCUSrohbin6E67qxQrerHceRUv4VwWHf8QMmlkG6c5FbcAAAAABJRU5ErkJggg==" alt="home" />) and look at the folders and files you can see there. <strong>Do they match the output from <code>ls</code>?</strong> Ask for help if not.</p>
 <p>Alternatively, we can specify which directory we wish to view the contents of, <strong>without having to change into that directory</strong>. Notice <strong>you can’t do actually this using your classic GUI folder view</strong>. We simply type the <code>ls</code> command, followed by a space, then the directory we wish to view the contents of. To look at the contents of the root directory of the file system, we simply add that directory after the command <code>ls</code>.</p>
 <pre><code>ls /</code></pre>
 <p>Here you can see a whole raft of directories which contain the vital information for the computer’s operating system. Among them should be the <code>/home</code> directory which is one level above your own home directory, and where the home directories for all users are located on a Linux system.</p>
@@ -572,8 +572,8 @@ ls Day_1</code></pre>
 <p>In order to help us find what options are able to be specified, every command built-in to the shell has a manual, or a help page which can take some time to get familiar with. <em>These help pages are displayed using the pager known as</em> <code>less</code> which essentially turns the terminal window into a text viewer so we can display text in the terminal window, but with no capacity for us to edit the text, almost like primitive version of Acrobat Reader.</p>
 <p>To display the help page for <code>ls</code> enter the command</p>
 <pre><code>man ls</code></pre>
-<p>As beforehand, the space between the arguments is important &amp; in the first argument we are invoking the command <code>man</code> which then looks for the <em>manual</em> associated with the command <code>ls</code>. To navigate through the manual page, we need to know a few shortcuts which are part of the <code>less</code> pager.</p>
-<p>Although we can navigate through the <code>less</code> pager using up &amp; down arrows on our keyboards, some helpful shortcuts are:</p>
+<p>As beforehand, the space between the arguments is important and in the first argument we are invoking the command <code>man</code> which then looks for the <em>manual</em> associated with the command <code>ls</code>. To navigate through the manual page, we need to know a few shortcuts which are part of the <code>less</code> pager.</p>
+<p>Although we can navigate through the <code>less</code> pager using up and down arrows on our keyboards, some helpful shortcuts are:</p>
 <table>
 <thead>
 <tr class="header">
@@ -627,9 +627,9 @@ ls Day_1</code></pre>
 <h3>Text In the Terminal</h3>
 <p>We can display a line of text in <code>stdout</code> by using the command <code>echo</code>. The most simple function that people learn to write in most languages is called <code>Hello World</code> and we’ll do the same thing today.</p>
 <pre><code>echo 'Hello World'</code></pre>
-<p>That’s pretty amazing isn’t it &amp; you can make the terminal window say anything you want without meaning it.</p>
+<p>That’s pretty amazing isn’t it? and you can make the terminal window say anything you want without meaning it.</p>
 <pre><code>echo 'This computer will self destruct in 10 seconds!'</code></pre>
-<p>There are a few subtleties about text which are worth noting. If you have <code>man</code> pages accessible, inspect the <code>man echo</code> page &amp; note the effects of the <code>-e</code> option. (Unfortunately you can’t access this using <code>echo --help</code>.) The <code>-e</code> option allows you to specify tabs (<code>\t</code>), new lines (<code>\n</code>) &amp; other special characters by using the backslash to signify these characters. This is an important concept &amp; the use of a backslash to <em>escape</em> the normal meaning of a character is very common, as we saw with <code>grep</code> last time. Try the following three commands &amp; see what effects these special characters have.</p>
+<p>There are a few subtleties about text which are worth noting. If you have <code>man</code> pages accessible, inspect the <code>man echo</code> page and note the effects of the <code>-e</code> option. (Unfortunately you can’t access this using <code>echo --help</code>.) The <code>-e</code> option allows you to specify tabs (<code>\t</code>), new lines (<code>\n</code>) and other special characters by using the backslash to signify these characters. This is an important concept and the use of a backslash to <em>escape</em> the normal meaning of a character is very common, as we saw with <code>grep</code> last time. Try the following three commands and see what effects these special characters have.</p>
 <pre><code>echo 'Hello\tWorld'
 echo -e 'Hello\tWorld'
 echo -e 'Hello\nWorld'</code></pre>
@@ -650,9 +650,9 @@ echo -e 'Hello\nWorld'</code></pre>
 </div>
 <div id="redirection-using-the-pipe-symbol" class="section level2">
 <h2>Redirection Using The Pipe Symbol</h2>
-<p>Sometimes we need to build up our series of commands &amp; send the results of one to another. The <em>pipe</em> symbol (<code>|</code>) is the way we do this &amp; it can literally be taken as placing the output from one command into a pipe &amp; redirecting it somewhere new. This is where thinking about the output of a command as a <em>data stream</em> can be very helpful. This is a very conventional approach when working in <code>bash</code> and was the motivation behind the creation of the <code>magrittr</code> package in <code>R</code>.</p>
-<p>As a simple example, we could take the output from an <code>ls</code> command &amp; send it to the pager <code>less</code>. The pager <code>less</code> essentially turns the terminal window into a text viewer so we can display text in the terminal window, but with no capacity for us to edit the text, almost like primitive version of Acrobat Reader.</p>
-<p>Although we can navigate through the <code>less</code> pager using up &amp; down arrows on our keyboards, some helpful shortcuts are:</p>
+<p>Sometimes we need to build up our series of commands and send the results of one to another. The <em>pipe</em> symbol (<code>|</code>) is the way we do this and it can literally be taken as placing the output from one command into a pipe and redirecting it somewhere new. This is where thinking about the output of a command as a <em>data stream</em> can be very helpful. This is a very conventional approach when working in <code>bash</code> and was the motivation behind the creation of the <code>magrittr</code> package in <code>R</code>.</p>
+<p>As a simple example, we could take the output from an <code>ls</code> command and send it to the pager <code>less</code>. The pager <code>less</code> essentially turns the terminal window into a text viewer so we can display text in the terminal window, but with no capacity for us to edit the text, almost like primitive version of Acrobat Reader.</p>
+<p>Although we can navigate through the <code>less</code> pager using up and down arrows on our keyboards, some helpful shortcuts are:</p>
 <table>
 <thead>
 <tr class="header">
@@ -706,7 +706,7 @@ ls -lh /usr/bin | tail</code></pre>
 <p>Thats quite specific, but you can also use smaller words or characters</p>
 <pre><code>ls -lh /usr/bin | grep &quot;ls&quot;</code></pre>
 <p>As you can see, a lot more lines contain the two consecutive characters “ls” than the word “command”.</p>
-<p>Regular expressions more broadly are a powerful &amp; flexible way of searching for text strings amongst a large document or file. Most of us are familiar with searching for a word within a file, but regular expressions allow us to search for these with more flexibility, particularly in the context of genomics. For example, we could search for a sequence that is either <code>AGT</code> or <code>ACT</code> by using the patterns <code>A[GC]T</code> or <code>A(G|C)T</code>. These two patterns will search for an <code>A</code>, followed by either a <code>G</code> or <code>C</code>, then followed strictly by a <code>T</code>. Due to time we won’t go in-depth into regular expressions, but we will delve more into those during Day 3.</p>
+<p>Regular expressions more broadly are a powerful and flexible way of searching for text strings amongst a large document or file. Most of us are familiar with searching for a word within a file, but regular expressions allow us to search for these with more flexibility, particularly in the context of genomics. For example, we could search for a sequence that is either <code>AGT</code> or <code>ACT</code> by using the patterns <code>A[GC]T</code> or <code>A(G|C)T</code>. These two patterns will search for an <code>A</code>, followed by either a <code>G</code> or <code>C</code>, then followed strictly by a <code>T</code>. Due to time we won’t go in-depth into regular expressions, but we will delve more into those during Day 3.</p>
 <div id="questions" class="section level4">
 <h4>Questions</h4>
 <p>{:.no_toc}</p>
@@ -719,14 +719,14 @@ ls -lh /usr/bin | tail</code></pre>
 </div>
 <div id="sed-the-stream-editor" class="section level2">
 <h2>sed: The Stream Editor</h2>
-<p>One additional and very useful command in the terminal is <code>sed</code>, which is short for <em>stream editor</em>. Instead of the <code>man</code> page for <code>sed</code> the <code>info sed</code> page is larger but a little easier to digest. This is a very powerful command which can be a little overwhelming at first. If using this for your own scripts &amp; you can’t figure something out, remember ‘Google is your friend’ &amp; sites like  are full of people wrestling with similar problems to you. These are great places to start looking for help &amp; even advanced programmers use these tools.</p>
+<p>One additional and very useful command in the terminal is <code>sed</code>, which is short for <em>stream editor</em>. Instead of the <code>man</code> page for <code>sed</code> the <code>info sed</code> page is larger but a little easier to digest. This is a very powerful command which can be a little overwhelming at first. If using this for your own scripts and you can’t figure something out, remember ‘Google is your friend’ and sites like  are full of people wrestling with similar problems to you. These are great places to start looking for help and even advanced programmers use these tools.</p>
 <p>For today, there are two key <code>sed</code> functionalities that we want to introduce.</p>
 <ol style="list-style-type: decimal">
 <li>Using <code>sed</code> to alter the contents of a file/input;</li>
 <li>Using <code>sed</code> to print regions of a file</li>
 </ol>
 <p><code>sed</code> uses <em>regular expressions</em> that we have come across under the <code>grep</code> section, and we can use these to replace strings or characters within a text string. The command works in the form <code>sed 'SCRIPT' INPUT</code>, and the script section is where all the action happens. Input can be given to <code>sed</code> as either a file, or just as a text stream via the <em>pipe</em> that we have already introduced.</p>
-<p>In the following example the script begins with an <code>s</code> to indicate that we are going to make a substitution. The beginning of the first pattern (i.e. the <em>regexp</em> we are searching for) is denoted with the backslash, with the identical delimiter indicating the replacement pattern, and this is in turn completed with the same delimiter. Try this simple example from the link  which is a very detailed &amp; helpful resource about the usage <code>sed</code>. Here we are sending the input (<code>echo Sunday</code>) to the command via the pipe, so no <code>INPUT</code> section is required:</p>
+<p>In the following example the script begins with an <code>s</code> to indicate that we are going to make a substitution. The beginning of the first pattern (i.e. the <em>regexp</em> we are searching for) is denoted with the backslash, with the identical delimiter indicating the replacement pattern, and this is in turn completed with the same delimiter. Try this simple example from the link  which is a very detailed and helpful resource about the usage <code>sed</code>. Here we are sending the input (<code>echo Sunday</code>) to the command via the pipe, so no <code>INPUT</code> section is required:</p>
 <pre><code>echo Sunday | sed 's/day/night/'</code></pre>
 <p>Here you are passing <code>sed</code> the string Sunday, and <code>sed</code> takes day and turns it into night.<br />
 <code>sed</code> will only replace the first instance of the string on any line, so try:</p>

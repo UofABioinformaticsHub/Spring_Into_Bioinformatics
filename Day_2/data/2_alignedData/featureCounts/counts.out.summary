@@ -1,0 +1,12 @@
+Status	/data/biohub/2019_SIB/2_alignedData/bam/SRR945427.cbc.trimmedAligned.sortedByCoord.out.bam	/data/biohub/2019_SIB/2_alignedData/bam/SRR945381.skm.trimmedAligned.sortedByCoord.out.bam	/data/biohub/2019_SIB/2_alignedData/bam/SRR945421.cbc.trimmedAligned.sortedByCoord.out.bam	/data/biohub/2019_SIB/2_alignedData/bam/SRR945419.cbc.trimmedAligned.sortedByCoord.out.bam	/data/biohub/2019_SIB/2_alignedData/bam/SRR945375.skm.trimmedAligned.sortedByCoord.out.bam	/data/biohub/2019_SIB/2_alignedData/bam/SRR945423.cbc.trimmedAligned.sortedByCoord.out.bam	/data/biohub/2019_SIB/2_alignedData/bam/SRR945379.skm.trimmedAligned.sortedByCoord.out.bam	/data/biohub/2019_SIB/2_alignedData/bam/SRR945377.skm.trimmedAligned.sortedByCoord.out.bam
+Assigned	303843	294475	333113	331785	253723	372736	204986	360580
+Unassigned_Ambiguity	8516	23364	9916	9972	16020	11052	15251	21443
+Unassigned_MultiMapping	0	0	0	0	0	0	0	0
+Unassigned_NoFeatures	80619	47732	98518	89559	37010	109797	35507	56068
+Unassigned_Unmapped	0	0	0	0	0	0	0	0
+Unassigned_MappingQuality	712340	1518865	587856	578916	1086191	632786	861404	1723908
+Unassigned_FragmentLength	0	0	0	0	0	0	0	0
+Unassigned_Chimera	0	0	0	0	0	0	0	0
+Unassigned_Secondary	0	0	0	0	0	0	0	0
+Unassigned_Nonjunction	0	0	0	0	0	0	0	0
+Unassigned_Duplicate	0	0	0	0	0	0	0	0

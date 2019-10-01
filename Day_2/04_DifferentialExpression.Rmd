@@ -68,7 +68,7 @@ Please take a moment to check the location of the `counts.out` file you created 
 <!-- I've put it in the repo in a directory Day_2/data if that's even vaguely useful...  -->
 
 ```{r counts}
-file <- "../data/2_alignedData/featureCounts/counts.out"
+file <- "./data/2_alignedData/featureCounts/counts.out"
 rawCounts <- read_delim(file, comment = "#", delim = "\t")
 ```
 

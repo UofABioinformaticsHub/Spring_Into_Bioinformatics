@@ -487,8 +487,8 @@ summary {
 <div id="finding-your-way-around" class="section level2">
 <h2>Finding your way around</h2>
 <p>Once you’re in the <code>Terminal</code> section of RStudio, you will notice some text describing your computer of the form</p>
-<pre><code>biotech7005@2019-biotech7005-xx:~/Day_2$</code></pre>
-<p>The first section of this describes your username (<code>XXXXXXX</code>) and the machine <code>XXXXXXXXX</code>. The end of the machine identifier is marked with a colon (<code>:</code>).</p>
+<pre><code>sib2019@2019-sib-master:~/Day_2$</code></pre>
+<p>The first section of this describes your username (<code>sib2019</code>) and the machine <code>2019-sib-master</code>. The end of the machine identifier is marked with a colon (<code>:</code>).</p>
 <p>After the colon, the string (<code>~/Day_2</code>) represents your current directory, whilst the dollar sign (<code>$</code>) indicates the end of this path and the beginning of where you will type commands. This is the standard interface for the Bourne-again Shell, or <code>bash</code>.</p>
 <div id="where-are-we" class="section level3">
 <h3>Where are we?</h3>
@@ -497,9 +497,9 @@ summary {
 <p>Type the command <code>pwd</code> in the terminal then press the <kbd>Enter</kbd> key and you will see the output which describes the current directory you are in.</p>
 <pre class="bash"><code>pwd</code></pre>
 <p>The command <code>pwd</code> is what we use to __p__rint the current (i.e. __w__orking) __d__irectory. Even though we are not using <code>R</code>, if you have setup the R project like we instructed above this command will probably return the directory.</p>
-<pre><code>/home/biotech7005/Day_2</code></pre>
+<pre><code>/home/sib2019/Day_2</code></pre>
 <p>Check with your neighbour to see if you get the same thing. If not, see if you can figure out why.</p>
-<p>At the beginning of this section we mentioned that <code>~/Day_2</code> represented your current directory, but now our machine is telling us that our directory is <code>/home/biotech7005/Day_2</code>. This raises an important and very useful point. In <code>bash</code> the <code>~</code> symbol is a shortcut for the home directory of the current user. If Dan was logged in, this would be <code>/home/Dan</code> whilst if Steve was logged in this would be <code>/home/Steve</code>. As we are all logged on as <code>biotech7005</code>, this now stands for <code>/home/biotech7005</code>. (Formally, <code>~</code> is a variable, but we’ll deal with variables later.)</p>
+<p>At the beginning of this section we mentioned that <code>~/Day_2</code> represented your current directory, but now our machine is telling us that our directory is <code>/home/sib2019/Day_2</code>. This raises an important and very useful point. In <code>bash</code> the <code>~</code> symbol is a shortcut for the home directory of the current user. If Dan was logged in, this would be <code>/home/Dan</code> whilst if Steve was logged in this would be <code>/home/Steve</code>. As we are all logged on as <code>sib2019</code>, this now stands for <code>/home/sib2019</code>. (Formally, <code>~</code> is a variable, but we’ll deal with variables later.)</p>
 <p>Importantly every user with an account on a machine will have their own home directory of the format <code>/home/username1</code>, <code>/home/username2</code> etc.. Notice that they will all live in the directory <code>/home</code> which is actually the parent directory that all users will have a home directory in, as we’ve just tried to explain. This can be confusing for many people, so hopefully we’ll clear this up in the next section or two.</p>
 <p>In the above, the <code>/home</code> directory itself began with a slash, i.e. <code>/</code>. On a unix-based system (i.e. MacOS and Linux), the <code>/</code> directory is defined to be the root directory of the file system. Windows users would be more familiar with seeing <code>C:\</code> as the root of the computer, and this is an important difference in the two directory structures. Note also that whilst Windows uses the <strong>backslash</strong> (<code>\</code>) to indicate a new directory, a Linux-based system uses the <strong>forward slash</strong> (<code>/</code>), or more commonly just referred to simply as “slash”, marking another but very important difference between the two.</p>
 </div>
@@ -520,7 +520,7 @@ summary {
 <p>The initial approach taken above to move through the directories used what we refer to as a <strong>relative path</strong>, where each move was made <em>relative to the current directory</em>. Going up one directory will clearly depend on where we are when we execute the command.</p>
 <p>An alternative is to use an <strong>absolute path</strong>. An <strong>absolute path</strong> on Linux/Mac will always begin with the root directory symbol <code>/</code>.</p>
 <p>For example, <code>/foo</code> would refer to a directory called <code>foo</code> in the root directory of the file system (NB: This directory doesn’t really exist, it’s an example). In contrast, a <strong>relative path</strong> can begin with either the current directory (indicated by <code>./</code>) or a higher-level directory (indicated by <code>../</code> as mentioned above). A subdirectory <code>foo</code> of the current directory could thus be specified as <code>./foo</code>, whilst a subdirectory of the next higher directory would be specified by <code>../foo</code>.</p>
-<p>Another common absolute path is the one mentioned right at the start of the session, specified with <code>~</code>, which stands for your home directory <code>/home/biotech7005</code>, which also starts with a <code>/</code>.</p>
+<p>Another common absolute path is the one mentioned right at the start of the session, specified with <code>~</code>, which stands for your home directory <code>/home/sib2019</code>, which also starts with a <code>/</code>.</p>
 <p>We can also move through multiple directories in one command by separating them with the slash <code>/</code>. For example, we could also get to the root directory from our home directory by typing</p>
 <pre><code>cd ../../</code></pre>
 <p><strong>Return to your home directory using</strong> <code>cd</code>.</p>
@@ -549,7 +549,7 @@ pwd</code></pre>
 <p>Another example which will complete all the way for you might be to go up one from your home folder.</p>
 <pre><code>cd
 cd ..</code></pre>
-<p>Now to get back to your home directory (<code>/home/biotech7005</code>) start typing <code>cd b</code> followed by the <kbd>Tab</kbd> key. This should auto-complete for you and will save you making any errors. This also makes navigating your computer system very fast once you get the hang of it.</p>
+<p>Now to get back to your home directory (<code>/home/sib2019</code>) start typing <code>cd b</code> followed by the <kbd>Tab</kbd> key. This should auto-complete for you and will save you making any errors. This also makes navigating your computer system very fast once you get the hang of it.</p>
 <p>Importantly, if tab auto-completion doesn’t appear to be working, you’ve probably made a typo somewhere, or are not where you think you are. It’s a good check for mistakes.</p>
 </div>
 </div>

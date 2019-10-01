@@ -84,18 +84,22 @@ The group information we need for the differential expression is locked in the s
 Next we can split the sample ID from the group information and save that information in a dataframe for later use.
 
 ```{r splitSampleID}
-sampleGroups <- as.data.frame(names(countData[-1]), stringsAsFactors = FALSE) %>%
-  set_colnames(., "samplename") %>%
-  tidyr::separate(., col = samplename, into = c("samplename", "group"), remove = TRUE)
+sampleGroups <- tibble(
+  samplename = str_subset(colnames(countData), "SRR")
+) %>%
+  tidyr::separate(col = samplename, into = c("samplename", "group"), remove = TRUE)
 ```
 
 Now we have a small table of metadata regarding our samples.
 We can also tidy up our countData table column names a little more by moving the gene IDs to row names and removing the group information after the sample name.
 
 ```{r sampleName}
-countData <- as.data.frame(countData) %>%
-  column_to_rownames("Geneid")
-colnames(countData) <- sampleGroups$samplename
+countData <- countData %>%
+  as.data.frame() %>%
+  column_to_rownames("Geneid") %>%
+  set_colnames(
+    str_extract(colnames(.), "SRR[0-9]+")
+  )
 ```
 
 ### Create a DGE List
@@ -170,7 +174,6 @@ The final line looks for an object of class `EnsDb` which is a database object c
 ```{r subset_ah}
 ah <- ah %>%
   subset(species == "Mus musculus") %>%
-  subset(dataprovider == "Ensembl") %>%
   subset(rdataclass == "EnsDb")
 ```
 
@@ -188,8 +191,7 @@ We want gene information today, so let's just use that function.
 Note that after we obtain the data, we're using `subset()` to ensure we only keep the data from chromosome 1.
 
 ```{r genes}
-genesGR <- genes(ensDb) %>%
-    subset(seqnames == 1)
+genesGR <- genes(ensDb)
 ```
 
 This object is a `GenomicRanges` (or `GRanges`) object and these are the bread & butter of genomic analysis in R. 
@@ -228,7 +230,7 @@ To fix this, we will use the `rownames` of our `DGEList` object to reorder the `
 Taking the time to ensure that the two gene lists are in the same order is important because `R` will give no warning or error to inform us if the two gene lists are in different orders. `R` will not check that these two objects are compatible.
 
 ```{r addGenes}
-dgeList$genes <- genesGR[genesGR$gene_id %in% rownames(dgeList),]
+dgeList$genes <- genesGR[rownames(dgeList)]
 ```
 
 Here we have used square brackets `[]` to subset and reorder the `genesGR` object such that it now only contains the genes in our `dgeList` object, and in the same order.
@@ -412,7 +414,7 @@ Gene_3|2.2|1.0|1.5|
   
 3. Lastly, take the average of the absolute value of the logFC among genes
 
-**nb**: we take the absolute value so the negative log fold changes don't cancel out the positive ones
+**NB**: we take the absolute value so the negative log fold changes don't cancel out the positive ones
   
 4. We can now use these _distances_ between samples to plot our MDS.
 
@@ -543,7 +545,7 @@ This method is called `voom` and we'll use this today.
 
 ### Voom transformation and calculation of variance weights
 
-First, lets set up a model matrix to specify the model to be fitted.
+`voom()` is a function in the `limma` package that modifies RNA-Seq data for use with limma. First, lets set up a model matrix to specify the model to be fitted.
 
 ```{r modelMatrix}
 model_matrix <- model.matrix(~ + group, data = dgeList_Filtered$samples)
@@ -553,11 +555,12 @@ The above specifies a model where each coefficient corresponds to a group mean. 
 
 #### Tasks
 
-1. Take a moment to inspect the `model_matrix` object. You can do this by simply typing the object name into the console and hitting the <kbd>Enter</kbd> key.
-2. What information has been added here?
-3. What could happen if the group assignment wasn't given in the same order as the counts table?
+1. *Take a moment to inspect the `model_matrix` object. You can do this by simply typing the object name into the console and hitting the <kbd>Enter</kbd> key.*
+2. *What information has been added here?*
+3. *What could happen if the group assignment wasn't given in the same order as the counts table?*
 
-Next we will 
+Next we will create our **voom object** using the `limma::voom()` function.
+
 ```{r voom}
 voomData <- voom(dgeList_Filtered, model_matrix, plot = TRUE)
 ```
@@ -588,7 +591,9 @@ We could actually add this to the chunk above to save forming then modifying an 
 
 ### Tasks
 
-1. Take a quick look at the `topTable` object before and after the tidy up by typing `topTable %>% head()` into the console and hitting the <kbd>Enter</kbd> key.
+1. *Take a quick look at the `topTable` object before and after the tidy up by typing `topTable %>% head()` into the console and hitting the <kbd>Enter</kbd> key.*
+
+**NB**: We have used a very handy `dplyr::select()` option here to rename the columns _ID.gene\_id_ and _ID.gene\_name_.
 
 ```{r editTopTab}
 topTable <- topTable %>%
@@ -614,14 +619,14 @@ topTable %>%
     geom_point(alpha = 0.5) +
     geom_text_repel(data = . %>%
                         dplyr::filter(DE) %>%
-                        dplyr::filter(-log10(P.Value) > 4 | abs(logFC) > 5),
+                        dplyr::filter(-log10(P.Value) > 4 & abs(logFC) > 5),
                     aes(label = Symbol)) +
     scale_colour_manual(values = c("grey", "red")) +
     theme_bw() +
     theme(legend.position = "none")
 ```
 
-So what have we done here. Firstly we took our `topTable` object that contains the logFC values and FDR for each gene and piped the object into `mutate`. Here we have used `mutate` to create a new column called `DE` based on the logical question _is the value in the FDR column less than 0.05?_. For each row in our table if the value of the FDR column is < 0.05 a **TRUE** value will be returned, and of course a value of **FALSE** if $\geq$ 0.05.
+So what have we done here. Firstly we took our `topTable` object that contains the logFC values and FDR for each gene and piped the object into `mutate`. Here we have used `mutate` to create a new column called `DE` based on the logical question _is the value in the FDR column less than 0.05?_. For each row in our table if the value of the FDR column is < 0.05 a **TRUE** value will be returned, and of course a value of **FALSE** if $\geq$ 0.05. We have used `geom_text_repel()` to add gene names to the volcano plot - and we have used `dplyr::filter()` inside the call to add the gene names such that we will only add labels if the gene meets both a `P.Value` and `logFC` threshold.
 As another perspective, we might like to see whether these genes are at the high or low end of the range for expression values.
 This is often referred to as an MD plot, which stands for **M** ean expression vs **D** ifference, where difference is more commonly referred to as logFC.
 We've added an `arrange()` call in the following to ensure our DE genes are plotted last and are the most visible in our figure.  
@@ -634,7 +639,7 @@ topTable %>%
     geom_point(alpha = 0.5) +
     geom_text_repel(data = . %>%
                         dplyr::filter(DE) %>%
-                        dplyr::filter(abs(logFC) > 5 | AveExpr > 14),
+                        dplyr::filter(abs(logFC) > 5 & AveExpr > 8),
                     aes(label = Symbol)) +
     scale_colour_manual(values = c("grey", "red")) +
     labs(x = "Average Expression (log2 CPM)",
@@ -654,23 +659,31 @@ topTable %>%
     pander(caption = paste("The", nrow(.), "most differentially expressed genes when ranked by p-value, and filtered on a logFC beyond the range $\\pm2.3$"))
 ```
 
+
+### Tasks
+
+Take another look at the `topTable` object.
+
+1. What does it mean if we have a positive log fold change?
+2. What does it mean if we have a negative log fold change?
+
 We can also take a look at our genes of interest one at a time. Because we have two groups (ie. our two tissue types) a simple box plot provides a good summary of our count data.
 
-Here we take a _gene of interest_ "ENSMUSG00000033021", and produce a box plot of expression values split by tissue type. I have considered "ENSMUSG00000033021" to be interesting because it is both significantly differentially expressed, and highy expressed in the table we created above.
+Here we take a _gene of interest_ "ENSMUSG00000007122", and produce a box plot of expression values split by tissue type. I have considered "ENSMUSG00000007122" to be interesting because it is both significantly differentially expressed, and highy expressed in the table we created above.
 
 ```{r boxPlots, fig.cap="Box plot showing mean differences in our gene of interest between tissue types.", results='asis'}
 plotly::ggplotly(
 dgeList_Filtered$counts %>%
   as.data.frame() %>%
   tibble::rownames_to_column() %>%
-  dplyr::filter(., rowname %in% "ENSMUSG00000033021") %>%
+  dplyr::filter(., rowname %in% "ENSMUSG00000007122") %>%
   tibble::column_to_rownames() %>%
   t() %>%
   as.data.frame() %>%
   tibble::rownames_to_column("samplename") %>%
   left_join(., sampleGroups, by = "samplename") %>%
   ggplot() +
-  geom_boxplot(aes(x = group, y = ENSMUSG00000033021,
+  geom_boxplot(aes(x = group, y = ENSMUSG00000007122,
                    fill = group)) +
   theme_bw()
 )

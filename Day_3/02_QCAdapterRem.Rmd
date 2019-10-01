@@ -56,5 +56,157 @@ Look up the following options to find what they mean.
 The VMs we're all using have two cores so we can set the parameter `-t 2`.
 We can also write to the output folder that we've already created above.
 Let's run FastQC on all of our files and see what we get.
-(Make sure you're in the `~/Day_3/rawData/` folder first.)
+You will also need to create the FastQC in the Day_3 folder.
+(Make sure you're in the `~/Day_3/` folder first.)
+
+```
+cd ~/Day_3/
+mkdir -p rawData/FastQC/
+fastqc -t 2 -o rawData/FastQC/ rawData/fastq/*
+```
+
+This will have created a FastQC report for every file as an html file which we can normally view using any web browser.
+
+```
+ls rawData/FastQC/
+```
+
+As the files are on the VM we have two options to view them:
+  1) copying them to your local machine (i.e. laptop) using `scp`
+  2) using RStudio to have a look at the files
+  
+## Opening RStudio
+
+ ## description here on accessing HTML files on VM via RStudio - I'm not sure how this works
+
+## Inspecting a FastQC Report
+
+The left hand menu contains a series of click-able links to navigate through the each module contained in the report, with a quick guideline about each module given as a tick, cross or exclamation mark.
+Some of these are not particularly informative, and the modules we can reasonably ignore in the vast majority of cases are:
+
+1. Per tile sequence quality
+2. Per sequence quality scores
+3. Per base N content
+4. Kmer Content (if it's even included)
+
+#### Questions
+{:.no_toc}
+
+1. *How many sequences are there in all files?*
+2. *How long are the sequences in these files?*
+
+## Interpreting the FastQC Report
+
+As we work through the QC reports we will develop a series of criteria for cleaning up our files.
+There is usually no perfect solution, we just have to make the best decisions we can based on the information we have.
+Some sections will prove more informative than others, and some will only be helpful if we are drilling deeply into our data.
+Firstly we’ll just look at a selection of the plots.
+We’ll investigate some of the others with some ‘bad’ data later.
+
+### Per Base Sequence Quality
+{:.no_toc}
+
+Click on the `Per base sequence quality` hyper-link on the left of the page & you will see a boxplot of the QC score distributions for every position in the read.
+These are the PHRED scores we discussed earlier, and this plot is usually the first one that bioinformaticians will look at for making informed decisions about the overall quality of the data and settings for later stages of the analysis.
+
+*What do you notice about the QC scores as you progress through the read?*
+
+We will deal with trimming the reads in a later section, but start to think about what you should do to the reads to ensure the highest quality in your final alignment & analysis.
+
+As this is RNA-Seq data, we'll mainly be quantifying the number of reads which align to a gene. 
+**Will the actual sequence content be vital for us?**
+Now consider a whole-genome-sequencing (WGS) experiment where we are wanting to identify SNPs or other genomic variants.
+Would the actual sequence content be vital for us now?
+
+
+**Per Tile Sequence Quality**<details>
+This section just gives a quick visualisation about any physical effects on sequence quality due to the tile within the each flowcell or lane.
+Generally, this would only be of note if drilling deeply to remove data from tiles with notable problems.
+Most of the time we don’t factor in spatial effects, unless alternative approaches fail to address the issues we are dealing with.
+</details>
+
+**Per Sequence Quality Scores**<details>
+This is just the distribution of the average quality scores for each read, obtained by averaging all the scores at each base within a read.
+There’s not much of note for us to see here.
+</details>
+
+**Per Base Sequence Content**<details>
+This will often show artefacts from barcodes or adapters early in the reads, before stabilising to show a relatively even distribution of the bases.
+  Here FastQC may have flagged this as a 'fail' and you will see considerable variability in the first few bases.
+  This is actually very normal for RNA seq and is a consequence of non-random fragmentation and non-random adapter ligation.
+  It's also relatively common to see a drift towards G towards the end of a read. This can be a bit more troubling (ask a tutor to explain) but is usually remedied as we trim our reads in the next step.
+</details>
+
+**Sequence Length Distribution**<details>
+This shows the distributions of read lengths in our data. If the length of your reads is vital (_e.g._ smallRNA data), then this can also be a very informative plot. For our data, it appears that some trimming has already been performed. This was done by the sequence provider, much to our disappointment.
+  It's actually quite common for this to happen, it's just the bioinformaticians love to know everything about every step that was performed.
+  It's also not uncommon for Illumina's adapter removal tools to leave quite a few there and you then have to trim yet again.
+</details>
+
+**Sequence Duplication Levels** This plot shows about what you’d expect from a typical NGS experiment.
+There are a few duplicated sequences (rRNA, highly expressed genes etc.) and lots of unique sequences representing the diverse transcriptome.
+This is only calculated on a small sample of the library for computational efficiency and is just to give a rough guide if anything unusual stands out.
+Things to watch for here are peaks on the far right which would indicate massive overrepresentation of a few sequences above the rest of the source material.
+
+**Overrepresented Sequences** Here we can see any sequence which are more abundant than would be expected. Sometimes you'll see sequences here that match the adapters used, or you may see highly expressed genes here.
+
+**Adapter Content** This can give a good guide as to our true fragment lengths. If we have read lengths which are longer than our original DNA/RNA fragments (_i.e._ inserts) then the sequencing will run into the adapters.
+If you have used custom adapters, you may also need to supply them to `FastQC` as this only searches for common adapter sequences.
+Here, it looks like Illumina's automated tool has a done a pretty reasonable job.
+
+## Some More Example Reports
+
+Let’s head to another sample plot at the [FastQC homepage](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/bad_sequence_fastqc.html)
+
+**Per Base Sequence Quality** Looking at the first plot, we can clearly see this data is
+not as high quality as the one we have been exploring ourselves.
+
+**Per Tile Sequence Quality** Some physical artefacts are visible & some tiles seem to
+be consistently lower quality. Whichever approach we take to cleaning the data will more
+than likely account for any of these artefacts. Sometimes it’s just helpful to know where a
+problem has arisen.
+
+**Overrepresented Sequences** Head to this section of the report & scan down the
+list. Unlike our sample data, there seem to be a lot of enriched sequences of unknown
+origin. There is one hit to an Illumina adapter sequence, so we know at least one of the
+contaminants in the data. Note that some of these sequences are the same as others on
+the list, just shifted one or two base pairs. A possible source of this may have been non-random fragmentation.
+
+Interpreting the various sections of the report can take time & experience.
+A description of each of the sections [is available from the fastqc authors](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/) which can be very helpful as you're finding your way.
+
+Another interesting report is available at http://www.bioinformatics.babraham.ac.uk/projects/fastqc/RNA-Seq_fastqc.html.
+Whilst the quality scores generally look pretty good for this one, see if you can find a point of interest in this data.
+This is a good example, of why just skimming the first plot may not be such a good idea.
+
+## Working With Complete Datasets
+
+In our dataset, we have 8 samples so it's not too onerous to inspect all 8 individually.
+In the real world, we'll often have much larger datasets and looking at FastQC reports for all samples quickly becomes challenging.
+A commonly used tool for this is [MultiQC](https://multiqc.info/) however, the team in the Bioinformatics Hub has written an R package to enable this called `ngsReports`.
+To use this, first create a folder called `R` in your Day_3 folder to manage R scripts created today.
+
+```
+mkdir -p ~/Day_3/R/
+```
+
+The package ngsReports is available on Bioconductor, but it is installed already on your VMs so open a new R script and save it in your `R` folder as `FastQC_section.R`.
+
+Once you've done this we can load the package using:
+
+```
+library(ngsReports)
+```
+
+The simplest method now is to automatically write a summarised report for all of our files using the function `writeHtmlReport()`, which will use a supplied template to combine all of our FastQC reports.
+Enter this function name, and then initialise the quotation marks inside the function `writeHtmlReport("")`.
+Go back inside the quotation marks then use the tab key to navigate to your FastQC reports, then press enter.
+The final command will look something like
+
+```
+writeHtmlReport("rawData/FastQC/", species="Mmusculus")
+```
+Once this has completed, use your Files pane to navigate to your FastQC reports again & open the file `ngsReports_Fastqc.html` using your Web Browser.
+This will contain a summary of all the files in our dataset.
+Take your time scrolling through the report, and note that each plot is interactive so you can hover over various points and see which file you are looking at.
 

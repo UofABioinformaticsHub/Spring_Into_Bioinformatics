@@ -89,7 +89,7 @@ and run through a NGS pipeline from raw sequencing data through to aligning the 
 ## Setup the directory for today
 
 Just as we've created a new R Project for Days 1 and 2, let's create a new one for today to make sure we're all in the same place.
-We will not be writing R code today, but we will be using the terminal from within R studio to run bash commands.
+We will not be writing R code in this session, but we will be using the terminal from within R studio to run bash commands.
 
 - Using the `File` menu at the top left, select `New Project`
 - Select `New Directory`
@@ -152,15 +152,15 @@ mkdir rawData
 We now want to use the `cp` command to copy the raw FASTQ files to your new rawData folder
 
 ```
-cp ~/data/Day_3/rawData/* ~/Day_3/rawData/
-ls ~/Day_3/rawData/
+cp -r ~/data/Day_3/rawData/* ~/Day_3/rawData/
+ls ~/Day_3/rawData/fastq
 ```
 
 The command `zcat` unzips a file and prints the output to the terminal, or standard output (stdout).
 If we did this to these files, we would see a stream of data whizzing past in the terminal, but instead we can just pipe the output of zcat to the command head to view the first 10 lines of a file.
 
 ```
-cd ~/Day_3/rawData
+cd ~/Day_3/rawData/fastq
 zcat SRR945375.skm.fastq.gz | head
 ```
 

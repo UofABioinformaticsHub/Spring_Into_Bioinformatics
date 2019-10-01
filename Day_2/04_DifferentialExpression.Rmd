@@ -264,7 +264,7 @@ We want gene information today, so let's just use that function.
 genesGR <- genes(ensDb) 
 ```
 
-This object is a `GenomicRanges` (or `GRanges`) object and these are the bread & butter of genomic analysis in R. 
+This object is a `GenomicRanges` (or `GRanges`) object and these are the bread and butter of genomic analysis in R. 
 We could spend hours just looking at these, but the main point is that on the right of the gene IDs we have the chromosome (`seqnames`) followed by the range of bases the genes is contained within and the strand the gene is located on (note that _start_ and _end_ positions are both **1-based** relative to the 5' end of the plus strand of the chromosome, even when the range is on the minus strand).
 This is the core `GRanges` element. Run the following code chunk to return this information using the function `granges()`
 
@@ -502,7 +502,7 @@ dgeList_Filtered %>%
 #### PCA
 
 Next we might choose to perform a Principal Component Analysis on our data, commonly abbreviated to PCA.
-This time, let's take our CPM values & asses them on the log2 scale to make sure our PCA results are not heavily skewed by highly expressed genes.
+This time, let's take our CPM values and asses them on the log2 scale to make sure our PCA results are not heavily skewed by highly expressed genes.
 Our first step is to create a new object to hold the PCA results. In the following code chunk we take our filtered DGEList object `dgeList_Filtered` and pipe it to the `cpm()` function we used earlier to calculate the CPM values for each gene prior to setting the filtering threshold. We have made one small change here by including $log - TRUE$ in the function call. By default this is $log_2$. Next we pipe the $log2$CPM values into the `t()` function. This will _transpose_ the matrix of counts such that the matrix now has genes in the columns and samples in the rows, which we then pipe into `prcomp` from the `stats` package. `prcomp()` returns a list with class "prcomp" containing a number of useful components.
 
 To find out more about `prcomp` try typing `help("prcomp")` into the console. This will open the R Documentation for this function in the `Help` tab.
@@ -608,7 +608,7 @@ topTable <- voomData %>%
 When we call the coefficient `groupskm` in the `topTable` function we are using the column name to specify which coefficient or contrast of the linear model is of interest
 
 Note that the GRanges information has been coerced into columns to form a `data.frame`/`tibble` and that looks a bit messy.
-To tidy things up, the following code will join all of the genomic co-ordinates into a single column, rename a few columns on the fly and by not asking for `ID.width` & `ID.gene_biotype`, we've saved ourselves dealing with a few redundant columns.
+To tidy things up, the following code will join all of the genomic co-ordinates into a single column, rename a few columns on the fly and by not asking for `ID.width` and `ID.gene_biotype`, we've saved ourselves dealing with a few redundant columns.
 We could actually add this to the chunk above to save forming then modifying an `R` object, but it's been left separate for clarity.
 
 ### Tasks

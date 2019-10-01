@@ -404,7 +404,7 @@ summary {
 <p>Because we’re working backwards, we are assuming that we have already aligned our RNA-seq samples to a reference genome.</p>
 <p>We’ll be working today in the folder <code>~/Day_2</code>. Lets change into that directory:</p>
 <pre><code>cd ~/Day_2</code></pre>
-<p>Please ensure you use this <em>exact</em> path as any variations will undoubtedly cause you problems &amp; lead to unnecessary confusion.</p>
+<p>Please ensure you use this <em>exact</em> path as any variations will undoubtedly cause you problems and lead to unnecessary confusion.</p>
 <p>Now we have our base directory setup for the day, we can place our data in the directory <code>~/Day_2/data</code>. As you may have seen yesterday, the data that we need is already available in the <code>~/data</code> directory in our home area. Lets copy all the contents of that directory to our new</p>
 <pre><code>cp -r ~/data/Day_2/* ~/Day_2/data/
 ls ~/Day_2/data/</code></pre>
@@ -414,7 +414,7 @@ ls ~/Day_2/data/</code></pre>
 </div>
 <div id="what-is-a-sam-file-and-whats-a-bam-file" class="section level2">
 <h2>What is a SAM file and what’s a BAM file?</h2>
-<p>BAM stands for Binary AlignMent and these are our alignments stored in binary. There is another type of file called a SAM (Sequence AlignMent) file which is in plain text, but SAM files can become very large and waste our precious storage resources. BAM files are the exact same files stored in binary format which enables them to be much smaller. This also has the added benefit of being faster for computers to read &amp; perform operations on, as only humans read plain text. Computers don’t.</p>
+<p>SAM stands for Sequence Alignment/Map, a text file format that was developed to store sequence alignment data. Because SAM files are textual, they can become very large and waste our precious storage resources. To get around this problem a binary equivalent of SAM was also developed (BAM) where alignments stored in binary. BAM files store the same data as SAM files, but in a compressed binary format which enables them to be much smaller. This also has the added benefit of being faster for computers to read and perform operations on, as only humans read plain text. Computers don’t.</p>
 <p>To look at the contents of a BAM file, we’ll need the tool <code>samtools</code> which is one of the most heavily utilised command-line tools in the world of bioinformatics. <code>samtools</code> is used for a number of tasks in high-throughput sequencing analysis, from viewing and converting alignment formats, to generating reports and statistics. This tool as a series of sub-commands which we can see if we just type <code>samtools</code> into our terminal.</p>
 <pre><code>Program: samtools (Tools for alignments in the SAM format)
 Version: 1.9 (using htslib 1.9)
@@ -564,7 +564,7 @@ samtools view SRR945375.skm.trimmedAligned.sortedByCoord.out.bam | head</code></
 <h2>Mapping Quality (MAPQ)</h2>
 <p>Let’s run <code>head</code> on one of our alignments files again, this time without the header information at the top.</p>
 <pre><code>samtools view SRR945375.skm.trimmedAligned.sortedByCoord.out.bam | head </code></pre>
-<p>Hopefully the 3rd and 4th fields are self explanatory, as these can be generally interpreted as the chromosome &amp; position in the reference where the sequence aligned. However, the 5th field contains the <code>MAPQ</code> score which indicates how well the read aligned, and how unique each alignment is. How this value is calculated can often differ between alignment tools, but primarily the a higher score indicates a better, more unique alignment.</p>
+<p>Hopefully the 3rd and 4th fields are self explanatory, as these can be generally interpreted as the chromosome and position in the reference where the sequence aligned. However, the 5th field contains the <code>MAPQ</code> score which indicates how well the read aligned, and how unique each alignment is. How this value is calculated can often differ between alignment tools, but primarily the a higher score indicates a better, more unique alignment.</p>
 <p>You will find out tomorrow that quality scores in sequencing technologies, as well as mapping qualities, are projected onto the same quality scale called a “Phred Score”. On sequencing machines, a Phred score is a probability of error for each individual base bair that was sequenced and therefore is an assigned level of accuracy. In fact, if you look in the second last field (11th) you will see the ASCII-33 Phred base quality scores. On the latest sequencing machines that produce FASTQ files (Illumina 1.8+), these scores go from 0 - 41. The table below defines the error profile of Phred Quality scores as you go higher on the scale.</p>
 <table>
 <caption>Phred quality scores are logarithmically linked to error probabilities</caption>
@@ -615,7 +615,7 @@ samtools view SRR945375.skm.trimmedAligned.sortedByCoord.out.bam | head</code></
 </div>
 <div id="cigar-strings" class="section level2">
 <h2>CIGAR strings</h2>
-<p>In the 6th field of the BAM file, we see another character and number code that gives useful information about the type of alignment that has been performed on the read. In the first few reads we called up earlier, most had the value <code>..M</code> where <code>..</code> is some number. These are the perfect Matches, where the sequence has aligned exactly. The other abbreviations in common use are I (insertion), D (deletion) &amp; S(substitution).</p>
+<p>In the 6th field of the BAM file, we see another character and number code that gives useful information about the type of alignment that has been performed on the read. In the first few reads we called up earlier, most had the value <code>..M</code> where <code>..</code> is some number. These are the perfect Matches, where the sequence has aligned exactly. The other abbreviations in common use are <code>I</code> (insertion), <code>D</code> (deletion) and <code>S</code> (soft clipped).</p>
 </div>
 <div id="sam-flags" class="section level2">
 <h2>SAM Flags</h2>

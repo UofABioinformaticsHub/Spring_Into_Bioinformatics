@@ -168,7 +168,7 @@ The help page is quite extensive for this tool, so feel free to browse it in you
 
 | Parameter | Meaning |
 |:---------:|:------- |
-| `-Q 10` | The minimum mapping quality (MAPQ) score for a read to be counted. These scores can vary between aligners, but this value should capture uniquely aligning reads only. These values are generally documented very poorly & cause much confusion. |
+| `-Q 10` | The minimum mapping quality (MAPQ) score for a read to be counted. These scores can vary between aligners, but this value should capture uniquely aligning reads only. These values are generally documented very poorly and cause much confusion. |
 | `-s 2`  | Specifies a reverse stranded library. Only reads which map to the opposite strand as the gene will be counted. If the library is forward stranded you would set this to `-s 1`. |
 | `--fracOverlap 1` | The fraction of a read which must overlap a feature. Here every base must overlap an exon |
 | `-T ${CORES}` | The number of cores we wish to use |

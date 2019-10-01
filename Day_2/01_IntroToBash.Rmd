@@ -29,8 +29,8 @@ This course will provide the most benefit if you continue to use the skills in t
 Course material will be available at this URL indefinitely.
 
 Most of the sessions will be self-guided, with key direction provided sporadically at important times.
-Please ask as many questions as you'd like.
-The tutors are specifically here to help you understand & develop your skills, so please ensure you take full advantage of their availability.
+Please ask as many questions as you need.
+The tutors are specifically here to help you understand and develop your skills, so please ensure you take full advantage of their availability.
 
 We strongly encourage you to a) read all of the notes, and b) manually type **all of the code** (unless directed otherwise).
 This will provide you with the the most benefit.
@@ -39,7 +39,7 @@ This will provide you with the the most benefit.
 
 This course was primarily written by members of the Bioinformatics Hub and the tutors across the three days will be:
 
-- Nathan Watson-Haigh, Dan Kortschak & Mark Armstrong (Bioinformatics Hub Staff)
+- Nathan Watson-Haigh, Dan Kortschak and Mark Armstrong (Bioinformatics Hub Staff)
 - Jimmy Breen (Bioinformatics Hub / SAHMRI)
 - Nhi Hin (PhD Candidate, Bioinformatics Hub)
 - Melanie Smith (PhD Candidate, Robinson Research Institute)
@@ -73,7 +73,7 @@ Today we are going learn how to quantify aligned data and create a gene counts t
   
 # A crash course in `bash`
 
-Pardon the pun
+Pardon the pun.
 
 ## Introduction
 
@@ -91,7 +91,7 @@ Today we will work interactively using the terminal by executing commands and ha
 
 ## Setup the directory for today
 
-Just as we've created a new `R Project` for Day 1, let's create a new one for today to make sure we're all in the same place.
+Just as we've created a new R Project for Day 1, let's create a new one for today to make sure we're all in the same place.
 
 - Using the `File` menu at the top left, select `New Project`
 - Select `New Directory`
@@ -104,23 +104,23 @@ This again helps us keep our code organised and is good practice.
 ## Running `bash` on your VM
 
 All computers running MacOS and Linux have a terminal built-in as part of the standard setup, whilst for Windows there are several options, including `git bash` which also enables use of version control for your scripts.
-To keep everything consistent for this practical, we'll use the terminal which is available inside `RStudio`.
-Note that even though we're using `RStudio`, we won't be interacting with `R` today as `R` runs interactively in the `Console`.
-Instead we'll be using one of the other features provided by `RStudio` to access `bash`
+To keep everything consistent for this practical, we'll use the terminal which is available inside RStudio.
+Note that even though we're using RStudio, we won't be interacting with `R` today as `R` runs interactively in the `Console`.
+Instead we'll be using one of the other features provided by RStudio to access `bash`
 
-To access this, open `RStudio` as you have for the previous practicals and make sure the `Console` window is visible.
+To access this, open RStudio as you have for the previous practicals and make sure the `Console` window is visible.
 Inside this pane, you will see a **Terminal** Tab so click on this and you will be at an interactive terminal running `bash`.
 
 Historically, `bash` is a replacement for the earlier Bourne Shell, written by Stephen Bourne, so the name is actually a hilarious joke.
 We'll explore a few important commands below, and the words *shell* and *bash* will often be used interchangeably with the terminal window.
 
-Although we haven't specifically mentioned this up until now, your virtual machines are actually running the *Ubuntu* flavour of Linux, and we can access these machines by logging in remotely, as well as through the `RStudio` interface which you used yesterday.
+Although we haven't specifically mentioned this up until now, your virtual machines are actually running the *Ubuntu* flavour of Linux, and we can access these machines by logging in remotely, as well as through the RStudio interface which you used yesterday.
 Most High-Performance Computing (HPC) systems you use will require a knowledge of Linux so these practicals will give you the basics skills for working in this environment.
 Most of the data analysis performed by the Bioinformatics Hub relies on the University of Adelaide HPC for data storage and data processing.
 
 ## Finding your way around
 
-Once you're in the `Terminal` section of `RStudio`, you will notice some text describing your computer of the form
+Once you're in the `Terminal` section of RStudio, you will notice some text describing your computer of the form
 
 ```
 biotech7005@2019-biotech7005-xx:~/Day_2$
@@ -129,7 +129,7 @@ biotech7005@2019-biotech7005-xx:~/Day_2$
 The first section of this describes your username (`XXXXXXX`) and the machine `XXXXXXXXX`.
 The end of the machine identifier is marked with a colon (`:`).
 
-After the colon, the string (`~/Day_2`) represents your current directory, whilst the dollar sign (`$`) indicates the end of this path & the beginning of where you will type commands.
+After the colon, the string (`~/Day_2`) represents your current directory, whilst the dollar sign (`$`) indicates the end of this path and the beginning of where you will type commands.
 This is the standard interface for the Bourne-again Shell, or `bash`.
 
 ### Where are we?
@@ -164,7 +164,7 @@ Notice that they will all live in the directory `/home` which is actually the pa
 This can be confusing for many people, so hopefully we'll clear this up in the next section or two.
 
 In the above, the `/home` directory itself began with a slash, i.e. `/`.
-On a unix-based system (i.e. MacOS & Linux), the `/` directory is defined to be the root directory of the file system.
+On a unix-based system (i.e. MacOS and Linux), the `/` directory is defined to be the root directory of the file system.
 Windows users would be more familiar with seeing `C:\` as the root of the computer, and this is an important difference in the two directory structures.
 Note also that whilst Windows uses the **backslash** (`\`) to indicate a new directory, a Linux-based system uses the **forward slash** (`/`), or more commonly just referred to simply as "slash", marking another but very important difference between the two.
 
@@ -251,7 +251,7 @@ This is where we started the session.
 
 #### Tab auto-completion
 
-In a similar way that `RStudio` offered 'suggestions' when we start typing the name of a function, `bash` has the capacity for `auto-completion` as well.
+In a similar way that RStudio offered 'suggestions' when we start typing the name of a function, `bash` has the capacity for `auto-completion` as well.
 This will help you avoid a ridiculous number of typos.
 
 If you start typing something bash will complete as far as it can, then will wait for you to complete the path, command or file name.
@@ -306,8 +306,8 @@ ls
 ```
 
 This is the list of files that we normally see in our traditional folder view that Windows and MacOS show us by default.
-We can actually check this output using `RStudio` too, so head to the **Files** tab in the `Files` window.
-Click on the Home icon (![home](./images/home.png)) and look at the folders & files you can see there.
+We can actually check this output using RStudio too, so head to the **Files** tab in the `Files` window.
+Click on the Home icon (![home](./images/home.png)) and look at the folders and files you can see there.
 **Do they match the output from `ls`?**
 Ask for help if not.
 
@@ -341,10 +341,10 @@ To display the help page for `ls` enter the command
 man ls
 ```
 
-As beforehand, the space between the arguments is important & in the first argument we are invoking the command `man` which then looks for the *manual* associated with the command `ls`.
+As beforehand, the space between the arguments is important and in the first argument we are invoking the command `man` which then looks for the *manual* associated with the command `ls`.
 To navigate through the manual page, we need to know a few shortcuts which are part of the `less` pager.
 
-Although we can navigate through the `less` pager using up & down arrows on our keyboards, some helpful shortcuts are:
+Although we can navigate through the `less` pager using up and down arrows on our keyboards, some helpful shortcuts are:
 
 | Key    | Action |
 |:---------- |:------ |
@@ -399,17 +399,17 @@ The most simple function that people learn to write in most languages is called 
 echo 'Hello World'
 ```
 
-That's pretty amazing isn't it & you can make the terminal window say anything you want without meaning it.
+That's pretty amazing isn't it? and you can make the terminal window say anything you want without meaning it.
 
 ```
 echo 'This computer will self destruct in 10 seconds!'
 ```
 
 There are a few subtleties about text which are worth noting.
-If you have `man` pages accessible, inspect the `man echo` page & note the effects of the `-e` option. (Unfortunately you can't access this using `echo --help`.)
-The `-e` option allows you to specify tabs (`\t`), new lines (`\n`) & other special characters by using the backslash to signify these characters.
-This is an important concept & the use of a backslash to *escape* the normal meaning of a character is very common, as we saw with `grep` last time.
-Try the following three commands & see what effects these special characters have.  
+If you have `man` pages accessible, inspect the `man echo` page and note the effects of the `-e` option. (Unfortunately you can't access this using `echo --help`.)
+The `-e` option allows you to specify tabs (`\t`), new lines (`\n`) and other special characters by using the backslash to signify these characters.
+This is an important concept and the use of a backslash to *escape* the normal meaning of a character is very common, as we saw with `grep` last time.
+Try the following three commands and see what effects these special characters have.
 
 ```
 echo 'Hello\tWorld'
@@ -437,15 +437,15 @@ It's easy for things to go wrong when working in the command-line, but if you've
 
 ## Redirection Using The Pipe Symbol
 
-Sometimes we need to build up our series of commands & send the results of one to another.
-The *pipe* symbol (`|`) is the way we do this & it can literally be taken as placing the output from one command into a pipe & redirecting it somewhere new.
+Sometimes we need to build up our series of commands and send the results of one to another.
+The *pipe* symbol (`|`) is the way we do this and it can literally be taken as placing the output from one command into a pipe and redirecting it somewhere new.
 This is where thinking about the output of a command as a *data stream* can be very helpful.
 This is a very conventional approach when working in `bash` and was the motivation behind the creation of the `magrittr` package in `R`.  
 
-As a simple example, we could take the output from an `ls` command & send it to the pager `less`.
+As a simple example, we could take the output from an `ls` command and send it to the pager `less`.
 The pager `less` essentially turns the terminal window into a text viewer so we can display text in the terminal window, but with no capacity for us to edit the text, almost like primitive version of Acrobat Reader.  
 
-Although we can navigate through the `less` pager using up & down arrows on our keyboards, some helpful shortcuts are:  
+Although we can navigate through the `less` pager using up and down arrows on our keyboards, some helpful shortcuts are:
 
 | Key    | Action |
 |:---------- |:------ |
@@ -508,7 +508,7 @@ ls -lh /usr/bin | grep "ls"
 
 As you can see, a lot more lines contain the two consecutive characters "ls" than the word "command".  
 
-Regular expressions more broadly are a powerful & flexible way of searching for text strings amongst a large document or file.
+Regular expressions more broadly are a powerful and flexible way of searching for text strings amongst a large document or file.
 Most of us are familiar with searching for a word within a file, but regular expressions allow us to search for these with more flexibility, particularly in the context of genomics.
 For example, we could search for a sequence that is either `AGT` or `ACT` by using the patterns  `A[GC]T` or  `A(G|C)T`.
 These two patterns will search for an  `A`, followed by either a  `G` or  `C`, then followed strictly by a  `T`.
@@ -526,8 +526,8 @@ Due to time we won't go in-depth into regular expressions, but we will delve mor
 One additional and very useful command in the terminal is `sed`, which is short for *stream editor*.
 Instead of the `man` page for `sed` the `info sed` page is larger but a little easier to digest.
 This is a very powerful command which can be a little overwhelming at first.
-If using this for your own scripts & you can't figure something out, remember 'Google is your friend' & sites like \url{www.stackoverflow.com} are full of people wrestling with similar problems to you.
-These are great places to start looking for help & even advanced programmers use these tools.
+If using this for your own scripts and you can't figure something out, remember 'Google is your friend' and sites like \url{www.stackoverflow.com} are full of people wrestling with similar problems to you.
+These are great places to start looking for help and even advanced programmers use these tools.
 
 For today, there are two key `sed` functionalities that we want to introduce.  
 
@@ -541,7 +541,7 @@ Input can be given to `sed` as either a file, or just as a text stream via the *
 
 In the following example the script begins with an `s` to indicate that we are going to make a substitution.
 The beginning of the first pattern (i.e. the *regexp* we are searching for) is denoted with the backslash, with the identical delimiter indicating the replacement pattern, and this is in turn completed with the same delimiter.
-Try this simple example from the link \url{http://www.grymoire.com/Unix/Sed.html} which is a very detailed & helpful resource about the usage `sed`.
+Try this simple example from the link \url{http://www.grymoire.com/Unix/Sed.html} which is a very detailed and helpful resource about the usage `sed`.
 Here we are sending the input (`echo Sunday`) to the command via the pipe, so no `INPUT` section is required:
 
 ```

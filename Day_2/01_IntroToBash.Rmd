@@ -123,10 +123,10 @@ Most of the data analysis performed by the Bioinformatics Hub relies on the Univ
 Once you're in the `Terminal` section of `RStudio`, you will notice some text describing your computer of the form
 
 ```
-biotech7005@2019-biotech7005-xx:~/Day_2$
+sib2019@2019-sib-master:~/Day_2$
 ```
 
-The first section of this describes your username (`XXXXXXX`) and the machine `XXXXXXXXX`.
+The first section of this describes your username (`sib2019`) and the machine `2019-sib-master`.
 The end of the machine identifier is marked with a colon (`:`).
 
 After the colon, the string (`~/Day_2`) represents your current directory, whilst the dollar sign (`$`) indicates the end of this path & the beginning of where you will type commands.
@@ -146,17 +146,17 @@ The command `pwd` is what we use to __p__rint the current (i.e. __w__orking) __d
 Even though we are not using `R`, if you have setup the R project like we instructed above this command will probably return the directory. 
 
 ```
-/home/biotech7005/Day_2
+/home/sib2019/Day_2
 ```
 
 Check with your neighbour to see if you get the same thing.
 If not, see if you can figure out why.
 
-At the beginning of this section we mentioned that `~/Day_2` represented your current directory, but now our machine is telling us that our directory is `/home/biotech7005/Day_2`.
+At the beginning of this section we mentioned that `~/Day_2` represented your current directory, but now our machine is telling us that our directory is `/home/sib2019/Day_2`.
 This raises an important and very useful point.
 In `bash` the `~` symbol is a shortcut for the home directory of the current user.
 If Dan was logged in, this would be `/home/Dan` whilst if Steve was logged in this would be `/home/Steve`.
-As we are all logged on as `biotech7005`, this now stands for `/home/biotech7005`.
+As we are all logged on as `sib2019`, this now stands for `/home/sib2019`.
 (Formally, `~` is  a variable, but we'll deal with variables later.)
 
 Importantly every user with an account on a machine will have their own home directory of the format `/home/username1`, `/home/username2` etc..
@@ -215,7 +215,7 @@ For example, `/foo` would refer to a directory called `foo` in the root director
 In contrast, a **relative path** can begin with either the current directory (indicated by `./`) or a higher-level directory (indicated by `../` as mentioned above).
 A subdirectory `foo` of the current directory could thus be specified as `./foo`, whilst a subdirectory of the next higher directory would be specified by `../foo`.
 
-Another common absolute path is the one mentioned right at the start of the session, specified with `~`, which stands for your home directory `/home/biotech7005`, which also starts with a `/`.
+Another common absolute path is the one mentioned right at the start of the session, specified with `~`, which stands for your home directory `/home/sib2019`, which also starts with a `/`.
 
 We can also move through multiple directories in one command by separating them with the slash `/`.
 For example, we could also get to the root directory from our home directory by typing
@@ -287,7 +287,7 @@ cd
 cd ..
 ```
 
-Now to get back to your home directory (`/home/biotech7005`) start typing `cd b` followed by the <kbd>Tab</kbd> key.
+Now to get back to your home directory (`/home/sib2019`) start typing `cd b` followed by the <kbd>Tab</kbd> key.
 This should auto-complete for you and will save you making any errors.
 This also makes navigating your computer system very fast once you get the hang of it.
 

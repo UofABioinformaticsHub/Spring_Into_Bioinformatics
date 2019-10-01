@@ -51,9 +51,14 @@ Continuing on with the format of this course this last day is where we are going
 In Day 1 we learnt how to analyse and organise data in `R`, use important data processing packages contained in the `tidyverse` ecosystem, and perform plots that you would commonly create for Transcriptome sequencing projects (e.g. Volcano plot, Mean-difference plot etc). 
 In Day 2 we learnt how to quantify aligned data and create a gene counts table, run common functions to assess sample and project quality (unsupervised clustering and estimation of library sizes) and perform differential expression analyses.
 
-Next-generation sequencing (NGS) has become an important tool in assessing biological signal within an organism or population. Stemming from previous technologies that were costly and time-consuming to run, NGS platforms are relatively cheap and enable the investigation of the genome, transcriptome, methylome etc at extremely high resolution. The high-throughput of these machines also has unique challenges, and it is important that scientists are aware of the potential limitations of the platforms and the issues involved with the production of good quality data.
+Next-generation sequencing (NGS) has become an important tool in assessing biological signal within an organism or population.
+Stemming from previous technologies that were costly and time-consuming to run, NGS platforms are relatively cheap and enable the investigation of the genome, transcriptome, methylome etc at extremely high resolution.
+The high-throughput of these machines also has unique challenges, and it is important that scientists are aware of the potential limitations of the platforms and the issues involved with the production of good quality data.
 
-On this third day, we will introduce the key file types used in genomic analyses, illustrate the fundamentals of Illumina NGS technology (the current market leader in the production of sequencing data), describe the affect that library preparation can have on downstream data, and run through a NGS pipeline from raw sequencing data through to aligning the data against a reference genome and preparing it for the analysis on day 2.
+On this third day, we will introduce the key file types used in genomic analyses,
+illustrate the fundamentals of Illumina NGS technology (the current market leader in the production of sequencing data),
+describe the affect that library preparation can have on downstream data,
+and run through a NGS pipeline from raw sequencing data through to aligning the data against a reference genome and preparing it for the analysis on day 2.
 
 ### Today's Schedule
 

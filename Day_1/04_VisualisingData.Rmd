@@ -17,6 +17,7 @@ knitr::opts_chunk$set(
     results = "hide"
 )
 if (interactive()) setwd(here::here("Day_1"))
+options(bitmapType="cairo")
 ```
 
 ## Introduction
@@ -32,7 +33,7 @@ In order to keep this dataset manageable over these 3 days, we have restricted o
 
 ### Setting up our R Markdown Document
 
-In the previous section we just copied and pasted our code from the GUI into our R Markdown document, but let's take a moment know to get this organised a bit better.
+In the previous section we just copied and pasted our code from the GUI into our R Markdown document, but let's take a moment now to get this organised a bit better.
 Make sure you're happy with your title (although we can clearly change this at any time).
 
 There are two things commonly done at the start of the actual document (_i.e._ after the header): 1) We can set the behaviour of all chunks, and 2) We load all packages at the start for convenience.

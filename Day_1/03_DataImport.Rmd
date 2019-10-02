@@ -76,7 +76,7 @@ Just to check you have everything right, please copy and paste the following lin
 If you get `FALSE` call a tutor over, but hopefully you'll see `TRUE`.
 
 ```{r, eval=FALSE}
-file.exists("data/DGE_Results.tsv")
+file.exists("data/DGE_results.tsv")
 ```
 
 Note the suffix this file has.
@@ -107,7 +107,7 @@ Once we've chosen `From Text (readr)...`, you should see the following dialog bo
 knitr::include_graphics("images/initialGuiDialog.png")
 ```
 
-Click the <kbd>Browse</kbd> button and navigate to the file `data/DGE_Results.tsv`.
+Click the <kbd>Browse</kbd> button and navigate to the file `data/DGE_results.tsv`.
 At this point, you should see something very similar to the following:
 
 ```{r, echo=FALSE, out.width='100%', results='asis'}
@@ -152,7 +152,7 @@ This is the code that R is executing when we import the file and there are three
 
 1. `library(readr)` loads the package `readr`.
 Packages are collections of functions (`sum()`, `mean()` etc. are actually part of a package called `base` which is always loaded with your R Session), and `readr` has a collection of functions which enable you to read (or import) data into R.
-2. `DGE_Results <- read_delim("data/DGE_Results.tsv", "\t", escape_double = FALSE, trim_ws = TRUE)` is the actual command we'll use to load the data. We'll step through this in detail in the next paragraph
+2. `DGE_Results <- read_delim("data/DGE_results.tsv", "\t", escape_double = FALSE, trim_ws = TRUE)` is the actual command we'll use to load the data. We'll step through this in detail in the next paragraph
 3. `View(DGE_Results)` will open a data preview window after the data has been imported.
 
 Returning to that second line, we have some really important points to understand.
@@ -207,7 +207,7 @@ Once you have the R Markdown document open:
 
 ```{r, eval=FALSE}
 library(readr)
-DGE_Results <- read_delim("data/DGE_Results.tsv", "\t", escape_double = FALSE, trim_ws = TRUE)
+DGE_Results <- read_delim("data/DGE_results.tsv", "\t", escape_double = FALSE, trim_ws = TRUE)
 View(DGE_Results)
 ```
 
@@ -245,8 +245,8 @@ This will give us a list of all the arguments, in order.
 Some of them appear empty, whilst others appear to have values.
 
 The first argument (`file`) is where we told the function to look for the file.
-We placed `"data/DGE_Results.tsv"` here, and because that is the first value we passed to `read_delim()`, we didn't need to specify this argument by name.
-We could also have put `"file = data/DGE_Results.tsv"` into the function call, and this would've had the same effect.
+We placed `"data/DGE_results.tsv"` here, and because that is the first value we passed to `read_delim()`, we didn't need to specify this argument by name.
+We could also have put `"file = data/DGE_results.tsv"` into the function call, and this would've had the same effect.
 
 The second argument (`delim`) is where we specified the delimiter as `"\t"`.
 This is the second argument, and because we passed this to the function as the second argument, we again didn't need to specify the argument name.
@@ -263,7 +263,7 @@ Most of these are beyond the scope of what we need to know, but a handful of com
 
 Also note that there is a function described here called `read_tsv()`.
 This is just a wrapper to `read_delim()` but with the `delim` argument set to `"\t"` automatically, as well as `trim_ws = TRUE`.
-Try changing your chunk to use `read_tsv("data/DGE_Results.tsv")`.
+Try changing your chunk to use `read_tsv("data/DGE_results.tsv")`.
 This will be identical to what we originally had, but may be even easier to read back in the future when you're revising your code.
 
 

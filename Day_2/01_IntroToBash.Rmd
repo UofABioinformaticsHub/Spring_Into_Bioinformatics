@@ -2,7 +2,7 @@
 title: "Spring Into Bioinformatics"
 subtitle: "Intro to Bash"
 author: "Jimmy Breen"
-date: "17/09/2019"
+date: "03/10/2019"
 output: 
   html_document:
     toc: true
@@ -33,7 +33,7 @@ Please ask as many questions as you need.
 The tutors are specifically here to help you understand and develop your skills, so please ensure you take full advantage of their availability.
 
 We strongly encourage you to a) read all of the notes, and b) manually type **all of the code** (unless directed otherwise).
-This will provide you with the the most benefit.
+This will provide you with the most benefit.
 
 ### Tutors
 

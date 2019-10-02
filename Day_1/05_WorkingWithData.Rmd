@@ -17,6 +17,7 @@ knitr::opts_chunk$set(
     fig.show = "hide"
 )
 if (interactive()) setwd(here::here("Day_1"))
+options(bitmapType="cairo")
 ```
 
 ```{r, include=FALSE}
@@ -195,7 +196,7 @@ We've just passed it to the function `mutate()` which has returned another `tibb
 
 We can also create more than one column using this strategy, by combining our process with the function `case_when()`.
 Note that for better 'readability', we're going to stagger our code over multiple lines here.
-When doing this indenting becomes very useful, and the shortcut `<kbd>Ctrl</kbd> + I` will do this for you. 
+When doing this indenting becomes very useful, and the shortcut <kbd>Ctrl</kbd>+<kbd>I</kbd> will do this for you. 
 
 ```{r}
 mutate(

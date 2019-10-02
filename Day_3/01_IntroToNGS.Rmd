@@ -307,24 +307,24 @@ cd ~/Day_3/
 You must ensure that you use this _exact_ path as any variations will undoubtedly cause you problems and lead to unnecessary confusion later on.
 You can use the command `pwd` to ensure the path you are in is correct.
 
-Use the `mkdir` command to create a new folder called `rawData` within your `Day_3` folder, which will be the location for raw FASTQ files we have obtained from a sequencing system.
+Use the `mkdir` command to create a new folder called `0_rawData` within your `Day_3` folder, which will be the location for raw FASTQ files we have obtained from a sequencing system.
 
 ```
-mkdir rawData
+mkdir 0_rawData
 ```
 
-We now want to use the `cp` command to copy the raw FASTQ files to your new rawData folder
+We now want to use the `cp` command to copy the raw FASTQ files to your new 0_rawData folder
 
 ```
-cp -r ~/data/Day_3/rawData/* ~/Day_3/rawData/
-ls ~/Day_3/rawData/fastq
+cp -r ~/data/Day_3/0_rawData/* ~/Day_3/0_rawData/
+ls ~/Day_3/0_rawData/fastq
 ```
 
 The command `zcat` unzips a file and prints the output to the terminal, or standard output (stdout).
 If we did this to these files, we would see a stream of data whizzing past in the terminal, but instead we can just pipe the output of zcat to the command head to view the first 10 lines of a file.
 
 ```
-cd ~/Day_3/rawData/fastq
+cd ~/Day_3/0_rawData/fastq
 zcat SRR945375.skm.fastq.gz | head
 ```
 

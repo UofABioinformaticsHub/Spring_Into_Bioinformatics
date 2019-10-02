@@ -600,13 +600,13 @@ CACAGACAGGCAGGGTAGAGGCAGCCACAGGAGTGGA</code></pre>
 <p>We should still have a terminal open from the previous section (See <code>Setup the directory for today</code>). If necessary, use the cd command to make sure you are in the <code>Day_3</code> folder within the home (~/Day_3) directory.</p>
 <pre><code>cd ~/Day_3/</code></pre>
 <p>You must ensure that you use this <em>exact</em> path as any variations will undoubtedly cause you problems and lead to unnecessary confusion later on. You can use the command <code>pwd</code> to ensure the path you are in is correct.</p>
-<p>Use the <code>mkdir</code> command to create a new folder called <code>rawData</code> within your <code>Day_3</code> folder, which will be the location for raw FASTQ files we have obtained from a sequencing system.</p>
-<pre><code>mkdir rawData</code></pre>
-<p>We now want to use the <code>cp</code> command to copy the raw FASTQ files to your new rawData folder</p>
-<pre><code>cp -r ~/data/Day_3/rawData/* ~/Day_3/rawData/
-ls ~/Day_3/rawData/fastq</code></pre>
+<p>Use the <code>mkdir</code> command to create a new folder called <code>0_rawData</code> within your <code>Day_3</code> folder, which will be the location for raw FASTQ files we have obtained from a sequencing system.</p>
+<pre><code>mkdir 0_rawData</code></pre>
+<p>We now want to use the <code>cp</code> command to copy the raw FASTQ files to your new 0_rawData folder</p>
+<pre><code>cp -r ~/data/Day_3/0_rawData/* ~/Day_3/0_rawData/
+ls ~/Day_3/0_rawData/fastq</code></pre>
 <p>The command <code>zcat</code> unzips a file and prints the output to the terminal, or standard output (stdout). If we did this to these files, we would see a stream of data whizzing past in the terminal, but instead we can just pipe the output of zcat to the command head to view the first 10 lines of a file.</p>
-<pre><code>cd ~/Day_3/rawData/fastq
+<pre><code>cd ~/Day_3/0_rawData/fastq
 zcat SRR945375.skm.fastq.gz | head</code></pre>
 <p>Using the argument <code>-n</code> we can modify the behaviour of head to return a specified number of lines, for example <code>-n8</code> will return the first 8 lines of a file.</p>
 <pre><code>zcat SRR945375.skm.fastq.gz | head -n8</code></pre>

@@ -61,14 +61,14 @@ You will also need to create the FastQC in the Day_3 folder.
 
 ```
 cd ~/Day_3/
-mkdir -p rawData/FastQC/
-fastqc -t 2 -o rawData/FastQC/ rawData/fastq/*
+mkdir -p 0_rawData/FastQC/
+fastqc -t 2 -o 0_rawData/FastQC/ 0_rawData/fastq/*
 ```
 
 This will have created a FastQC report for every file as an html file which we can normally view using any web browser.
 
 ```
-ls rawData/FastQC/
+ls 0_rawData/FastQC/
 ```
 
 As the files are on the VM we have two options to view them:
@@ -204,9 +204,98 @@ Go back inside the quotation marks then use the tab key to navigate to your Fast
 The final command will look something like
 
 ```
-writeHtmlReport("rawData/FastQC/", species="Mmusculus")
+writeHtmlReport("0_rawData/FastQC/", species="Mmusculus")
 ```
 Once this has completed, use your Files pane to navigate to your FastQC reports again & open the file `ngsReports_Fastqc.html` using your Web Browser.
 This will contain a summary of all the files in our dataset.
 Take your time scrolling through the report, and note that each plot is interactive so you can hover over various points and see which file you are looking at.
+
+# Adapter and quality trimming of NGS data
+
+Once we have inspected our data and have an idea of how accurate our reads are, as well as any other technical issues that may be within the data, we may need to trim or filter the reads to make sure we are aligning or analysing sequences that accurately represent our source material.
+As we’ve noticed, the quality of reads commonly drops off towards the end of the reads, and dealing with this behaviour can be an important part of most processing pipelines.
+Sometimes we will require reads of identical lengths for our downstream analysis, whilst other times we can use reads of varying lengths.
+The data cleaning steps we choose for our own analysis will inevitably be influenced by our downstream requirements.
+
+## The Basic Workflow
+
+Data cleaning and pre-processing can involve many steps, and today we will use the basic work-flow as outlined below.
+Each analysis is slightly different so some steps may or may not be required for your own data, however many workflows do have a little overlap, and some pipelines (_e.g._ *Stacks*) may even perform some of these steps for you.
+
+*A basic workflow is:*
+
+1. **Remove Adapters and Quality Trim** (`AdapterRemoval`)
+2. **Run FastQC** on trimmed reads.
+3. **Alignment** to a reference (`bwa`, `bowtie2`, `STAR`)
+4. **Post-alignment QC** (`picard markDuplicates`, `IGV`)
+
+
+## Removal of Low Quality Bases and Adapters
+
+Adapter removal is an important step in many sequencing projects, mainly projects associated with DNA/RNA inserts which are shorter than the sequencing read lengths.
+A good example of this would be an experiment where the target molecule is small non-coding RNAs.
+As these are generally between 19-35bp, which is shorter than the shortest read length provided by Illumina sequencing machines, all reads containing a target molecule will also contain adapters.
+In addition, when we size select our initial fragments, we select a range of fragment sizes and some are bound to be shorter than our read length.
+Therefore it is important to trim adapters accurately to ensure that the genome mapping and other downstream analyses are accurate.
+
+In the early years of NGS data, we would run multiple steps to remove both adapters, low quality bases (near the ends of reads) and reads which have overall lower quality scores.
+Today's trimming algorithms have become better at removing low-quality bases at the same time as removing adapters.
+The tool we'll use for this step today is [`AdapterRemoval`](https://buildmedia.readthedocs.org/media/pdf/adapterremoval/latest/adapterremoval.pdf).
+
+We can trim raw data from Illumina machines using the Illumina paired-end adapters obtained from [this website](https://support.illumina.com/bulletins/2016/12/what-sequences-do-i-use-for-adapter-trimming.html)
+These are commonly used in Illumina projects.
+
+**Before we perform adapter trimming, look at the following code.**
+
+
+```
+cd ~/Day_3/
+mkdir -p 1_trimmedData/fastq
+mkdir -p 1_trimmedData/log
+AdapterRemoval \
+	--file1 0_rawData/fastq/SRR945375.skm.fastq.gz \
+	--output1 1_trimmedData/fastq/SRR945375.skm.fastq.gz \
+	--discarded 1_trimmedData/fastq/SRR945375.skm.discarded.gz \
+	--minlength 50 \
+	--threads 2 \
+	--trimns \
+	--trimqualities \
+	--minquality 20 \
+	--gzip \
+	--settings 1_trimmedData/log/SRR945375.skm.fastq.gz.settings
+```
+
+#### Questions
+{:.no_toc}
+*1. What do the options* `--minlength 50` *and* `--minquality 20` *specify in the above? Do you think these choices were reasonable?*
+*2. Notice the adapter sequence wasn't specified anywhere. Did we miss an important setting?*
+*3. What do you expect to find in the file specified using the `--discarded` option?*
+*4. What do you expect to find in the file specified using the `--settings` option?*
+
+Run the above code by pasting into your terminal.
+Did you guess correctly?
+
+The `AdapterRemoval` tool can be made to output information about the trimming process to a file.
+In the above we wrote this output to a "settings" file using the `--settings` option to output this to the `SRR945375.skm.fastq.gz.settings` file.
+Let's have a look in the file to check the output.
+
+```
+less 1_trimmedData/log/SRR945375.skm.fastq.gz.settings
+```
+
+As these were a good initial sample, it's not surprising that we didn't lose many sequences.
+Notice that many reads were trimmed (`Number of well aligned reads`), but were still long enough and high enough quality to be retained.
+
+### Trimming using a script
+
+In the above, we manually ran the process on an individual file and manually specified key information about where to write various output files.
+In the real world, this is not really a viable option and we'll need to write a script to trim all of our samples.
+
+Before we write this script, let's think about what will be involved.
+
+1 - We'll need to provide a list of input fastq files to work on
+2 - We'll need to specify different output files
+3 - Some parameters will be constant, whilst others will change for every file
+
+In following excerpts, we'll (hopefully) give you all the clues you need to complete this script, particularly when you look at the actual command we gave to AdapterRemoval above.
 

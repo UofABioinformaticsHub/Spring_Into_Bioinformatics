@@ -385,6 +385,12 @@ summary {
 <li><a href="#some-more-example-reports">Some More Example Reports</a></li>
 <li><a href="#working-with-complete-datasets">Working With Complete Datasets</a></li>
 </ul></li>
+<li><a href="#adapter-and-quality-trimming-of-ngs-data">Adapter and quality trimming of NGS data</a><ul>
+<li><a href="#the-basic-workflow">The Basic Workflow</a></li>
+<li><a href="#removal-of-low-quality-bases-and-adapters">Removal of Low Quality Bases and Adapters</a><ul>
+<li><a href="#trimming-using-a-script">Trimming using a script</a></li>
+</ul></li>
+</ul></li>
 </ul>
 </div>
 
@@ -422,10 +428,10 @@ summary {
 </table>
 <p>The VMs we’re all using have two cores so we can set the parameter <code>-t 2</code>. We can also write to the output folder that we’ve already created above. Let’s run FastQC on all of our files and see what we get. You will also need to create the FastQC in the Day_3 folder. (Make sure you’re in the <code>~/Day_3/</code> folder first.)</p>
 <pre><code>cd ~/Day_3/
-mkdir -p rawData/FastQC/
-fastqc -t 2 -o rawData/FastQC/ rawData/fastq/*</code></pre>
+mkdir -p 0_rawData/FastQC/
+fastqc -t 2 -o 0_rawData/FastQC/ 0_rawData/fastq/*</code></pre>
 <p>This will have created a FastQC report for every file as an html file which we can normally view using any web browser.</p>
-<pre><code>ls rawData/FastQC/</code></pre>
+<pre><code>ls 0_rawData/FastQC/</code></pre>
 <p>As the files are on the VM we have two options to view them: 1) copying them to your local machine (i.e. laptop) using <code>scp</code> 2) using RStudio to have a look at the files</p>
 </div>
 <div id="opening-rstudio" class="section level2">
@@ -498,8 +504,59 @@ This shows the distributions of read lengths in our data. If the length of your 
 <p>Once you’ve done this we can load the package using:</p>
 <pre><code>library(ngsReports)</code></pre>
 <p>The simplest method now is to automatically write a summarised report for all of our files using the function <code>writeHtmlReport()</code>, which will use a supplied template to combine all of our FastQC reports. Enter this function name, and then initialise the quotation marks inside the function <code>writeHtmlReport(&quot;&quot;)</code>. Go back inside the quotation marks then use the tab key to navigate to your FastQC reports, then press enter. The final command will look something like</p>
-<pre><code>writeHtmlReport(&quot;rawData/FastQC/&quot;, species=&quot;Mmusculus&quot;)</code></pre>
+<pre><code>writeHtmlReport(&quot;0_rawData/FastQC/&quot;, species=&quot;Mmusculus&quot;)</code></pre>
 <p>Once this has completed, use your Files pane to navigate to your FastQC reports again &amp; open the file <code>ngsReports_Fastqc.html</code> using your Web Browser. This will contain a summary of all the files in our dataset. Take your time scrolling through the report, and note that each plot is interactive so you can hover over various points and see which file you are looking at.</p>
+</div>
+</div>
+<div id="adapter-and-quality-trimming-of-ngs-data" class="section level1">
+<h1>Adapter and quality trimming of NGS data</h1>
+<p>Once we have inspected our data and have an idea of how accurate our reads are, as well as any other technical issues that may be within the data, we may need to trim or filter the reads to make sure we are aligning or analysing sequences that accurately represent our source material. As we’ve noticed, the quality of reads commonly drops off towards the end of the reads, and dealing with this behaviour can be an important part of most processing pipelines. Sometimes we will require reads of identical lengths for our downstream analysis, whilst other times we can use reads of varying lengths. The data cleaning steps we choose for our own analysis will inevitably be influenced by our downstream requirements.</p>
+<div id="the-basic-workflow" class="section level2">
+<h2>The Basic Workflow</h2>
+<p>Data cleaning and pre-processing can involve many steps, and today we will use the basic work-flow as outlined below. Each analysis is slightly different so some steps may or may not be required for your own data, however many workflows do have a little overlap, and some pipelines (<em>e.g.</em> <em>Stacks</em>) may even perform some of these steps for you.</p>
+<p><em>A basic workflow is:</em></p>
+<ol style="list-style-type: decimal">
+<li><strong>Remove Adapters and Quality Trim</strong> (<code>AdapterRemoval</code>)</li>
+<li><strong>Run FastQC</strong> on trimmed reads.</li>
+<li><strong>Alignment</strong> to a reference (<code>bwa</code>, <code>bowtie2</code>, <code>STAR</code>)</li>
+<li><strong>Post-alignment QC</strong> (<code>picard markDuplicates</code>, <code>IGV</code>)</li>
+</ol>
+</div>
+<div id="removal-of-low-quality-bases-and-adapters" class="section level2">
+<h2>Removal of Low Quality Bases and Adapters</h2>
+<p>Adapter removal is an important step in many sequencing projects, mainly projects associated with DNA/RNA inserts which are shorter than the sequencing read lengths. A good example of this would be an experiment where the target molecule is small non-coding RNAs. As these are generally between 19-35bp, which is shorter than the shortest read length provided by Illumina sequencing machines, all reads containing a target molecule will also contain adapters. In addition, when we size select our initial fragments, we select a range of fragment sizes and some are bound to be shorter than our read length. Therefore it is important to trim adapters accurately to ensure that the genome mapping and other downstream analyses are accurate.</p>
+<p>In the early years of NGS data, we would run multiple steps to remove both adapters, low quality bases (near the ends of reads) and reads which have overall lower quality scores. Today’s trimming algorithms have become better at removing low-quality bases at the same time as removing adapters. The tool we’ll use for this step today is <a href="https://buildmedia.readthedocs.org/media/pdf/adapterremoval/latest/adapterremoval.pdf"><code>AdapterRemoval</code></a>.</p>
+<p>We can trim raw data from Illumina machines using the Illumina paired-end adapters obtained from <a href="https://support.illumina.com/bulletins/2016/12/what-sequences-do-i-use-for-adapter-trimming.html">this website</a> These are commonly used in Illumina projects.</p>
+<p><strong>Before we perform adapter trimming, look at the following code.</strong></p>
+<pre><code>cd ~/Day_3/
+mkdir -p 1_trimmedData/fastq
+mkdir -p 1_trimmedData/log
+AdapterRemoval \
+    --file1 0_rawData/fastq/SRR945375.skm.fastq.gz \
+    --output1 1_trimmedData/fastq/SRR945375.skm.fastq.gz \
+    --discarded 1_trimmedData/fastq/SRR945375.skm.discarded.gz \
+    --minlength 50 \
+    --threads 2 \
+    --trimns \
+    --trimqualities \
+    --minquality 20 \
+    --gzip \
+    --settings 1_trimmedData/log/SRR945375.skm.fastq.gz.settings</code></pre>
+<div id="questions-1" class="section level4">
+<h4>Questions</h4>
+<p>{:.no_toc} <em>1. What do the options</em> <code>--minlength 50</code> <em>and</em> <code>--minquality 20</code> <em>specify in the above? Do you think these choices were reasonable?</em> <em>2. Notice the adapter sequence wasn’t specified anywhere. Did we miss an important setting?</em> <em>3. What do you expect to find in the file specified using the <code>--discarded</code> option?</em> <em>4. What do you expect to find in the file specified using the <code>--settings</code> option?</em></p>
+<p>Run the above code by pasting into your terminal. Did you guess correctly?</p>
+<p>The <code>AdapterRemoval</code> tool can be made to output information about the trimming process to a file. In the above we wrote this output to a “settings” file using the <code>--settings</code> option to output this to the <code>SRR945375.skm.fastq.gz.settings</code> file. Let’s have a look in the file to check the output.</p>
+<pre><code>less 1_trimmedData/log/SRR945375.skm.fastq.gz.settings</code></pre>
+<p>As these were a good initial sample, it’s not surprising that we didn’t lose many sequences. Notice that many reads were trimmed (<code>Number of well aligned reads</code>), but were still long enough and high enough quality to be retained.</p>
+</div>
+<div id="trimming-using-a-script" class="section level3">
+<h3>Trimming using a script</h3>
+<p>In the above, we manually ran the process on an individual file and manually specified key information about where to write various output files. In the real world, this is not really a viable option and we’ll need to write a script to trim all of our samples.</p>
+<p>Before we write this script, let’s think about what will be involved.</p>
+<p>1 - We’ll need to provide a list of input fastq files to work on 2 - We’ll need to specify different output files 3 - Some parameters will be constant, whilst others will change for every file</p>
+<p>In following excerpts, we’ll (hopefully) give you all the clues you need to complete this script, particularly when you look at the actual command we gave to AdapterRemoval above.</p>
+</div>
 </div>
 </div>
 

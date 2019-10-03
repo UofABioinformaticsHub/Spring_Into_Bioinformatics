@@ -315,7 +315,7 @@ Take a moment to inspect the first four elements of our `dgeList` object by runn
 dgeList[1:4,]
 ```
 
-You will notice that the `degList$genes` element is now populated with the information from `annotationHub` we downloaded earlier, and that `dgeList$counts` and `degList$genes` are in the same order.
+You will notice that the `dgeList$genes` element is now populated with the information from `annotationHub` we downloaded earlier, and that `dgeList$counts` and `dgeList$genes` are in the same order.
 
 ## Data QC
 

@@ -7,7 +7,6 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
-<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 <meta name="author" content="Mark Armstrong" />
@@ -271,6 +270,7 @@ code {
 }
 img {
   max-width:100%;
+  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -343,6 +343,18 @@ summary {
   display: none;
 }
 </style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
 
 <!-- code folding -->
 
@@ -580,22 +592,22 @@ CACAGACAGGCAGGGTAGAGGCAGCCACAGGAGTGGA</code></pre>
 <div id="hands-on-tutorial" class="section level1">
 <h1>Hands-on Tutorial</h1>
 <p>In the terminal, make sure you are in the <code>Day_3</code> directory within your home directory.</p>
-<pre><code>cd ~/Day_3/</code></pre>
+<pre class="bash"><code>cd ~/Day_3/</code></pre>
 <p>You must ensure that you use this <em>exact</em> path as any variations will undoubtedly cause you problems and lead to unnecessary confusion later on. You can use the command <code>pwd</code> to ensure the path you are in is correct.</p>
 <p>Use the <code>mkdir</code> command to create a new directory called <code>0_rawData</code> within your <code>Day_3</code> directory, which will be the location for raw FASTQ files we have obtained from a sequencing system.</p>
-<pre><code>mkdir ~/Day_3/0_rawData</code></pre>
+<pre class="bash"><code>mkdir ~/Day_3/0_rawData</code></pre>
 <p>We now want to use the <code>cp</code> command to copy the raw FASTQ files to your new 0_rawData folder</p>
-<pre><code>cp --recursive \
+<pre class="bash"><code>cp --recursive \
   ~/data/Day_3/0_rawData/* \
   ~/Day_3/0_rawData/
 
 # Have a look to see what files you have available
 ls ~/Day_3/0_rawData/fastq</code></pre>
 <p>The command <code>zcat</code> can be used to expand a <code>*.gz</code> file and print it’s contents to the terminal via standard output (<code>STDOUT</code>). If we do this to a large FASTQ file we would see a stream of data whizzing past in the terminal - not very helpful. Instead we can pipe the output of <code>zcat</code> to the command <code>head</code> in order to only view the first 10 lines of the file.</p>
-<pre><code>cd ~/Day_3/0_rawData/fastq
+<pre class="bash"><code>cd ~/Day_3/0_rawData/fastq
 zcat SRR945375.skm.fastq.gz | head</code></pre>
 <p>Using the argument <code>--lines</code> we can modify the behaviour of head to return a specified number of lines, for example <code>--lines 8</code> will return the first 8 lines of a file.</p>
-<pre><code>zcat SRR945375.skm.fastq.gz | head -lines 8</code></pre>
+<pre class="bash"><code>zcat SRR945375.skm.fastq.gz | head -lines 8</code></pre>
 <p>You may also remember the pipe symbol <code>|</code> from the above command from day 2. In this example we have taken the output of the zcat command (<code>zcat SRR945375.skm.fastq.gz</code>) and redirected it to another command (<code>head</code>). There are no limits to the number of commands we can string together using pipe commands, allowing us to create pipelines for data from a source through to a destination via different transformations.</p>
 <p>In the output from the above terminal command, we have obtained the first 8 lines of the gzipped fastq file. This gives a clear view of the fastq file format, where each individual read spans four lines. These lines are:</p>
 <pre><code>1. The read identifier
@@ -713,23 +725,6 @@ $(document).ready(function () {
 
 
 </script>
-
-<!-- tabsets -->
-
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
-
-<!-- code folding -->
-
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>

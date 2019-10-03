@@ -52,6 +52,7 @@ As you may have seen yesterday, the data that we need is already available in th
 Lets copy all the contents of that directory to our new 
 
 ```
+mkdir -p ~/Day_2/data
 cp -r ~/data/Day_2/* ~/Day_2/data/
 ls ~/Day_2/data/
 ```

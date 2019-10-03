@@ -434,9 +434,9 @@ samtools view SRR945375.skm.trimmedAligned.sortedByCoord.out.bam | head</code></
 <h2>SAM Flags</h2>
 <p>SAM flags are found in the second field of the BAM file and are quite useful pieces of information, however they can be difficult at first look. We won’t go into these today as a lot of these flags concern paired-end read sequencing and today we have single-end sequencing data. However the flags can indicate a lot of information that can be used to filter the BAM file, much like you did with mapping alignment.</p>
 <p>Head to <a href="http://broadinstitute.github.io/picard/explain-flags.html" class="uri">http://broadinstitute.github.io/picard/explain-flags.html</a> to see a helpful description of each flag. For example, if we were to identify reads that mapped to the reverse strand, we can use the SAM flag 16. Then we can use the <code>-f</code> parameter to filter our BAM file to only include those reads.</p>
-<pre><code>samtools view -f 16 SRR945375.skm.trimmedAligned.sortedByCoord.out.bam</code></pre>
+<pre><code>samtools view -f 16 SRR945375.skm.trimmedAligned.sortedByCoord.out.bam | head</code></pre>
 <p>You can also do the exact opposite, i.e. identify all reads that are not on the reverse strand, by using the <code>-F</code> parameter.</p>
-<pre><code>samtools view -F 16 SRR945375.skm.trimmedAligned.sortedByCoord.out.bam</code></pre>
+<pre><code>samtools view -F 16 SRR945375.skm.trimmedAligned.sortedByCoord.out.bam | head</code></pre>
 <p>Going through a lot of these SAM flags one by one would be fairly tedious, so <code>samtools</code> has a subcommand called <code>flagstat</code> which counts the number of reads in specific flags.</p>
 <pre><code>samtools flagstat SRR945375.skm.trimmedAligned.sortedByCoord.out.bam</code></pre>
 <div id="questions-1" class="section level3">

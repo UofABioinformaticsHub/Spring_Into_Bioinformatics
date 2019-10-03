@@ -1,5 +1,5 @@
 ---
-title: "Fall Into Bioinformatics"
+title: "Spring Into Bioinformatics"
 subtitle: "Gene quantification and counts"
 author: "Jimmy Breen"
 date: "17/09/2019"
@@ -17,6 +17,7 @@ knitr::opts_chunk$set(
     results = "hide"
 )
 if (interactive()) setwd(here::here("Day_2"))
+options(bitmapType="cairo")
 ```
 
 

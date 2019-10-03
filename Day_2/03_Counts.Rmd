@@ -144,8 +144,8 @@ featureCounts -Q 10 \
   ${SAMPLES}
   
 ## Storing the output in a single file
-cut -f1,7- ${ALIGNDIR}/featureCounts/user_counts.out | \
-    sed 1d > ${ALIGNDIR}/featureCounts/user_genes.out
+cut -f1,7- ${ALIGNDIR}/counts/counts.out | \
+    sed 1d > ${ALIGNDIR}/counts/genes.out
 ```
 
 Let's talk through these three steps:
@@ -174,7 +174,7 @@ The help page is quite extensive for this tool, so feel free to browse it in you
 | `--fracOverlap 1` | The fraction of a read which must overlap a feature. Here every base must overlap an exon |
 | `-T ${CORES}` | The number of cores we wish to use |
 | `-a ${GTF}` | The gene description file |
-| `-o ${ALIGNDIR}/featureCounts/user_counts.out` | The output file |
+| `-o ${ALIGNDIR}/counts/counts.out` | The output file |
 | `${SAMPLES}` | The input files |
 
 #### 4. Tidy up our output

@@ -299,3 +299,108 @@ Before we write this script, let's think about what will be involved.
 
 In following excerpts, we'll (hopefully) give you all the clues you need to complete this script, particularly when you look at the actual command we gave to AdapterRemoval above.
 
+**How do we find our files?**
+
+First, create a bash folder to store our bash scripts in.
+
+```
+mkdir -p ~/Day_3/bash/
+```
+
+Create a new file called `removeAdapters.sh` using whatever script editor you prefer, and save it in the bash folder`bash/removeAdapters.sh`.
+If you are unsure, you can use a simple editor called nano to create the script using the command `nano bash/removeAdapters.sh`.
+The command will open an empty window in the terminal with a number of available commands shown at the bottom.
+
+![nano in terminal](../images/nano_adapters.png)
+
+Type or copy-paste the following script into the removeAdapters.sh file:
+
+```
+#!/bin/bash
+
+# Setup our input directory, then look for the files we need
+INDIR=~/Day_3/0_rawData/fastq
+INFILES=$(ls ${INDIR}/*fastq.gz)
+
+# Check that we have found the correct files
+for f in ${INFILES}
+do
+    echo "Found ${f}"
+done
+```
+
+Save your file in your script editor and close. 
+If you are using `nano`, exit and save by entering `Ctrl+x` answering `y` when asked if you'd like to save changes.
+Let's run the script using `bash bash/removeAdapters.sh`
+
+**Did you see the files you expected returned?**
+
+#### Script explanation
+
+The shebang `#!` at the top of the script file tells the operator which scripting language we want to use, in this case bash `/bin/bash`.
+The lines beginning with `#`, apart from the shebang, are comment lines which are used to tell users something about the script or a particular section of script e.g. `# Setup our input directory, then look for the files we need` tells us what the script immediately following the comment will be performing.
+These are important to use as they both help us to remember what we were intending to do and to help anyone else looking at our script to follow the logic.
+
+Next we are setting a variable to our input folder using `INDIR=~/Day_3/0_rawData/fastq`.
+`INDIR` is the variable and we have set it to the location `~/Day_3/0_rawData/fastq`, which will make later references to the folder location easier to manage.
+If we moved out input files then we would only have to change this single assignment within the script, rather than look for all references throughout it.
+
+The line `INFILES=$(ls ${INDIR}/*fastq.gz)` is a little more complex to unpack, as it has a bash command `ls` running within a variable assignment.
+The command `ls`, which lists files from a directory location, is passed a folder location and the file type we want the script to find.
+The folder location is the variable `INDIR` we created earlier, and bash knows to use this through the dollar sign `$` and braces `{}` surrounding the variable `${INDIR}`.
+We have also limited the ls command to our fastq files by appending the variable with `/*fastq.gz`.
+
+In effect we are running the command `ls ~/Day_3/0_rawData/fastq/*fastq.gz`, which if you try yourself will return our sample files.
+The results of this ls command are themselves assigned to a new variable called `INFILES` by wrapping the ls command within `$()`, as in `INFILES=$(ls ${INDIR}/*fastq.gz)`.
+The variable `INFILES` therefore contains a list of file names and these are accessed individually in the next bash script section using for: `for f in ${INFILES}`.
+This assigns the first file to a variable `f` then carrys out the operation following it in the `do ... done` block before assigning the next file to the variable `f`.
+In the `do .... done` block example we are running the `echo` command which outputs text strings, and creating a string by joining `"Found ` with the variable `${f}`.
+As we have not redirected the output of echo to another application, the output defaults to text on the screen of the user.
+
+In summary the script uses `ls` to look in the folder we assigned it, collects a list of files matching the pattern `*fastq.gz`, and prints out the filenames individually to the screen.
+
+
+Try changing the second to last line to be the following
+
+```
+    echo "Found $(basename ${f})" 
+```
+
+**What was the difference?**
+
+The program `basename`, takes a pathname and remove any prefixes up to the last slash.
+This effectively removes the input folder we provided at the beginning of the script and the `echo` command will only output the file names themselves to the screen.
+Hopefully it will be clear to you that this simple script offers us opportunities to build much more powerful automated tools to run over a group of files.
+
+Now that we've figured how to find our input files and remove the input directory from their names, let's see if we can create new names for output files.
+Change your script to be the following.
+
+```
+#!/bin/bash
+
+# Setup our input directory, then look for the files we need
+INDIR=~/Day_3/0_rawData/fastq
+INFILES=$(ls ${INDIR}/*fastq.gz)
+
+# Define our output parent directory
+OUTDIR=~/Day_3/1_trimmedData
+
+# Check our output directory exists
+if [ ! -d "$OUTDIR" ]; then
+    # If the directory doesn't exist, exit with a message and an error
+    echo "$OUTDIR does not exist"
+    exit 1
+fi
+
+# Check that we have found the correct files
+for f in ${INFILES}
+do
+    echo "Found ${f}"
+    OUTFILE=${OUTDIR}/fastq/$(basename ${f})
+    echo "Trimmed reads will be written to ${OUTFILE}"
+done
+```
+#### Script explanation
+
+We have introduced a couple of new concepts in this script.
+

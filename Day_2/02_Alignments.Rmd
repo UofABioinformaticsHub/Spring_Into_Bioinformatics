@@ -264,13 +264,13 @@ Then we can use the `-f` parameter to filter our BAM file to only include those 
 
 
 ```
-samtools view -f 16 SRR945375.skm.trimmedAligned.sortedByCoord.out.bam
+samtools view -f 16 SRR945375.skm.trimmedAligned.sortedByCoord.out.bam | head
 ```
 
 You can also do the exact opposite, i.e. identify all reads that are not on the reverse strand, by using the `-F` parameter.
 
 ```
-samtools view -F 16 SRR945375.skm.trimmedAligned.sortedByCoord.out.bam
+samtools view -F 16 SRR945375.skm.trimmedAligned.sortedByCoord.out.bam | head
 ```
 
 Going through a lot of these SAM flags one by one would be fairly tedious, so `samtools` has a subcommand called `flagstat` which counts the number of reads in specific flags.

@@ -2,7 +2,7 @@
 title: "Spring Into Bioinformatics"
 subtitle: "Intro to NGS"
 author: "Mark Armstrong"
-date: "01/10/2019"
+date: "04/10/2019"
 output: 
   html_document:
     toc: true
@@ -133,7 +133,92 @@ This is a good opportunity to explore a few important file types and utilities w
 * TOC
 {:toc}
 
-## Genome Browsers
+## FASTA Files
+
+Most of us have seen these, and the basic format is very simple.
+A sequence is made up of two components, a header line (starting with `>`) and one or more lines comprising the sequence information. It is typical for the sequence to be wrapped at 50 or 80 characters.
+A FASTA file can contain one or more of these sequences and can be used for DNA, RNA or amino acid sequence data.
+Here's an example FASTA formatted sequence:
+
+```
+>NC_000067.6:5588450-5606134 Mus musculus strain C57BL/6J chromosome 1, GRCm38.p6 C57BL/6J fragment
+GCGGGGGCAACCAGCCCTGCAGCTCTCAGCTTGCCTGTCCCCGGCGCACCTTGCTGATCCCAAACAGGCA
+GAGCTTCTTCCAGTCTTGGAAGGCACAAATTGAGCATCAGGAACGTGGACCCATCAGGGCTGAACAGCTA
+CTCAGGATCTAAAGTGGTGACTTGGAAAGCTGACGGTGACTTGGGAAGGGAGGTCGCCAATCAGCGATCT
+GGAGGTGAGCTTGGGGCTTTCGAGGCACAGTGGGGAAATTGCTGTGGCTAGTGCTTCTTGGGGTTGCATG
+CACAGACAGGCAGGGTAGAGGCAGCCACAGGAGTGGA
+```
+
+This is the format genomes are provided in by all genomic repositories such as Ensembl, NCBI and the UCSC.
+Each chromosome is specified by the header, with the entire sequence following.
+
+## FASTQ File Format
+
+FASTQ is an extension of FASTA
+Not only does it contain sequence information, it contains quality information about each base.
+This is the format in which most sequencing data is provided and commonly uses `.fq` or `.fastq` as the file extention.
+
+These files are often very large and easily compressed.
+Ss such, they will often be compressed using `gzip` and thus have `.fastq.gz` as their file extension.
+This compression provides two benefits: 1) they occupy less space on disk and 2) faster reading of a file from disk.
+Whilst you might be tempted to decompress these files in order to use them, most tools capable of reading FASTQ files can directly read the `gzip` compressed files.
+
+## SAM/BAM Files
+
+**S**equence **A**lignment/**M**ap (SAM) files are plain text files containing read alignments.
+The binary version of a SAM file is known as a BAM file and is a more computer-friendly format.
+SAMtools' `samtools view` can be used to convert between SAM <-> BAM.
+BAM files are typically 5-10 fold smaller than their corresponding SAM format file.
+
+## BED Files
+
+A BED format file can be used to "annotate"" a region of a genome by storing genome coordinates as a tab-delimited text file of at least 3 columns providing the Chromosome (`chrom`), start (`chromStart`) and end (`chromEnd`) positions.
+In this way we can simply define genomic regions of interest that we have found in our analysis, and can visualise them.
+
+A full description of the format is available at: https://genome.ucsc.edu/FAQ/FAQformat.html#format1
+
+Tools have been developed which allow BED files to be used to extract information, from other file types, which intersect in some way with coordinates defined in a BED file.
+For instance, obtaining a subset of alignments from a larger file, extract variant calls or gene models/features etc.
+
+## GFF/GTF Files
+
+General Feature Format (GFF) and General Transfer Format (GTF) are two very similar file formats for storing chromosome "features" such as gene annotations (e.g. exons, transcripts, genes).
+GFF comes in two versions, 2 and 3.
+GTF is sometimes refered to as GFF v2.5.
+GFF and GTF are both tab-delimited text files with pretty restrictive columns by design:
+
+1. **seqname** - name of the chromosome or scaffold; chromosome names can be given with or without the 'chr' prefix.
+Important note: the seqname must be one used within Ensembl, _i.e._ a standard chromosome name or an Ensembl identifier such as a scaffold ID, without any additional content such as species or assembly.
+See the example GFF output below.
+2. **source** - name of the program that generated this feature, or the data source (database or project name)
+3. **feature** - feature type name, can only take the values "CDS", "start_codon", "stop_codon", "5UTR", "3UTR", "inter", "inter_CNS", "intron_CNS" and "exon" (CNS stands for Conserved Noncoding Sequence)
+4. **start** - Start position of the feature, with sequence numbering starting at 1.
+5. **end** - End position of the feature, with sequence numbering starting at 1.
+6. **score** - A floating point value (_i.e._ decimal points are allowed)
+7. **strand** - defined as + (forward) or - (reverse).
+8. **frame** - One of '0', '1' or '2'. '0' indicates that the first base of the feature is the first base of a codon, '1' that the second base is the first base of a codon, and so on...
+9. **attribute** - A *semicolon-separated* list of tag-value pairs, providing additional information about each feature.
+In the GTF format two mandatory features are required here, although they can be an empty string, _i.e._ `""`:
+    + **gene_id** *value*
+    + **transcript_id** *value*
+
+Notice that there's *no real way to represent our FOXP3 sites as a GTF file*!
+This format is really designed for gene-centric features as seen in the 3rd column.
+An example is given below.
+Also note that header rows are not controlled, but must start with the comment character `#`
+
+```
+# Data taken from http://mblab.wustl.edu/GTF22.html
+381 Twinscan  CDS          380   401   .   +   0  gene_id "001"; transcript_id "001.1";
+381 Twinscan  CDS          501   650   .   +   2  gene_id "001"; transcript_id "001.1";
+381 Twinscan  CDS          700   707   .   +   2  gene_id "001"; transcript_id "001.1";
+381 Twinscan  start_codon  380   382   .   +   0  gene_id "001"; transcript_id "001.1";
+381 Twinscan  stop_codon   708   710   .   +   0  gene_id "001"; transcript_id "001.1";
+```
+
+**Note**: People variously use GFF and GTF to talk about GFF version 2, and GFF to talk about GFF version 3. GFF2 is not compatible with GFF3, so make sure you have the correct file format if you are given a GFF file. There are conversion tools available to inter-convert them, they are rarely reliable.
+
+# Genome Browsers
 
 Genome browsers are applications that provide a way to view, explore and compare genomic information in a graphical environment.
 
@@ -141,11 +226,11 @@ Genome browsers enable researchers to visualize and browse entire genomes with a
 Annotated data is usually from multiple diverse sources.
 They differ from ordinary biological databases in that they display data in a graphical format, with genome coordinates on one axis and the location of annotations indicated by a space-filling graphic to show the occurrence of genes and other features[¹](https://en.wikipedia.org/w/index.php?title=Genome_browser&oldid=889818322).
 
-### UCSC
+## UCSC
 {:.no_toc}
 
 Often we'll use a genome browser running on our local machines (IGV), but a good one to start with is the web-based UCSC browser.
-Click [this link](http://http://genome.ucsc.edu/cgi-bin/hgTracks?db=mm10&lastVirtModeType=default&lastVirtModeExtraState=&virtModeType=default&virtMode=0&nonVirtPosition=&position=chr12%3A56694976%2D56714605&hgsid=765160515_GjO1S5ZO5JIgCAIc5dqVfVaEwxG6) and you should see a slightly intimidating screen full of information.
+Click [this link](http://genome.ucsc.edu/cgi-bin/hgTracks?db=mm10&lastVirtModeType=default&lastVirtModeExtraState=&virtModeType=default&virtMode=0&nonVirtPosition=&position=chr12%3A56694976%2D56714605&hgsid=765160515_GjO1S5ZO5JIgCAIc5dqVfVaEwxG6) and you should see a slightly intimidating screen full of information.
 
 You'll be able to see:
 
@@ -182,123 +267,9 @@ Now we've had a brief exploration of the browser, let's look at some file types 
 There are two videos that go through the kinds of things you can do with the UCSC genome browser [here](https://www.youtube.com/watch?v=tfRyntqvb_g) and [here](https://www.youtube.com/watch?v=4qdXcm5vzNw).
 Take some time later to have a look at these.
 
-## BED Files
+# Hands-on Tutorial
 
-### The basic format
-{:.no_toc}
-
-These are a common file type for uploading your own data to the UCSC browser if you'd like to add a custom track with your own genomic features.
-This format is best used for genomic regions which all represent the same type of feature (_e.g._ genes, promoters, sequence motifs etc).
-They're also able to be used as input for numerous analytic tools, so are very useful to know about.
-A full description of the format is available at: https://genome.ucsc.edu/FAQ/FAQformat.html#format1
-
-BED files are also very commonly used for interacting with a variety of NGS-related tools.
-We can use these to just obtain a subset of alignments from a larger file, to restrict variant calling to specific regions, etc.
-
-The basic structure is a tab-separated file, with a minimum of **three mandatory columns** giving the Chromosome (`chrom`), start (`chromStart`) and end (`chromEnd`) positions.
-In this way we can simply define genomic regions of interest that we have found in our analysis, and can visualise them.
-As with the vast majority of the file types we'll come across, each line needs to have the same number of fields, with the exception of any header lines.
-Unlike other file types, header lines in bed files **do not** start with a comment character but can only begin with the words `browser` or `track`.
-The header lines are important in the context of genome browser custom annotation tracks, but most external tools will not tolerate their presence.
-
-## GFF/GTF Files
-
-There can be a little confusion about GFF and GTF files and these share some similarities with BED files.
-GFF (General Feature Format) files have version 2 and version 3 formats, which are slightly different.
-Today, we'll just look at GTF (General Transfer Format) files, which are best considered as GFF2.2, as restrictions are placed on the type of entries that can be placed in some columns.
-
-While BED files are generally for showing all the locations of a single type of feature, multiple feature types can be specified within one of these files.
-Again, like BED files, fields are tab-separated with no line provided which gives the column names.
-These are fixed by design, and as such explicit column names are not required.
-
-1. **seqname** - name of the chromosome or scaffold; chromosome names can be given with or without the 'chr' prefix.
-Important note: the seqname must be one used within Ensembl, _i.e._ a standard chromosome name or an Ensembl identifier such as a scaffold ID, without any additional content such as species or assembly.
-See the example GFF output below.
-2. **source** - name of the program that generated this feature, or the data source (database or project name)
-3. **feature** - feature type name, can only take the values "CDS", "start_codon", "stop_codon", "5UTR", "3UTR", "inter", "inter_CNS", "intron_CNS" and "exon" (CNS stands for Conserved Noncoding Sequence)
-4. **start** - Start position of the feature, with sequence numbering starting at 1.
-5. **end** - End position of the feature, with sequence numbering starting at 1.
-6. **score** - A floating point value (_i.e._ decimal points are allowed)
-7. **strand** - defined as + (forward) or - (reverse).
-8. **frame** - One of '0', '1' or '2'. '0' indicates that the first base of the feature is the first base of a codon, '1' that the second base is the first base of a codon, and so on...
-9. **attribute** - A *semicolon-separated* list of tag-value pairs, providing additional information about each feature.
-In the GTF format two mandatory features are required here, although they can be an empty string, _i.e._ `""`:
-    + **gene_id** *value*
-    + **transcript_id** *value*
-
-Notice that there's *no real way to represent our FOXP3 sites as a GTF file*!
-This format is really designed for gene-centric features as seen in the 3rd column.
-An example is given below.
-Also note that header rows are not controlled, but must start with the comment character `#`
-
-```
-# Data taken from http://mblab.wustl.edu/GTF22.html
-381 Twinscan  CDS          380   401   .   +   0  gene_id "001"; transcript_id "001.1";
-381 Twinscan  CDS          501   650   .   +   2  gene_id "001"; transcript_id "001.1";
-381 Twinscan  CDS          700   707   .   +   2  gene_id "001"; transcript_id "001.1";
-381 Twinscan  start_codon  380   382   .   +   0  gene_id "001"; transcript_id "001.1";
-381 Twinscan  stop_codon   708   710   .   +   0  gene_id "001"; transcript_id "001.1";
-```
-
-**Note**: People variously use GFF and GTF to talk about GFF version 2, and GFF to talk about GFF version 3. GFF2 is not compatible with GFF3, so make sure you have the correct file format if you are given a GFF file. There are conversion tools available to inter-convert them, they are rarely reliable.
-
-## VCF Files
-
-The most **hated** format is a VCF file, which stands for *Variant Call Format*, but is more accurately known as *Very Confusing Format*.
-Again, the general structure is header rows (beginning with the double comment symbol `##`), followed by tab-separated columns with the actual data.
-In this case, column names are provided directly about the data in a line starting with a single comment character (`#`).
-
-While a flexible format, it is heavily structured with abbreviations and symbols with important meaning, _e.g._ phased genotypes are separated by `|`, while unphased ones are separated by `/`.
-The example is taken from the file specification in the [VCFv4.2 specification](https://samtools.github.io/hts-specs/VCFv4.2.pdf), and we could spend an enormous amount of time unpacking this example.
-
-Important things to note are:
-
-- The first 8 columns are mandatory
-- The `FORMAT` column defines the format of subsequent columns
-- *Sample level* information follows the `FORMAT` column
-- The header rows are called *Meta-information* rows, and describe the coding used in each field via a series of tags.
-
-## FASTA Files
-
-Most of us have seen these, and the basic format is very simple.
-Information about a sequence is placed after a `>` symbol, and these can occur throughout the file, indicating the start of a new sequence.
-Following the description line are lines of sequence data typically 50 to 80 characters long.
-Sequence data can be DNA, RNA or Amino Acid data and may be upper or lower case.
-
-```
->NC_000067.6:5588450-5606134 Mus musculus strain C57BL/6J chromosome 1, GRCm38.p6 C57BL/6J fragment
-GCGGGGGCAACCAGCCCTGCAGCTCTCAGCTTGCCTGTCCCCGGCGCACCTTGCTGATCCCAAACAGGCA
-GAGCTTCTTCCAGTCTTGGAAGGCACAAATTGAGCATCAGGAACGTGGACCCATCAGGGCTGAACAGCTA
-CTCAGGATCTAAAGTGGTGACTTGGAAAGCTGACGGTGACTTGGGAAGGGAGGTCGCCAATCAGCGATCT
-GGAGGTGAGCTTGGGGCTTTCGAGGCACAGTGGGGAAATTGCTGTGGCTAGTGCTTCTTGGGGTTGCATG
-CACAGACAGGCAGGGTAGAGGCAGCCACAGGAGTGGA
-```
-
-This is the format genomes are provided in by all genomic repositories such as Ensembl, NCBI and the UCSC.
-Each chromosome is specified by the header, with the entire sequence following.
-
-## FASTQ Files
-
-These are the extension of FASTA files which we usually obtain as output from our sequencing runs.
-We'll spend some time exploring these below.
-
-## SAM Files
-
-These are plain text **S**equence **A**lignment/**M**ap files, which we will also spend some time looking at later today.
-The binary version of a SAM file is known as a BAM file, and is the plain text information converted to the more computer-friendly binary format.
-This usually results in a size reduction of around 5-10 fold, and BAM files are able to be processed much more quickly by NGS tools.
-We'll also have a good look at these during the course of the day.
-
-## FASTQ File Format
-
-As the sequences are extended during the sequencing reaction, an image is recorded which is effectively a movie or series of frames at which the addition of bases is recorded and detected.
-We mostly don’t deal with these image files, but will handle data generated from these in fastq format, which can commonly have the file suffix .fq or .fastq.
-As these files are often very large, they will often be zipped using gzip or bzip.
-Whilst we would instinctively want to unzip these files using the command gunzip, most NGS tools are able to work with zipped fastq files, so decompression (or extraction) is usually unnecessary.
-This can save considerable hard drive space, which is an important consideration when handling NGS datasets as the quantity of data can easily push your storage capacity to its limit.
-
-We should still have a terminal open from the previous section (See `Setup the directory for today`).
-If necessary, use the cd command to make sure you are in the `Day_3` folder within the home (~/Day_3) directory.
+In the terminal, make sure you are in the `Day_3` directory within your home directory.
 
 ```
 cd ~/Day_3/
@@ -317,21 +288,23 @@ We now want to use the `cp` command to copy the raw FASTQ files to your new 0_ra
 
 ```
 cp -r ~/data/Day_3/0_rawData/* ~/Day_3/0_rawData/
+
+# Have a look to see what files you have available
 ls ~/Day_3/0_rawData/fastq
 ```
 
-The command `zcat` unzips a file and prints the output to the terminal, or standard output (stdout).
-If we did this to these files, we would see a stream of data whizzing past in the terminal, but instead we can just pipe the output of zcat to the command head to view the first 10 lines of a file.
+The command `zcat` expands a `*.gz` file and prints the output to the terminal (`STDOUT` or standard output).
+If we did this to these files, we would see a stream of data whizzing past in the terminal, but instead we can just pipe the output of zcat to the command `head` to view the first 10 lines of a file.
 
 ```
 cd ~/Day_3/0_rawData/fastq
 zcat SRR945375.skm.fastq.gz | head
 ```
 
-Using the argument `-n` we can modify the behaviour of head to return a specified number of lines, for example `-n8` will return the first 8 lines of a file.
+Using the argument `--lines` we can modify the behaviour of head to return a specified number of lines, for example `--lines 8` will return the first 8 lines of a file.
 
 ```
-zcat SRR945375.skm.fastq.gz | head -n8
+zcat SRR945375.skm.fastq.gz | head -lines 8
 ```
 
 You may also remember the pipe symbol `|` from the above command from day 2.
@@ -341,7 +314,6 @@ There are no limits to the number of commands we can string together using pipe 
 In the output from the above terminal command, we have obtained the first 8 lines of the gzipped fastq file.
 This gives a clear view of the fastq file format, where each individual read spans four lines.
 These lines are:
-
 
     1. The read identifier
     2. The sequence read
@@ -355,7 +327,6 @@ Let’s have a brief look at each of these lines and what they mean.
 This line begins with an @ symbol and although there is some variability, it traditionally has several components.
 The data we have been working with over the last 3 days was sourced from an EBI data repository, and this particular file has the identifier SRR945375.
 For the first sequence in this file, we have the full identifier `@SRR945375.39 HWI-ST1145:52:D0PV8ACXX:3:1101:14387:1975:213/1` which has the following components:
-
 
     | @SRR945375.39 | The aforementioned EBI identifier and the sequence ID within the file.
         If this was the first read, we would have the number 1.
@@ -443,6 +414,3 @@ potential issues this would cause when searching within a fastq file?
 Considering the
 millions of sequences obtained from a flowcell, do you think that NGS is likely to be
 highly accurate?
-
-
-

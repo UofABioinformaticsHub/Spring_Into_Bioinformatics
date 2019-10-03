@@ -540,7 +540,7 @@ The command works in the form `sed 'SCRIPT' INPUT`, and the script section is wh
 Input can be given to `sed` as either a file, or just as a text stream via the *pipe* that we have already introduced.  
 
 In the following example the script begins with an `s` to indicate that we are going to make a substitution.
-The beginning of the first pattern (i.e. the *regexp* we are searching for) is denoted with the backslash, with the identical delimiter indicating the replacement pattern, and this is in turn completed with the same delimiter.
+The beginning of the first pattern (i.e. the *regexp* we are searching for) is denoted with the slash, with the identical delimiter indicating the replacement pattern, and this is in turn completed with the same delimiter.
 Try this simple example from the link \url{http://www.grymoire.com/Unix/Sed.html} which is a very detailed and helpful resource about the usage `sed`.
 Here we are sending the input (`echo Sunday`) to the command via the pipe, so no `INPUT` section is required:
 

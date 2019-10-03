@@ -476,7 +476,7 @@ wget ftp://ftp.ensembl.org/pub/release-93/gtf/mus_musculus/Mus_musculus.GRCm38.9
 <p>There are numerous methods for counting reads which align to genes. Common tools include HTSeq and kallisto (which is actually an aligner as well), or this can even be done inside R itself. Today we’ll use <code>featureCounts</code> from the <code>Subread</code> suite of tools as we’ve found it to be the fastest and most accurate tool for this task. Here’s a snapshot of the lines we use for this from one of our RNASeq pipelines. You can copy-paste this into the terminal and will run featureCounts and the cleaning steps</p>
 <pre><code>CORES=2
 GTF=~/genomes/Mmusculus/Mus_musculus.GRCm38.93.chr1.gtf
-ALIGNDIR=~/Spring_into_Bioinformatics/Day_2/data/2_alignedData
+ALIGNDIR=~/Day_2/data/2_alignedData
 
 ## Feature Counts - obtaining all sorted bam files
 SAMPLES=`find ${ALIGNDIR}/bam -name &quot;*out.bam&quot; | tr &#39;\n&#39; &#39; &#39;`

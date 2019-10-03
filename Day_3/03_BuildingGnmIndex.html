@@ -493,7 +493,7 @@ zcat ~/Day_3/genomes/Mmusculus/Mus_musculus.GRCm38.dna.chromosome.1.fa.gz | head
 <p>As mentioned above read aligners achieve their performance by constructing an index of the reference genome so that initial seed locations can be rapidly found for alignment extension. The process of constructing an index can take a significant amount of time, although only needs to be performed once for each genome being used and so becomes less of a burden if you’re reusing the same genome over a period of time.</p>
 <p>Unfortunately, when building an index, STAR (which we’ll be using today) needs an extracted fasta file, so we’ll have to extract this file now</p>
 <pre class="bash"><code>gunzip Mus_musculus.GRCm38.dna.chromosome.1.fa.gz</code></pre>
-<p>Index the decompressed chromosome 1 FASTA file.</p>
+<p>Index the decompressed chromosome 1 FASTA file:</p>
 <pre class="bash"><code>STAR \
   --runMode genomeGenerate \
   --runThreadN 2 \
@@ -501,7 +501,11 @@ zcat ~/Day_3/genomes/Mmusculus/Mus_musculus.GRCm38.dna.chromosome.1.fa.gz | head
   --genomeSAindexNbases 12 \
   --genomeFastaFiles \
   ~/Day_3/genomes/Mmusculus/Mus_musculus.GRCm38.dna.chromosome.1.fa</code></pre>
-<p>With this complete, we are now ready to align the reads from our samples to the indexed genome.</p>
+<p>With this complete, you are now ready to align reads to the indexed genome.</p>
+<p><strong><em>In the event that the indexing fails or takes too long, copy our precomputed index files:</em></strong></p>
+<pre class="bash"><code>cp --recursive \
+  ~/data/Day_3/genomes/Mmusculus \
+  ~/Day_3/genomes/</code></pre>
 </div>
 </div>
 </div>

@@ -7,6 +7,7 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 <meta name="author" content="Mark Armstrong" />
@@ -270,7 +271,6 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -343,18 +343,6 @@ summary {
   display: none;
 }
 </style>
-
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
 
 <!-- code folding -->
 
@@ -458,7 +446,7 @@ $(document).ready(function () {
 <li>Use of ngsReports package</li>
 <li>Adapter Trimming</li>
 </ul></li>
-<li>Session 3: Building an Genome Reference Index
+<li>Session 3: Building a Genome Reference Index
 <ul>
 <li>Data quality checks on trimmed data</li>
 <li>Interpreting changes in FastQC output</li>
@@ -525,7 +513,7 @@ CACAGACAGGCAGGGTAGAGGCAGCCACAGGAGTGGA</code></pre>
 <div id="fastq-file-format" class="section level2">
 <h2>FASTQ File Format</h2>
 <p>FASTQ is an extension of FASTA Not only does it contain sequence information, it contains quality information about each base. This is the format in which most sequencing data is provided and commonly uses <code>.fq</code> or <code>.fastq</code> as the file extention.</p>
-<p>These files are often very large and easily compressed. Ss such, they will often be compressed using <code>gzip</code> and thus have <code>.fastq.gz</code> as their file extension. This compression provides two benefits: 1) they occupy less space on disk and 2) faster reading of a file from disk. Whilst you might be tempted to decompress these files in order to use them, most tools capable of reading FASTQ files can directly read the <code>gzip</code> compressed files.</p>
+<p>These files are often very large and easily compressed. As such, they will often be compressed using <code>gzip</code> and thus have <code>.fastq.gz</code> as their file extension. This compression provides two benefits: 1) they occupy less space on disk and 2) faster reading of a file from disk. Whilst you might be tempted to decompress these files in order to use them, most tools capable of reading FASTQ files can directly read the <code>gzip</code> compressed files.</p>
 </div>
 <div id="sambam-files" class="section level2">
 <h2>SAM/BAM Files</h2>
@@ -696,7 +684,7 @@ L - Illumina 1.8+ Phred+33, raw reads typically (0, 41)</code></pre>
 </tr>
 </tbody>
 </table>
-<p>Now we understand how quality scores are encoded in the FASTQ file, it gives us a basis for understanding how the rest of quality control process works. The FastQC application which compiles and reports on FASTQ file data quality is covered in the next session.</p>
+<p>Now we understand how quality scores are encoded in the FASTQ file, it gives us a basis for understanding how the rest of the quality control process works. The FastQC application which compiles and reports on FASTQ file data quality is covered in the next session.</p>
 <div id="questions" class="section level4">
 <h4>Questions</h4>
 <p>{:.no_toc}</p>
@@ -725,6 +713,23 @@ $(document).ready(function () {
 
 
 </script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>

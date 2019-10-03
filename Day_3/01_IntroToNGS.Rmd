@@ -75,7 +75,7 @@ and run through a NGS pipeline from raw sequencing data through to aligning the 
   - Use of ngsReports package
   - Adapter Trimming
 
-- Session 3: Building an Genome Reference Index
+- Session 3: Building a Genome Reference Index
   - Data quality checks on trimmed data
   - Interpreting changes in FastQC output
   - Downloading a Reference Genome
@@ -159,7 +159,7 @@ Not only does it contain sequence information, it contains quality information a
 This is the format in which most sequencing data is provided and commonly uses `.fq` or `.fastq` as the file extention.
 
 These files are often very large and easily compressed.
-Ss such, they will often be compressed using `gzip` and thus have `.fastq.gz` as their file extension.
+As such, they will often be compressed using `gzip` and thus have `.fastq.gz` as their file extension.
 This compression provides two benefits: 1) they occupy less space on disk and 2) faster reading of a file from disk.
 Whilst you might be tempted to decompress these files in order to use them, most tools capable of reading FASTQ files can directly read the `gzip` compressed files.
 
@@ -402,7 +402,7 @@ This is more easily seen in the following table:
 | 30          | 1 in 1000       | 99.9%       |
 | 40          | 1 in 10000      | 99.99%      |
 
-Now we understand how quality scores are encoded in the FASTQ file, it gives us a basis for understanding how the rest of quality control process works.
+Now we understand how quality scores are encoded in the FASTQ file, it gives us a basis for understanding how the rest of the quality control process works.
 The FastQC application which compiles and reports on FASTQ file data quality is covered in the next session.
 
 

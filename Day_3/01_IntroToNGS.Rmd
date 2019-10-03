@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
     fig.align = "center",
     results = "hide"
 )
-if (interactive()) setwd(here::here("Day_2"))
+if (interactive()) setwd(here::here("Day_3"))
 ```
 ## Welcome
 
@@ -66,24 +66,26 @@ and run through a NGS pipeline from raw sequencing data through to aligning the 
   - What is Next Generation Sequencing
   - NGS pipelines in bash
   - Effect of library preparation on raw data
-  - Introduction FASTQ file format
+  - Key NGS file types
+  - Introduction to FASTQ file format
 
-- Session 2: FastQC and Adapter Removal
+- Session 2: FastQC Concepts and Adapter Trimming
   - Data quality checks on raw data
   - Interpreting FastQC output
-  - Adapter Removal
+  - Use of ngsReports package
+  - Adapter Trimming
 
-- Session 3: Quality Check and STAR Alignment
+- Session 3: Building an Genome Reference Index
   - Data quality checks on trimmed data
   - Interpreting changes in FastQC output
+  - Downloading a Reference Genome
+  - Building an Index
+
+- Session 4: STAR Alignment and Indexing with SAMtools
   - Introduction to STAR
   - Data alignment with STAR
-
-- Session 4: Indexing with SAMtools
   - Introduction to SAMTools
   - Indexing of aligned files
-  - Introduction to IGV
-  - Viewing aligned and indexed files with IGViewer
   - Wrap up and Close
 
 ## Setup the directory for today
@@ -124,6 +126,168 @@ Variation and bias can be introduced during library construction due to random h
 With different runs on different machines you can get other sources of variability due to sequencing protocols, the device used (e.g. IonTorrent, Illumina, PacBio) and the sequencing depth.
 All of these sources of variability with the data can lead to so-called `batch effects` which may need to be compensated for in the experimental design if the samples being compared were not processed in the same experimental run.
 
+# Key File Types
+
+This is a good opportunity to explore a few important file types and utilities within the Bioinformatics field.
+
+* TOC
+{:toc}
+
+## Genome Browsers
+
+Genome browsers are applications that provide a way to view, explore and compare genomic information in a graphical environment.
+
+Genome browsers enable researchers to visualize and browse entire genomes with annotated data including gene prediction and structure, proteins, expression, regulation, variation, comparative analysis, and so on.
+Annotated data is usually from multiple diverse sources.
+They differ from ordinary biological databases in that they display data in a graphical format, with genome coordinates on one axis and the location of annotations indicated by a space-filling graphic to show the occurrence of genes and other features[¹](https://en.wikipedia.org/w/index.php?title=Genome_browser&oldid=889818322).
+
+### UCSC
+{:.no_toc}
+
+Often we'll use a genome browser running on our local machines (IGV), but a good one to start with is the web-based UCSC browser.
+Click [this link](http://http://genome.ucsc.edu/cgi-bin/hgTracks?db=mm10&lastVirtModeType=default&lastVirtModeExtraState=&virtModeType=default&virtMode=0&nonVirtPosition=&position=chr12%3A56694976%2D56714605&hgsid=765160515_GjO1S5ZO5JIgCAIc5dqVfVaEwxG6) and you should see a slightly intimidating screen full of information.
+
+You'll be able to see:
+
+1. Genes with their transcript structure at the top, along with their position on the genome, as defined by GENCODE
+2. RefSeq-based gene models
+3. Gene expression from multiple tissues
+4. Alignments with other species
+5. A whole lot of other information...
+
+Once you've got a handle on what's there, locate the `hide all` button and click that, which will just give the genomic region with no track information.
+We can turn on a huge variety of "*tracks*" which contain genomic information that we may care about.
+Let's start by turning on the GENCODE transcripts again.
+
+Under the **Genes and Gene Predictions** section, find the *GENCODE VM20* drop-down menu and click the arrow next to the word 'hide'.
+Change this to 'full' and hit one of the `refresh` button you can see scattered across the page.
+Now the transcripts will appear again in a less cluttered display.
+Under the hood, the browser has used this information saved as a `BED` file, which enables us to define genomic regions in a convenient *tab-delimited* format.
+We'll look at these in more detail soon.
+
+As well as showing the transcript structure, we can also show simple genomic features like a SNP, so let's look for the **Variation** region down the page a little, then set the *Common SNPs(142)* track to *full* as well.
+To make these changes appear, hit a *refresh* button again and the browser will now have this track showing.
+This is pretty crazy, so we can condense this using the *pack* option. 
+Try this then the *dense* and *squish* options to see what difference they all make.
+
+If you haven't already tried it, you can click on any of the genomic features and you'll be taken to a page containing all the key information about that feature.
+You can also drag your mouse over regions to zoom in, and can zoom out using the buttons at the top of the page.
+Type the name of your favourite gene into the search box and you'll be able to find your way to that.
+If you can't think of one, just enter *Oprk1* and you'll be taken to a page **full** of choices.
+Select the top transcript from the page, under Gencode Genes.
+This will take you back to the browser, but just showing the region for the selected transcript.
+
+Now we've had a brief exploration of the browser, let's look at some file types which will enable us to upload custom features, and which are useful at numerous stages during analysis using NGS data.
+
+There are two videos that go through the kinds of things you can do with the UCSC genome browser [here](https://www.youtube.com/watch?v=tfRyntqvb_g) and [here](https://www.youtube.com/watch?v=4qdXcm5vzNw).
+Take some time later to have a look at these.
+
+## BED Files
+
+### The basic format
+{:.no_toc}
+
+These are a common file type for uploading your own data to the UCSC browser if you'd like to add a custom track with your own genomic features.
+This format is best used for genomic regions which all represent the same type of feature (_e.g._ genes, promoters, sequence motifs etc).
+They're also able to be used as input for numerous analytic tools, so are very useful to know about.
+A full description of the format is available at: https://genome.ucsc.edu/FAQ/FAQformat.html#format1
+
+BED files are also very commonly used for interacting with a variety of NGS-related tools.
+We can use these to just obtain a subset of alignments from a larger file, to restrict variant calling to specific regions, etc.
+
+The basic structure is a tab-separated file, with a minimum of **three mandatory columns** giving the Chromosome (`chrom`), start (`chromStart`) and end (`chromEnd`) positions.
+In this way we can simply define genomic regions of interest that we have found in our analysis, and can visualise them.
+As with the vast majority of the file types we'll come across, each line needs to have the same number of fields, with the exception of any header lines.
+Unlike other file types, header lines in bed files **do not** start with a comment character but can only begin with the words `browser` or `track`.
+The header lines are important in the context of genome browser custom annotation tracks, but most external tools will not tolerate their presence.
+
+## GFF/GTF Files
+
+There can be a little confusion about GFF and GTF files and these share some similarities with BED files.
+GFF (General Feature Format) files have version 2 and version 3 formats, which are slightly different.
+Today, we'll just look at GTF (General Transfer Format) files, which are best considered as GFF2.2, as restrictions are placed on the type of entries that can be placed in some columns.
+
+While BED files are generally for showing all the locations of a single type of feature, multiple feature types can be specified within one of these files.
+Again, like BED files, fields are tab-separated with no line provided which gives the column names.
+These are fixed by design, and as such explicit column names are not required.
+
+1. **seqname** - name of the chromosome or scaffold; chromosome names can be given with or without the 'chr' prefix.
+Important note: the seqname must be one used within Ensembl, _i.e._ a standard chromosome name or an Ensembl identifier such as a scaffold ID, without any additional content such as species or assembly.
+See the example GFF output below.
+2. **source** - name of the program that generated this feature, or the data source (database or project name)
+3. **feature** - feature type name, can only take the values "CDS", "start_codon", "stop_codon", "5UTR", "3UTR", "inter", "inter_CNS", "intron_CNS" and "exon" (CNS stands for Conserved Noncoding Sequence)
+4. **start** - Start position of the feature, with sequence numbering starting at 1.
+5. **end** - End position of the feature, with sequence numbering starting at 1.
+6. **score** - A floating point value (_i.e._ decimal points are allowed)
+7. **strand** - defined as + (forward) or - (reverse).
+8. **frame** - One of '0', '1' or '2'. '0' indicates that the first base of the feature is the first base of a codon, '1' that the second base is the first base of a codon, and so on...
+9. **attribute** - A *semicolon-separated* list of tag-value pairs, providing additional information about each feature.
+In the GTF format two mandatory features are required here, although they can be an empty string, _i.e._ `""`:
+    + **gene_id** *value*
+    + **transcript_id** *value*
+
+Notice that there's *no real way to represent our FOXP3 sites as a GTF file*!
+This format is really designed for gene-centric features as seen in the 3rd column.
+An example is given below.
+Also note that header rows are not controlled, but must start with the comment character `#`
+
+```
+# Data taken from http://mblab.wustl.edu/GTF22.html
+381 Twinscan  CDS          380   401   .   +   0  gene_id "001"; transcript_id "001.1";
+381 Twinscan  CDS          501   650   .   +   2  gene_id "001"; transcript_id "001.1";
+381 Twinscan  CDS          700   707   .   +   2  gene_id "001"; transcript_id "001.1";
+381 Twinscan  start_codon  380   382   .   +   0  gene_id "001"; transcript_id "001.1";
+381 Twinscan  stop_codon   708   710   .   +   0  gene_id "001"; transcript_id "001.1";
+```
+
+**Note**: People variously use GFF and GTF to talk about GFF version 2, and GFF to talk about GFF version 3. GFF2 is not compatible with GFF3, so make sure you have the correct file format if you are given a GFF file. There are conversion tools available to inter-convert them, they are rarely reliable.
+
+## VCF Files
+
+The most **hated** format is a VCF file, which stands for *Variant Call Format*, but is more accurately known as *Very Confusing Format*.
+Again, the general structure is header rows (beginning with the double comment symbol `##`), followed by tab-separated columns with the actual data.
+In this case, column names are provided directly about the data in a line starting with a single comment character (`#`).
+
+While a flexible format, it is heavily structured with abbreviations and symbols with important meaning, _e.g._ phased genotypes are separated by `|`, while unphased ones are separated by `/`.
+The example is taken from the file specification in the [VCFv4.2 specification](https://samtools.github.io/hts-specs/VCFv4.2.pdf), and we could spend an enormous amount of time unpacking this example.
+
+Important things to note are:
+
+- The first 8 columns are mandatory
+- The `FORMAT` column defines the format of subsequent columns
+- *Sample level* information follows the `FORMAT` column
+- The header rows are called *Meta-information* rows, and describe the coding used in each field via a series of tags.
+
+## FASTA Files
+
+Most of us have seen these, and the basic format is very simple.
+Information about a sequence is placed after a `>` symbol, and these can occur throughout the file, indicating the start of a new sequence.
+Following the description line are lines of sequence data typically 50 to 80 characters long.
+Sequence data can be DNA, RNA or Amino Acid data and may be upper or lower case.
+
+```
+>NC_000067.6:5588450-5606134 Mus musculus strain C57BL/6J chromosome 1, GRCm38.p6 C57BL/6J fragment
+GCGGGGGCAACCAGCCCTGCAGCTCTCAGCTTGCCTGTCCCCGGCGCACCTTGCTGATCCCAAACAGGCA
+GAGCTTCTTCCAGTCTTGGAAGGCACAAATTGAGCATCAGGAACGTGGACCCATCAGGGCTGAACAGCTA
+CTCAGGATCTAAAGTGGTGACTTGGAAAGCTGACGGTGACTTGGGAAGGGAGGTCGCCAATCAGCGATCT
+GGAGGTGAGCTTGGGGCTTTCGAGGCACAGTGGGGAAATTGCTGTGGCTAGTGCTTCTTGGGGTTGCATG
+CACAGACAGGCAGGGTAGAGGCAGCCACAGGAGTGGA
+```
+
+This is the format genomes are provided in by all genomic repositories such as Ensembl, NCBI and the UCSC.
+Each chromosome is specified by the header, with the entire sequence following.
+
+## FASTQ Files
+
+These are the extension of FASTA files which we usually obtain as output from our sequencing runs.
+We'll spend some time exploring these below.
+
+## SAM Files
+
+These are plain text **S**equence **A**lignment/**M**ap files, which we will also spend some time looking at later today.
+The binary version of a SAM file is known as a BAM file, and is the plain text information converted to the more computer-friendly binary format.
+This usually results in a size reduction of around 5-10 fold, and BAM files are able to be processed much more quickly by NGS tools.
+We'll also have a good look at these during the course of the day.
 
 ## FASTQ File Format
 
@@ -143,24 +307,24 @@ cd ~/Day_3/
 You must ensure that you use this _exact_ path as any variations will undoubtedly cause you problems and lead to unnecessary confusion later on.
 You can use the command `pwd` to ensure the path you are in is correct.
 
-Use the `mkdir` command to create a new folder called `rawData` within your `Day_3` folder, which will be the location for raw FASTQ files we have obtained from a sequencing system.
+Use the `mkdir` command to create a new folder called `0_rawData` within your `Day_3` folder, which will be the location for raw FASTQ files we have obtained from a sequencing system.
 
 ```
-mkdir rawData
+mkdir 0_rawData
 ```
 
-We now want to use the `cp` command to copy the raw FASTQ files to your new rawData folder
+We now want to use the `cp` command to copy the raw FASTQ files to your new 0_rawData folder
 
 ```
-cp -r ~/data/Day_3/rawData/* ~/Day_3/rawData/
-ls ~/Day_3/rawData/fastq
+cp -r ~/data/Day_3/0_rawData/* ~/Day_3/0_rawData/
+ls ~/Day_3/0_rawData/fastq
 ```
 
 The command `zcat` unzips a file and prints the output to the terminal, or standard output (stdout).
 If we did this to these files, we would see a stream of data whizzing past in the terminal, but instead we can just pipe the output of zcat to the command head to view the first 10 lines of a file.
 
 ```
-cd ~/Day_3/rawData/fastq
+cd ~/Day_3/0_rawData/fastq
 zcat SRR945375.skm.fastq.gz | head
 ```
 
@@ -266,6 +430,19 @@ This is more easily seen in the following table:
 
 Now we understand how quality scores are encoded in the FASTQ file, it gives us a basis for understanding how the rest of quality control process works.
 The FastQC application which compiles and reports on FASTQ file data quality is covered in the next session.
+
+
+#### Questions
+{:.no_toc}
+
+1. Which coding system do you think has been used for the RNA-Seq reads that we
+have?
+2. In the PHRED +33 coding system, the character ‘@’ is used. Can you think of any
+potential issues this would cause when searching within a fastq file?
+3.A common threshold for inclusion of a sequence is a Q score >20.
+Considering the
+millions of sequences obtained from a flowcell, do you think that NGS is likely to be
+highly accurate?
 
 
 

@@ -1,0 +1,39 @@
+---
+title: "Spring Into Bioinformatics"
+subtitle: "Building a Genome Index"
+author: "Mark Armstrong"
+date: "03/10/2019"
+output: 
+  html_document:
+    toc: true
+---
+
+# Day 3
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    message = FALSE,
+    warning = FALSE,
+    fig.align = "center",
+    results = "hide"
+)
+if (interactive()) setwd(here::here("Day_3"))
+```
+
+### FastQC on Trimmed Data
+
+Now that we've run `AdapterRemoval` on our complete set of files, we'll need to check what impact it's had on our libraries.
+An intelligent approach would be to include a call to `FastQC` as the final step in the script from session 2.
+To completed that script, add the following line and run it all again.
+Otherwise you just run this command interactively to achieve the same effect.
+
+```
+fastqc -t 2 -o 1_trimmedData/FastQC/ 1_trimmedData/fastq/*fastq.gz
+```
+
+Once this completes, use RStudio to manually inspect a report, then use the function `writeHtmlReport` from the R package `ngsReports` to write the default summary across all files.
+You can also use the ShinyApp `fastqcShiny` to inspect these interactively if you'd like.
+
+By comparing this new report to the original report, **are you happy with the improvements to the data?**
+

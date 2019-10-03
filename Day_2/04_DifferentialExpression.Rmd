@@ -430,8 +430,7 @@ Let's compare the distributions of the two datasets (cbc and skm), using CPM on 
 In the following, the command `par(mfrow = c(1,2))` is a base graphics approach and sets the plotting `par`ameters to be a `m`ulti=`f`eature layout, with 1 row and 2 columns.
 We set these parameters because the convenient function `plotDensities()` we are calling below uses base graphics, not `ggplot2`.
 
-```{r plotCPM, fig.cap="Comparison of logCPM distributions before (A) and after (B) filtering for undetectable genes.
-Values on the x-axis represent logCPM"}
+```{r plotCPM, fig.cap="Comparison of logCPM distributions before (A) and after (B) filtering for undetectable genes. Values on the x-axis represent logCPM"}
 
 col <- brewer.pal(nrow(dgeList$samples), "Paired")
 par(mfrow = c(1,2))

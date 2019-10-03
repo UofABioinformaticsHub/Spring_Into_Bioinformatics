@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
     fig.align = "center",
     results = "hide"
 )
-if (interactive()) setwd(here::here("Day_2"))
+if (interactive()) setwd(here::here("Day_3"))
 ```
 ## Our Dataset
 
@@ -77,7 +77,10 @@ As the files are on the VM we have two options to view them:
   
 ## Opening RStudio
 
- ## description here on accessing HTML files on VM via RStudio - I'm not sure how this works
+Using the file pane, navigate to your project root directory and you'll see all the folders we have created so far.
+In order to see the FastQC reports, navigate to ~/Day_3/0_rawData/FastQC.
+
+Here you'll see all those files we created by running the FastQC tool, so select one of the html files, and when asked Open in Editor or View in Web Browser, choose the Web Browser option. This will open the FastQC report in a new tab in your browser. If you have a popup blocker, please allow this tab to open and you'll be able to see what the FastQC report looks like for your given file.
 
 ## Inspecting a FastQC Report
 
@@ -419,5 +422,26 @@ Now you've seen how specify the output file, by using the input file we're nearl
 Add the following lines to your script on a new blank line immediately before our final `done` command.
 If you're having trouble with any of this please call a tutor over too!
 
+```
+    DISCARDED=${OUTDIR}/fastq/$(basename ${f%.fastq.gz}.discarded.gz)
+    echo "Discarded reads will be written to ${DISCARDED}"
+```
+
+Note that in the above we used the `%` sign like a pair of scissors that snipped off the suffix `fastq.gz`, and we then replaced it with the new suffix `discarded.gz`.
+Clearly, the next file we need to specify will be our log or settings file.
+
+```
+    SETTINGS=${OUTDIR}/log/$(basename ${f%.fastq.gz}.settings)
+    echo "AdapterRemoval settings file will be written to ${SETTINGS}"
+```
+
+Now we have all the information we need to run `AdapterRemoval` on every input file!
+We'll leave it up to you to write the complete script, but please call for help when you need it.
+
+**Can you think of anything important we skipped over in the above?**<details>
+We didn't check for the existence of the output directories for the trimmed fastq files, or for the settings files
+</details>
+
+The complete script should run in about 10 minutes.
 
 

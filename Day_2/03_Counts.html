@@ -491,8 +491,8 @@ featureCounts -Q 10 \
   ${SAMPLES}
   
 ## Storing the output in a single file
-cut -f1,7- ${ALIGNDIR}/featureCounts/user_counts.out | \
-    sed 1d &gt; ${ALIGNDIR}/featureCounts/user_genes.out</code></pre>
+cut -f1,7- ${ALIGNDIR}/counts/counts.out | \
+    sed 1d &gt; ${ALIGNDIR}/counts/genes.out</code></pre>
 <p>Let’s talk through these three steps:</p>
 <div id="declare-variables" class="section level4">
 <h4>1. Declare variables</h4>
@@ -538,7 +538,7 @@ cut -f1,7- ${ALIGNDIR}/featureCounts/user_counts.out | \
 <td align="left">The gene description file</td>
 </tr>
 <tr class="even">
-<td align="center"><code>-o ${ALIGNDIR}/featureCounts/user_counts.out</code></td>
+<td align="center"><code>-o ${ALIGNDIR}/counts/counts.out</code></td>
 <td align="left">The output file</td>
 </tr>
 <tr class="odd">

@@ -594,14 +594,16 @@ CACAGACAGGCAGGGTAGAGGCAGCCACAGGAGTGGA</code></pre>
 <p>In the terminal, make sure you are in the <code>Day_3</code> directory within your home directory.</p>
 <pre><code>cd ~/Day_3/</code></pre>
 <p>You must ensure that you use this <em>exact</em> path as any variations will undoubtedly cause you problems and lead to unnecessary confusion later on. You can use the command <code>pwd</code> to ensure the path you are in is correct.</p>
-<p>Use the <code>mkdir</code> command to create a new folder called <code>0_rawData</code> within your <code>Day_3</code> folder, which will be the location for raw FASTQ files we have obtained from a sequencing system.</p>
-<pre><code>mkdir 0_rawData</code></pre>
+<p>Use the <code>mkdir</code> command to create a new directory called <code>0_rawData</code> within your <code>Day_3</code> directory, which will be the location for raw FASTQ files we have obtained from a sequencing system.</p>
+<pre><code>mkdir ~/Day_3/0_rawData</code></pre>
 <p>We now want to use the <code>cp</code> command to copy the raw FASTQ files to your new 0_rawData folder</p>
-<pre><code>cp -r ~/data/Day_3/0_rawData/* ~/Day_3/0_rawData/
+<pre><code>cp --recursive \
+  ~/data/Day_3/0_rawData/* \
+  ~/Day_3/0_rawData/
 
 # Have a look to see what files you have available
 ls ~/Day_3/0_rawData/fastq</code></pre>
-<p>The command <code>zcat</code> expands a <code>*.gz</code> file and prints the output to the terminal (<code>STDOUT</code> or standard output). If we did this to these files, we would see a stream of data whizzing past in the terminal, but instead we can just pipe the output of zcat to the command <code>head</code> to view the first 10 lines of a file.</p>
+<p>The command <code>zcat</code> can be used to expand a <code>*.gz</code> file and print it’s contents to the terminal via standard output (<code>STDOUT</code>). If we do this to a large FASTQ file we would see a stream of data whizzing past in the terminal - not very helpful. Instead we can pipe the output of <code>zcat</code> to the command <code>head</code> in order to only view the first 10 lines of the file.</p>
 <pre><code>cd ~/Day_3/0_rawData/fastq
 zcat SRR945375.skm.fastq.gz | head</code></pre>
 <p>Using the argument <code>--lines</code> we can modify the behaviour of head to return a specified number of lines, for example <code>--lines 8</code> will return the first 8 lines of a file.</p>

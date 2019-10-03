@@ -7,12 +7,11 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
-<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 <meta name="author" content="Mark Armstrong" />
 
-<meta name="date" content="2019-03-10" />
+<meta name="date" content="2019-04-10" />
 
 <title>Spring Into Bioinformatics</title>
 
@@ -271,6 +270,7 @@ code {
 }
 img {
   max-width:100%;
+  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -344,6 +344,18 @@ summary {
 }
 </style>
 
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
 <!-- code folding -->
 
 
@@ -366,7 +378,7 @@ summary {
 <h1 class="title toc-ignore">Spring Into Bioinformatics</h1>
 <h3 class="subtitle">Building a Genome Index</h3>
 <h4 class="author">Mark Armstrong</h4>
-<h4 class="date">03/10/2019</h4>
+<h4 class="date">04/10/2019</h4>
 
 </div>
 
@@ -379,10 +391,10 @@ summary {
 <li><a href="#how-aligning-works">How Aligning Works</a><ul>
 <li><a href="#whats-the-difference">What’s the difference</a></li>
 </ul></li>
-<li><a href="#aligning-our-rna-seq-reads">Aligning our RNA Seq reads</a><ul>
+<li><a href="#aligning-our-rna-seq-reads">Aligning our RNA-Seq reads</a><ul>
 <li><a href="#downloading-a-reference-genome">Downloading a Reference Genome</a></li>
+<li><a href="#building-an-index-for-star">Building an Index for STAR</a></li>
 </ul></li>
-<li><a href="#building-an-index">Building an Index</a></li>
 </ul></li>
 </ul>
 </div>
@@ -391,21 +403,29 @@ summary {
 <h1>Day 3</h1>
 <div id="fastqc-on-trimmed-data" class="section level3">
 <h3>FastQC on Trimmed Data</h3>
-<p>Now that we’ve run <code>AdapterRemoval</code> on our complete set of files, we’ll need to check what impact it’s had on our libraries. An intelligent approach would be to include a call to <code>FastQC</code> as the final step in the script from session 2. To completed that script, add the following line and run it all again. Otherwise you just run this command interactively to achieve the same effect.</p>
-<p>Remember to create the <code>FastQC</code> directory within the <code>1_trimmedData</code> folder, and to make a check for its presence in the script if you are placing the command in there.</p>
-<pre><code>fastqc -t 2 -o 1_trimmedData/FastQC/ 1_trimmedData/fastq/*fastq.gz</code></pre>
-<p>Once this completes, use RStudio to manually inspect a report, then use the function <code>writeHtmlReport</code> from the R package <code>ngsReports</code> to write the default summary across all files.</p>
-<pre><code>library(ngsReports)
-writeHtmlReport(&quot;1_trimmedData/FastQC/&quot;, species=&quot;Mmusculus&quot;)</code></pre>
-<p>By comparing this new report to the original report, <strong>are you happy with the improvements to the data?</strong></p>
+<p>Now that we’ve run <code>AdapterRemoval</code> on our complete set of FASTQ files, we’ll need to check what impact it’s had on the quality of our sequencing library files.</p>
+<p>Add the following line the the <code>removeAdapters.sh</code> file and rerun it. Alternatively, run this <code>fastqc</code> command directly in the terminal.</p>
+<pre class="bash"><code># Create the FastQC output dir ahead of time
+mkdir ~/Day_3/1_trimmedData/FastQC
+
+# Run FastQC
+fastqc \
+  --threads 2 \
+  --outdir ~/Day_3/1_trimmedData/FastQC/ \
+  ~/Day_3/1_trimmedData/fastq/*.fastq.gz</code></pre>
+<p>Once this completes, use <code>ngsReports</code> to aggregate all the FastQC reports for the trimmed FASTQ files:</p>
+<pre class="r"><code>library(ngsReports)
+writeHtmlReport(&quot;~/Day_3/1_trimmedData/FastQC/&quot;, species=&quot;Mmusculus&quot;)</code></pre>
+<p>Compare this aggregated report for the trimmed data with that generated for the raw data, <strong>are you happy with the improvements to the data?</strong></p>
 </div>
 </div>
 <div id="sequence-alignment" class="section level1">
 <h1>Sequence Alignment</h1>
-<p>Once we have cleaned our data of any contaminating sequences, and removed the bases which are more likely to contain errors, we can more confidently align our reads to a reference. Different experiments may have different reference sequences depending on the context. For example, if we have a sub-sample of the genome associated with restriction sites like RAD-Seq, we would probably align to a reference genome, or if we have RNA-Seq we might choose to align to the transcriptome instead of the whole genome. Alternatively, we might be interested in <em>de novo</em> genome/transcriptome assembly where we have no reference genome to compare our data to.</p>
+<p>Once we have cleaned our data of any contaminating adapter sequences and removed low quality bases which might affect our downstream analyses, we can more confidently move onto aligning the reads to a reference.</p>
+<p>For the purposes of this workshop we will perform an alignment of our RAN-seq reads to the genome. This requires using a tool capable of performing “spliced alignment”, tha ability to align the two ends of a read across an intron.</p>
 <div id="how-aligning-works" class="section level2">
 <h2>How Aligning Works</h2>
-<p>Most fast aligners in widespread public use are based on a technique called the Burrows-Wheeler Transform, which is essentially a way of restructuring, or <em>indexing</em>, the genome to allow very rapid searching. This technique comes from computer science and is really beyond the scope of what most of us need to know. The essence of it is that we have a very fast searching method, and most aligners use a seed sequence within each read to begin the searching. These seeds are then expanded outwards to give the best mapping to a sequence. There are many different alignment tools available today and each one will have a particular strength. For example, <code>bowtie</code> is very good for mapping very short reads, whilst <code>bowtie2</code> or <code>bwa</code> are more suited to reads longer than 50bp.</p>
+<p>Modern read alignment software tools require the reference genome to be “indexed”. Much like a telephone book index, a reference genome index facilitates the rapid lookup of information from the reference genome. More specifically, we can rapidly identify all the locations in the genome which have a perfect match to a short number of bases (a k-mer of length k base-pairs) extracted from a read. These positions identified in the genome are used to “seed” a more computationally intensive step of looking for an complete alignment of the whole read to the regions where the seed(s) were identified.</p>
 <div id="whats-the-difference" class="section level3">
 <h3>What’s the difference</h3>
 <p>Some key differences between aligners is in the way they index the genome, and in the a way they are equipped to handle mismatches and indels (insertions and deletions). Choosing an aligner can be a difficult decision with the differences often seeming quite subtle, but with significant impacts. Sometimes there is a best choice, other times there really isn’t. Make sure you’ve researched relatively thoroughly before deciding which to use.</p>
@@ -449,36 +469,40 @@ writeHtmlReport(&quot;1_trimmedData/FastQC/&quot;, species=&quot;Mmusculus&quot;
 </div>
 </div>
 <div id="aligning-our-rna-seq-reads" class="section level2">
-<h2>Aligning our RNA Seq reads</h2>
+<h2>Aligning our RNA-Seq reads</h2>
 <div id="downloading-a-reference-genome" class="section level3">
 <h3>Downloading a Reference Genome</h3>
 <p>To align any reads, we first need to download the appropriate (<em>i.e.</em> latest) genome and then we can build the index to enable fast searching via the Burrows-Wheeler Transform. Like we’ve seen in the previous sections, our reads today come from mice (<em>Mus musculus</em>).</p>
 <p>Let’s download the reference, but first we’ll need to create a directory to hold it. As this may be useful in multiple experiments, it makes sense to place it in a directory outside our current project.</p>
-<pre><code>mkdir -p ~/genomes/Mmusculus
-cd ~/genomes/Mmusculus</code></pre>
-<p><strong>Note</strong>: If you want the reference genome sequence you can use the command-line program <code>curl</code> to download the <em>M. musculus</em> genome sequence from the ftp server at <a href="ftp://ftp.ensembl.org/pub/release-96/fasta/mus_musculus/dna/">Ensembl</a>. The file you would normally need is Mus_musculus.GRCm38.dna.primary_assembly.fa.gz, however, today we have only given you the reads which map to Chromosome 1. (Restricting ourselves to just this chromosome will make the genome indexing step much faster, and will also allow us to align everything in the time we have.) Copy the link for the file Mus_musculus.GRCm38.dna.chromosome.1.fa.gz from your web browser and use <code>curl</code> to download this file to your <code>genomes/Drerio</code> directory. Please make sure you keep the filename the same as the source filename. This way we’ll all be able to use the same commands below.</p>
-<pre><code>curl 'ftp://ftp.ensembl.org/pub/release-96/fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna.chromosome.1.fa.gz' -o ~/genomes/Mmusculus/Mus_musculus.GRCm38.dna.chromosome.1.fa.gz</code></pre>
-<p>The <code>curl</code> command above copies a file from an ftp server. You need to specify exactly where you want the file to go and what to call it with the <code>-o</code> argument. In this example we are calling it the same as the source file from Ensembl. We would also often supply <code>curl</code> with a user and password using the <code>-u</code> argument, but this is a freely available dataset from Ensembl with no restrictions on its access.</p>
-<pre><code># Have a look at the first few lines
-zcat Mus_musculus.GRCm38.dna.chromosome.1.fa.gz | head</code></pre>
-<p>Note that the first line describes the following sequence and begins with a &gt; symbol and the rest contains all the sequence information. This assembly has an awful lot of unknown nucleotides, represented with <code>NNNNN</code> at the beginning of the chromosome, which is fairly common as these regions are usually quite difficult to sequence properly due to very long stretches of duplicated nucleotides. The <code>N</code> values act as placeholders for later assemblies to fill in.</p>
+<pre class="bash"><code>mkdir --parents ~/Day_3/genomes/Mmusculus
+cd ~/Day_3/genomes/Mmusculus</code></pre>
+<p>We have only provided you with reads which align to chromosome 1. This is so that compute processing times are fast enough to be completed in a reasonable amount of time. <strong><em>Normally, you would align to the whole genome.</em></strong></p>
+<p>Use <code>curl</code> to download the <em>M. musculus</em> chromosome 1 file via the terminal:</p>
+<pre class="bash"><code>curl &quot;ftp://ftp.ensembl.org/pub/release-96/fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna.chromosome.1.fa.gz&quot; \
+  --output ~/Day_3/genomes/Mmusculus/Mus_musculus.GRCm38.dna.chromosome.1.fa.gz</code></pre>
+<p>The <code>curl</code> command above copies a file from an ftp server. You need to specify exactly where you want the file to go and what to call it with the <code>--output</code> argument.</p>
+<pre class="bash"><code># Have a look at the first few lines
+zcat ~/Day_3/genomes/Mmusculus/Mus_musculus.GRCm38.dna.chromosome.1.fa.gz | head</code></pre>
+<p>Note that the first line describes the following sequence and begins with a <code>&gt;</code> symbol and the rest contains all the sequence information. This assembly has an awful lot of unknown nucleotides, represented with <code>NNNNN</code> at the beginning of the chromosome, which is fairly common as these regions are usually quite difficult to sequence properly due to very long stretches of duplicated nucleotides. The <code>N</code> values act as placeholders for later assemblies to fill in.</p>
 <p>If you would like to see where the sequenced part of Chromosome 1 begins in this assembly, you can use <code>zgrep</code> to search for any line beginning with A,C,G or T.</p>
-<pre><code> zgrep -n1 &quot;^[ACTG]&quot; Mus_musculus.GRCm38.dna.chromosome.1.fa.gz | head</code></pre>
-<p>The <code>-n1</code> argument tells zgrep that we also want to see the line before the one on which the known sequencing begins. We are also piping the results to <code>head</code> so we only see 10 lines of interest from this area. This should all look quite familiar really. Unfortunately, when building an index, STAR (which we’ll be using today) needs an extracted fasta file, so we’ll have to extract this file now</p>
-<pre><code>gunzip Mus_musculus.GRCm38.dna.chromosome.1.fa.gz</code></pre>
+<pre class="bash"><code>zgrep -n1 &quot;^[ACTG]&quot; ~/Day_3/genomes/Mmusculus/Mus_musculus.GRCm38.dna.chromosome.1.fa.gz | head</code></pre>
+<p>The <code>-n1</code> argument tells zgrep that we also want to see the line before the one on which the match is found. We are also piping the results to <code>head</code> so we only see 10 lines of interest from this area.</p>
 </div>
-</div>
-<div id="building-an-index" class="section level2">
-<h2>Building an Index</h2>
+<div id="building-an-index-for-star" class="section level3">
+<h3>Building an Index for STAR</h3>
 <p>As mentioned above read aligners achieve their performance by constructing an index of the reference genome so that initial seed locations can be rapidly found for alignment extension. The process of constructing an index can take a significant amount of time, although only needs to be performed once for each genome being used and so becomes less of a burden if you’re reusing the same genome over a period of time.</p>
-<p>We’re not too concerned with the details of this step as many references can be obtained, or are provided with a prebuilt index. On phoenix, a very incomplete collection is the in the folder <code>/data/biorefs</code> and we are working to populate this more thoroughly. Just copy and paste the following, which should complete within about 5 minutes, and gives us an index that STAR will be able to use when running alignments.</p>
-<pre><code>STAR \
-    --runMode genomeGenerate \
-    --runThreadN 2 \
-    --genomeDir ~/genomes/Mmusculus \
-    --genomeSAindexNbases 12 \
-    --genomeFastaFiles ~/genomes/Mmusculus/Mus_musculus.GRCm38.dna.chromosome.1.fa</code></pre>
-<p>With this complete, we are now ready to align our samples to the genome</p>
+<p>Unfortunately, when building an index, STAR (which we’ll be using today) needs an extracted fasta file, so we’ll have to extract this file now</p>
+<pre class="bash"><code>gunzip Mus_musculus.GRCm38.dna.chromosome.1.fa.gz</code></pre>
+<p>Index the decompressed chromosome 1 FASTA file.</p>
+<pre class="bash"><code>STAR \
+  --runMode genomeGenerate \
+  --runThreadN 2 \
+  --genomeDir ~/Day_3/genomes/Mmusculus \
+  --genomeSAindexNbases 12 \
+  --genomeFastaFiles \
+  ~/Day_3/genomes/Mmusculus/Mus_musculus.GRCm38.dna.chromosome.1.fa</code></pre>
+<p>With this complete, we are now ready to align the reads from our samples to the indexed genome.</p>
+</div>
 </div>
 </div>
 
@@ -499,23 +523,6 @@ $(document).ready(function () {
 
 
 </script>
-
-<!-- tabsets -->
-
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
-
-<!-- code folding -->
-
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>

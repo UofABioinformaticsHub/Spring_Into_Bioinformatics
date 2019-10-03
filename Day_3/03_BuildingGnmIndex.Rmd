@@ -135,7 +135,7 @@ Unfortunately, when building an index, STAR (which we'll be using today) needs a
 gunzip Mus_musculus.GRCm38.dna.chromosome.1.fa.gz
 ```
 
-Index the decompressed chromosome 1 FASTA file.
+Index the decompressed chromosome 1 FASTA file:
 
 ```bash
 STAR \
@@ -147,4 +147,12 @@ STAR \
   ~/Day_3/genomes/Mmusculus/Mus_musculus.GRCm38.dna.chromosome.1.fa
 ```
 
-With this complete, we are now ready to align the reads from our samples to the indexed genome.
+With this complete, you are now ready to align reads to the indexed genome.
+
+***In the event that the indexing fails or takes too long, copy our precomputed index files:***
+
+```bash
+cp --recursive \
+  ~/data/Day_3/genomes/Mmusculus \
+  ~/Day_3/genomes/
+```

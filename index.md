@@ -59,6 +59,12 @@ Password for `UofA-Guest`:
 
 # Day 3
 
+| Session | Topic |
+| ------- |:----- |
+| 9:00 - 10:30 | [1. Introduction To NGS](Day_3/01_IntroToNGS.html) |  
+| 11:00 - 12:30 | [2. FastQC of Raw Data and Adapter Removal](Day_3/02_QCAdapterRem.html) | 
+| 1:30 - 3:00 | [3. Building a Genome Index](Day_3/03_BuildingGnmIndex.html) |
+| 3:30 - 5:00 | [4. Aligning Reads to a Reference](Day_3/04_Alignment.html) |
 
 # Additional Resources
 

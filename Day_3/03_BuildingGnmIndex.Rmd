@@ -52,8 +52,8 @@ Compare this aggregated report for the trimmed data with that generated for the 
 
 Once we have cleaned our data of any contaminating adapter sequences and removed low quality bases which might affect our downstream analyses, we can more confidently move onto aligning the reads to a reference.
 
-For the purposes of this workshop we will perform an alignment of our RAN-seq reads to the genome.
-This requires using a tool capable of performing "spliced alignment", tha ability to align the two ends of a read across an intron.
+For the purposes of this workshop we will perform an alignment of our RNA-seq reads to the genome.
+This requires using a tool capable of performing "spliced alignment", the ability to align the two ends of a read across an intron.
 
 ## How Aligning Works
 

@@ -7,6 +7,7 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 <meta name="author" content="Mark Armstrong" />
@@ -270,7 +271,6 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -343,18 +343,6 @@ summary {
   display: none;
 }
 </style>
-
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
 
 <!-- code folding -->
 
@@ -438,7 +426,7 @@ $(document).ready(function () {
 </tbody>
 </table>
 <p>The VMs we’re all using have two cores so we can set the parameter <code>--threads 2</code>. We can also write to the output directory that we’ve already created above. Let’s run FastQC across all of our FASTQ files and see what we get.</p>
-<pre class="bash"><code># Make sure we&#39;re in the correct directory
+<pre class="bash"><code># Make sure we're in the correct directory
 cd ~/Day_3/
 
 # Make the FastQC output directory ahead of time
@@ -608,7 +596,7 @@ OUTDIR=~/Day_3/1_trimmedData
 
 # Check our output directory exists before going any further
 if [ ! -d &quot;${OUTDIR}&quot; ]; then
-    # If the directory doesn&#39;t exist, exit with a message and an error
+    # If the directory doesn't exist, exit with a message and an error
     echo &quot;${OUTDIR} does not exist&quot;
     exit 1
 fi
@@ -669,6 +657,23 @@ $(document).ready(function () {
 
 
 </script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>

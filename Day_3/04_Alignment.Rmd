@@ -92,7 +92,7 @@ For now, let's return to our actual alignments, as contained in the BAM file.
 ### What is a BAM file?
 
 BAM stands for Binary AlignMent and these are our alignments stored in binary.
-There is another type of file called a SAM (Sequence AlignMent) file which is in plain text, but SAM files can become very large and waste our precious storage resources.
+There is another type of file called a SAM (Sequence Alignment/Map) file which is in plain text, but SAM files can become very large and waste our precious storage resources.
 BAM files are the exact same files stored in binary format which enables them to be much smaller.
 This also has the added benefit of being faster for computers to read & perform operations on, as only humans read plain text.
 Computers don't.

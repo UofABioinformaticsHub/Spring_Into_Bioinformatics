@@ -7,6 +7,7 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 <meta name="author" content="Mark Armstrong" />
@@ -270,7 +271,6 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -344,18 +344,6 @@ summary {
 }
 </style>
 
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
-
 <!-- code folding -->
 
 
@@ -422,7 +410,7 @@ writeHtmlReport(&quot;~/Day_3/1_trimmedData/FastQC/&quot;, species=&quot;Mmuscul
 <div id="sequence-alignment" class="section level1">
 <h1>Sequence Alignment</h1>
 <p>Once we have cleaned our data of any contaminating adapter sequences and removed low quality bases which might affect our downstream analyses, we can more confidently move onto aligning the reads to a reference.</p>
-<p>For the purposes of this workshop we will perform an alignment of our RAN-seq reads to the genome. This requires using a tool capable of performing “spliced alignment”, tha ability to align the two ends of a read across an intron.</p>
+<p>For the purposes of this workshop we will perform an alignment of our RNA-seq reads to the genome. This requires using a tool capable of performing “spliced alignment”, the ability to align the two ends of a read across an intron.</p>
 <div id="how-aligning-works" class="section level2">
 <h2>How Aligning Works</h2>
 <p>Modern read alignment software tools require the reference genome to be “indexed”. Much like a telephone book index, a reference genome index facilitates the rapid lookup of information from the reference genome. More specifically, we can rapidly identify all the locations in the genome which have a perfect match to a short number of bases (a k-mer of length k base-pairs) extracted from a read. These positions identified in the genome are used to “seed” a more computationally intensive step of looking for an complete alignment of the whole read to the regions where the seed(s) were identified.</p>
@@ -527,6 +515,23 @@ $(document).ready(function () {
 
 
 </script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>

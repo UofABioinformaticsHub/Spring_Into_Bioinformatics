@@ -271,7 +271,7 @@ Take some time later to have a look at these.
 
 In the terminal, make sure you are in the `Day_3` directory within your home directory.
 
-```
+```bash
 cd ~/Day_3/
 ```
 
@@ -280,13 +280,13 @@ You can use the command `pwd` to ensure the path you are in is correct.
 
 Use the `mkdir` command to create a new directory called `0_rawData` within your `Day_3` directory, which will be the location for raw FASTQ files we have obtained from a sequencing system.
 
-```
+```bash
 mkdir ~/Day_3/0_rawData
 ```
 
 We now want to use the `cp` command to copy the raw FASTQ files to your new 0_rawData folder
 
-```
+```bash
 cp --recursive \
   ~/data/Day_3/0_rawData/* \
   ~/Day_3/0_rawData/
@@ -299,14 +299,14 @@ The command `zcat` can be used to expand a `*.gz` file and print it's contents t
 If we do this to a large FASTQ file we would see a stream of data whizzing past in the terminal - not very helpful.
 Instead we can pipe the output of `zcat` to the command `head` in order to only view the first 10 lines of the file.
 
-```
+```bash
 cd ~/Day_3/0_rawData/fastq
 zcat SRR945375.skm.fastq.gz | head
 ```
 
 Using the argument `--lines` we can modify the behaviour of head to return a specified number of lines, for example `--lines 8` will return the first 8 lines of a file.
 
-```
+```bash
 zcat SRR945375.skm.fastq.gz | head -lines 8
 ```
 

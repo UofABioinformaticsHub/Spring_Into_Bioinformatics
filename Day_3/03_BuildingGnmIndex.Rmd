@@ -146,6 +146,7 @@ STAR \
     --runMode genomeGenerate \
     --runThreadN 2 \
     --genomeDir ~/genomes/Mmusculus \
+    --genomeSAindexNbases 12 \
     --genomeFastaFiles ~/genomes/Mmusculus/Mus_musculus.GRCm38.dna.chromosome.1.fa
 ```
 

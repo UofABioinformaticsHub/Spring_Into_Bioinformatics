@@ -402,5 +402,22 @@ done
 ```
 #### Script explanation
 
-We have introduced a couple of new concepts in this script.
+We have introduced a couple of new concepts in this script. The `if ... fi` block only executes if the condition within the square brackets `[]` resolves to `TRUE`.
+To check if a folder exists we use the construction `if [ -d foldername ];` where -d tells the script we are checking for the existence of a directory called foldername.
+As we are interested in reporting if the directory doesn't exist, we use the operator `!` (NOT) so the construction evaluates to TRUE if the directory is not found `if [ ! -d "$OUTDIR" ]`.
+By the way take careful note of the spaces in the square brackets as these are necessary and will easily trip up new users if they are missed.
+The `exit 1` command will exit out of the script without any further actions, which saves time if the input files are missing and prevents resources being wasted on later processes.
+The informative error outputed using `echo` on the line above is also helpful when you want to know why your script failed.
+
+In the `do ... done` block we can see how the `OUTFILE`, or the filename to be created as output, is constructed.
+The variable for the output directory `OUTDIR` is appended with the fastq directory name, `/fastq/`, and the filename, provided by `$(basename ${f})`.
+As you can see, the `basename` program is used to remove the input directory and leave only the filename itself.
+
+Now you've seen how specify the output file, by using the input file we're nearly there.
+**What else do you think we need to specify?**
+
+Add the following lines to your script on a new blank line immediately before our final `done` command.
+If you're having trouble with any of this please call a tutor over too!
+
+
 

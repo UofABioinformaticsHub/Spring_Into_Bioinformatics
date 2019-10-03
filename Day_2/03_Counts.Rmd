@@ -132,7 +132,7 @@ GTF=~/genomes/Mmusculus/Mus_musculus.GRCm38.93.chr1.gtf
 ALIGNDIR=~/Day_2/data/2_alignedData
 
 ## Feature Counts - obtaining all sorted bam files
-SAMPLES=`find ${ALIGNDIR}/bam -name "*out.bam" | tr '\n' ' '`
+SAMPLES=$(find ${ALIGNDIR}/bam -name "*out.bam" | tr '\n' ' ')
 
 ## Running featureCounts on the sorted bam files
 featureCounts -Q 10 \

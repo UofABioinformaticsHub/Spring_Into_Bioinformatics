@@ -213,7 +213,7 @@ However, the 5th field contains the `MAPQ` score which indicates how well the re
 How this value is calculated can often differ between alignment tools, but primarily the a higher score indicates a better, more unique alignment.
 
 You will find out tomorrow that quality scores in sequencing technologies, as well as mapping qualities, are projected onto the same quality scale called a "Phred Score".
-On sequencing machines, a Phred score is a probability of error for each individual base bair that was sequenced and therefore is an assigned level of accuracy.
+On sequencing machines, a Phred score is a probability of error for each individual base pair that was sequenced and therefore is an assigned level of accuracy.
 In fact, if you look in the second last field (11th) you will see the ASCII-33 Phred base quality scores. 
 On the latest sequencing machines that produce FASTQ files (Illumina 1.8+), these scores go from 0 - 41.
 The table below defines the error profile of Phred Quality scores as you go higher on the scale.

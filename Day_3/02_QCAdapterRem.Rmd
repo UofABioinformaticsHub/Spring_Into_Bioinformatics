@@ -2,7 +2,7 @@
 title: "Spring Into Bioinformatics"
 subtitle: "FastQC of Raw Data and Adapter Removal"
 author: "Mark Armstrong"
-date: "01/10/2019"
+date: "04/10/2019"
 output: 
   html_document:
     toc: true
@@ -37,8 +37,8 @@ As with all programs on the command line, we need to see how it works before we 
 The following command will open the help file in the less pager which we used earlier.
 To navigate through the file, use the `<spacebar>` to move forward a page, `<b>` to move back a page & `<q>` to exit the manual.
 
-```
-fastqc -h | less
+```bash
+fastqc --help | less
 ```
 
 FastQC will create an html report for each file you provide, which can then be opened from any web browser such as firefox.
@@ -48,69 +48,69 @@ Some important options for the command can be seen in the manual.
 As you will see in the manual, setting the `-h` option as above will call the help page.
 Look up the following options to find what they mean.
 
-| Option | Usage |
-|:------ |:------|
-| `-o`     |       |
-| `-t`     |       |
+| Option      | Usage |
+|:------------|:------|
+| `--outdir`  |       |
+| `--threads` |       |
 
-The VMs we're all using have two cores so we can set the parameter `-t 2`.
-We can also write to the output folder that we've already created above.
-Let's run FastQC on all of our files and see what we get.
-You will also need to create the FastQC in the Day_3 folder.
-(Make sure you're in the `~/Day_3/` folder first.)
+The VMs we're all using have two cores so we can set the parameter `--threads 2`.
+We can also write to the output directory that we've already created above.
+Let's run FastQC across all of our FASTQ files and see what we get.
 
-```
+```bash
+# Make sure we're in the correct directory
 cd ~/Day_3/
-mkdir -p 0_rawData/FastQC/
-fastqc -t 2 -o 0_rawData/FastQC/ 0_rawData/fastq/*
+
+# Make the FastQC output directory ahead of time
+mkdir --parents ~/Day_3/0_rawData/FastQC
+
+# Run FastQC across all the FASTQ files
+fastqc \
+  --threads 2 \
+  --outdir ~/Day_3/0_rawData/FastQC/ \
+  ~/Day_3/0_rawData/fastq/*.fastq.gz
 ```
 
-This will have created a FastQC report for every file as an html file which we can normally view using any web browser.
+This will have created a FastQC report, in HTML format, for every input FASTQ file.
+This report file can be opened and viewed using any web browser.
 
+```bash
+# Lets see what outputs FastQC generated
+ls ~/Day_3/0_rawData/FastQC/
 ```
-ls 0_rawData/FastQC/
-```
 
-As the files are on the VM we have two options to view them:
-  1) copying them to your local machine (i.e. laptop) using `scp`
-  2) using RStudio to have a look at the files
-  
-## Opening RStudio
-
-Using the file pane, navigate to your project root directory and you'll see all the folders we have created so far.
-In order to see the FastQC reports, navigate to ~/Day_3/0_rawData/FastQC.
-
-Here you'll see all those files we created by running the FastQC tool, so select one of the html files, and when asked Open in Editor or View in Web Browser, choose the Web Browser option. This will open the FastQC report in a new tab in your browser. If you have a popup blocker, please allow this tab to open and you'll be able to see what the FastQC report looks like for your given file.
+Using RStudio, navigate to the `~/Day_3/0_rawData/FastQC/` directory.
+Here you'll see all the files created by running the FastQC tool. Click on one of the HTML files and choose "View in the Web Browser".
+This will open the FastQC report in a new tab in your web browser.
 
 ## Inspecting a FastQC Report
 
-The left hand menu contains a series of click-able links to navigate through the each module contained in the report, with a quick guideline about each module given as a tick, cross or exclamation mark.
-Some of these are not particularly informative, and the modules we can reasonably ignore in the vast majority of cases are:
+The left hand menu contains a series of clickable links to navigate through the results of each QC "module" contained within the report.
+A simple traffic light system is used to indicate when something is deviating from what might be expected as being "normal".
 
-1. Per tile sequence quality
-2. Per sequence quality scores
-3. Per base N content
-4. Kmer Content (if it's even included)
+The QC metrics, and their traffic light system, are based on what is expected for whole genome shotgun sequencing - not RNA-seq.
+As such, some metrics which appear poor at first glance, are not unexpected for RNA-seq data sets. 
 
 #### Questions
 {:.no_toc}
 
-1. *How many sequences are there in all files?*
-2. *How long are the sequences in these files?*
+1. *How many reads are reported as being present in `SRR945377.skm.fastq.gz`?*
+2. *How long are the reads in `SRR945377.skm.fastq.gz`?*
 
-## Interpreting the FastQC Report
+## Interpreting a FastQC Report
 
 As we work through the QC reports we will develop a series of criteria for cleaning up our files.
 There is usually no perfect solution, we just have to make the best decisions we can based on the information we have.
 Some sections will prove more informative than others, and some will only be helpful if we are drilling deeply into our data.
 Firstly we’ll just look at a selection of the plots.
-We’ll investigate some of the others with some ‘bad’ data later.
+We’ll investigate some of the others with some "bad" data later.
 
 ### Per Base Sequence Quality
 {:.no_toc}
 
-Click on the `Per base sequence quality` hyper-link on the left of the page & you will see a boxplot of the QC score distributions for every position in the read.
-These are the PHRED scores we discussed earlier, and this plot is usually the first one that bioinformaticians will look at for making informed decisions about the overall quality of the data and settings for later stages of the analysis.
+Click on the `Per base sequence quality` hyperlink on the left of the page.
+You will see a boxplot of the QC score distributions for every position in the read.
+These are the PHRED scores we discussed earlier, and this plot is usually the first one that bioinformaticians will look at for making informed decisions about the overall quality of the data and settings for removing poor quality regions of reads.
 
 *What do you notice about the QC scores as you progress through the read?*
 
@@ -135,15 +135,15 @@ There’s not much of note for us to see here.
 
 **Per Base Sequence Content**<details>
 This will often show artefacts from barcodes or adapters early in the reads, before stabilising to show a relatively even distribution of the bases.
-  Here FastQC may have flagged this as a 'fail' and you will see considerable variability in the first few bases.
-  This is actually very normal for RNA seq and is a consequence of non-random fragmentation and non-random adapter ligation.
-  It's also relatively common to see a drift towards G towards the end of a read. This can be a bit more troubling (ask a tutor to explain) but is usually remedied as we trim our reads in the next step.
+Here FastQC may have flagged this as a 'fail' and you will see considerable variability in the first few bases.
+This is actually very normal for RNA seq and is a consequence of non-random fragmentation and non-random adapter ligation.
+It's also relatively common to see a drift towards G towards the end of a read. This can be a bit more troubling (ask a tutor to explain) but is usually remedied as we trim our reads in the next step.
 </details>
 
 **Sequence Length Distribution**<details>
 This shows the distributions of read lengths in our data. If the length of your reads is vital (_e.g._ smallRNA data), then this can also be a very informative plot. For our data, it appears that some trimming has already been performed. This was done by the sequence provider, much to our disappointment.
-  It's actually quite common for this to happen, it's just the bioinformaticians love to know everything about every step that was performed.
-  It's also not uncommon for Illumina's adapter removal tools to leave quite a few there and you then have to trim yet again.
+It's actually quite common for this to happen, it's just the bioinformaticians love to know everything about every step that was performed.
+It's also not uncommon for Illumina's adapter removal tools to leave quite a few there and you then have to trim yet again.
 </details>
 
 **Sequence Duplication Levels** This plot shows about what you’d expect from a typical NGS experiment.
@@ -182,34 +182,30 @@ Another interesting report is available at http://www.bioinformatics.babraham.ac
 Whilst the quality scores generally look pretty good for this one, see if you can find a point of interest in this data.
 This is a good example, of why just skimming the first plot may not be such a good idea.
 
-## Working With Complete Datasets
+## Aggregating FastQC Reports
 
 In our dataset, we have 8 samples so it's not too onerous to inspect all 8 individually.
 In the real world, we'll often have much larger datasets and looking at FastQC reports for all samples quickly becomes challenging.
-A commonly used tool for this is [MultiQC](https://multiqc.info/) however, the team in the Bioinformatics Hub has written an R package to enable this called `ngsReports`.
-To use this, first create a folder called `R` in your Day_3 folder to manage R scripts created today.
+The Bioinformatics Hub has written and published an R package, called `ngsReports`, to enable aggregation of many FastQC reports into an easily digestable format.
+To use this, first create a directory called `R` in your `~/Day_3` directory. You will use this directory to store all of the R scripts which you will create today.
 
+```bash
+mkdir --parents ~/Day_3/R/
 ```
-mkdir -p ~/Day_3/R/
-```
 
-The package ngsReports is available on Bioconductor, but it is installed already on your VMs so open a new R script and save it in your `R` folder as `FastQC_section.R`.
+The R package `ngsReports` is available on Bioconductor and is preinstalled on your VM.
+Create a new R script and save it in your `R` folder as `FastQC_section.R`.
 
-Once you've done this we can load the package using:
+Add the following contents to this file:
 
-```
+```r
 library(ngsReports)
+writeHtmlReport("~/Day_3/0_rawData/FastQC/", species="Mmusculus")
 ```
 
-The simplest method now is to automatically write a summarised report for all of our files using the function `writeHtmlReport()`, which will use a supplied template to combine all of our FastQC reports.
-Enter this function name, and then initialise the quotation marks inside the function `writeHtmlReport("")`.
-Go back inside the quotation marks then use the tab key to navigate to your FastQC reports, then press enter.
-The final command will look something like
+Now "Run" the file to have `ngsReports` process the FastQC report and generate an aggregated HTML report file.
 
-```
-writeHtmlReport("0_rawData/FastQC/", species="Mmusculus")
-```
-Once this has completed, use your Files pane to navigate to your FastQC reports again & open the file `ngsReports_Fastqc.html` using your Web Browser.
+Once this has completed, use your Files pane to navigate to your FastQC reports again & open the file `~/Day_3/0_rawData/FastQC/ngsReports_Fastqc.html` using your Web Browser.
 This will contain a summary of all the files in our dataset.
 Take your time scrolling through the report, and note that each plot is interactive so you can hover over various points and see which file you are looking at.
 
@@ -229,13 +225,13 @@ Each analysis is slightly different so some steps may or may not be required for
 
 1. **Remove Adapters and Quality Trim** (`AdapterRemoval`)
 2. **Run FastQC** on trimmed reads.
-3. **Alignment** to a reference (`bwa`, `bowtie2`, `STAR`)
+3. **Splice Alignment** to a reference (`STAR`)
 4. **Post-alignment QC** (`picard markDuplicates`, `IGV`)
 
 
 ## Removal of Low Quality Bases and Adapters
 
-Adapter removal is an important step in many sequencing projects, mainly projects associated with DNA/RNA inserts which are shorter than the sequencing read lengths.
+Adapter removal is an important step in many sequencing projects, especially projects associated with DNA/RNA inserts which are shorter than the sequencing read lengths.
 A good example of this would be an experiment where the target molecule is small non-coding RNAs.
 As these are generally between 19-35bp, which is shorter than the shortest read length provided by Illumina sequencing machines, all reads containing a target molecule will also contain adapters.
 In addition, when we size select our initial fragments, we select a range of fragment sizes and some are bound to be shorter than our read length.
@@ -251,21 +247,25 @@ These are commonly used in Illumina projects.
 **Before we perform adapter trimming, look at the following code.**
 
 
-```
+```bash
 cd ~/Day_3/
-mkdir -p 1_trimmedData/fastq
-mkdir -p 1_trimmedData/log
+
+# Create output directories ahead of time
+mkdir -p ~/Day_3/1_trimmedData/fastq
+mkdir -p ~/Day_3/1_trimmedData/log
+
+# Run adapter removal
 AdapterRemoval \
-	--file1 0_rawData/fastq/SRR945375.skm.fastq.gz \
-	--output1 1_trimmedData/fastq/SRR945375.skm.fastq.gz \
-	--discarded 1_trimmedData/fastq/SRR945375.skm.discarded.gz \
+	--file1 ~/Day_3/0_rawData/fastq/SRR945375.skm.fastq.gz \
+	--output1 ~/Day_3/1_trimmedData/fastq/SRR945375.skm.fastq.gz \
+	--discarded ~/Day_3/1_trimmedData/fastq/SRR945375.skm.discarded.gz \
 	--minlength 50 \
 	--threads 2 \
 	--trimns \
 	--trimqualities \
 	--minquality 20 \
 	--gzip \
-	--settings 1_trimmedData/log/SRR945375.skm.fastq.gz.settings
+	--settings ~/Day_3/1_trimmedData/log/SRR945375.skm.fastq.gz.settings
 ```
 
 #### Questions
@@ -276,172 +276,158 @@ AdapterRemoval \
 *4. What do you expect to find in the file specified using the `--settings` option?*
 
 Run the above code by pasting into your terminal.
-Did you guess correctly?
+Did you answer the questions correctly?
 
 The `AdapterRemoval` tool can be made to output information about the trimming process to a file.
 In the above we wrote this output to a "settings" file using the `--settings` option to output this to the `SRR945375.skm.fastq.gz.settings` file.
 Let's have a look in the file to check the output.
 
-```
-less 1_trimmedData/log/SRR945375.skm.fastq.gz.settings
+```bash
+less ~/Day_3/1_trimmedData/log/SRR945375.skm.fastq.gz.settings
 ```
 
-As these were a good initial sample, it's not surprising that we didn't lose many sequences.
+As this file contains a sample of good reads, it's not surprising that we didn't lose many reads during this step.
 Notice that many reads were trimmed (`Number of well aligned reads`), but were still long enough and high enough quality to be retained.
 
 ### Trimming using a script
 
 In the above, we manually ran the process on an individual file and manually specified key information about where to write various output files.
-In the real world, this is not really a viable option and we'll need to write a script to trim all of our samples.
+In the real world, this is not really a viable option and we'll need to write a script to trim ***ALL*** of our sample FASTQ files.
 
 Before we write this script, let's think about what will be involved.
 
-1 - We'll need to provide a list of input fastq files to work on
+1 - We'll need to provide a list of input FASTQ files to work on
 2 - We'll need to specify different output files
-3 - Some parameters will be constant, whilst others will change for every file
+3 - Some parameters will be constant, whilst others will change for each file
 
-In following excerpts, we'll (hopefully) give you all the clues you need to complete this script, particularly when you look at the actual command we gave to AdapterRemoval above.
+With the above provided AdapterRemoval command as a guide, we will guide you to creating a script capable of processing all your FASTQ read files.
 
 **How do we find our files?**
 
-First, create a bash folder to store our bash scripts in.
+First, create a directory called `bash` to store our bash scripts:
 
-```
+```bash
 mkdir -p ~/Day_3/bash/
 ```
 
-Create a new file called `removeAdapters.sh` using whatever script editor you prefer, and save it in the bash folder`bash/removeAdapters.sh`.
-If you are unsure, you can use a simple editor called nano to create the script using the command `nano bash/removeAdapters.sh`.
-The command will open an empty window in the terminal with a number of available commands shown at the bottom.
+Create a new file called `removeAdapters.sh` and save it as `~/Day_3/bash/removeAdapters.sh` with the following content:
 
-![nano in terminal](../images/nano_adapters.png)
-
-Type or copy-paste the following script into the removeAdapters.sh file:
-
-```
+```bash
 #!/bin/bash
 
-# Setup our input directory, then look for the files we need
 INDIR=~/Day_3/0_rawData/fastq
-INFILES=$(ls ${INDIR}/*fastq.gz)
 
-# Check that we have found the correct files
-for f in ${INFILES}
+# Loop over out FASTQ files
+for f in ${INDIR}/*.fastq.gz
 do
-    echo "Found ${f}"
+  # Echo what file(s) we found
+  echo "Found ${f}"
 done
 ```
 
-Save your file in your script editor and close. 
-If you are using `nano`, exit and save by entering `Ctrl+x` answering `y` when asked if you'd like to save changes.
-Let's run the script using `bash bash/removeAdapters.sh`
+Run the script by typing `bash ~/Day_3/bash/removeAdapters.sh` into the terminal.
 
 **Did you see the files you expected returned?**
 
 #### Script explanation
 
-The shebang `#!` at the top of the script file tells the operator which scripting language we want to use, in this case bash `/bin/bash`.
-The lines beginning with `#`, apart from the shebang, are comment lines which are used to tell users something about the script or a particular section of script e.g. `# Setup our input directory, then look for the files we need` tells us what the script immediately following the comment will be performing.
-These are important to use as they both help us to remember what we were intending to do and to help anyone else looking at our script to follow the logic.
+The shebang `#!` at the top of the script file tells the operating system which scripting language we want to use, in this case bash `/bin/bash`.
+All other lines beginning with `#` are comment lines and are used to self-document a script.
+Comments are important as they both help us to remember what we were trying to achieve and help others reading our code to understand what we were intending to do.
 
-Next we are setting a variable to our input folder using `INDIR=~/Day_3/0_rawData/fastq`.
-`INDIR` is the variable and we have set it to the location `~/Day_3/0_rawData/fastq`, which will make later references to the folder location easier to manage.
-If we moved out input files then we would only have to change this single assignment within the script, rather than look for all references throughout it.
+Next we set a variable to our input directory using `INDIR=~/Day_3/0_rawData/fastq`.
+Doing so will help our future selves (or others) to more easily update the script to process data from a different input directory by simply updating this one line. 
 
-The line `INFILES=$(ls ${INDIR}/*fastq.gz)` is a little more complex to unpack, as it has a bash command `ls` running within a variable assignment.
-The command `ls`, which lists files from a directory location, is passed a folder location and the file type we want the script to find.
-The folder location is the variable `INDIR` we created earlier, and bash knows to use this through the dollar sign `$` and braces `{}` surrounding the variable `${INDIR}`.
-We have also limited the ls command to our fastq files by appending the variable with `/*fastq.gz`.
+The line `for f in ${INDIR}/*.fastq.gz` initialises a "for loop" to iterative over each file matched by `${INDIR}/*.fastq.gz` and execute the code specified between `do` and `done` for each of the files (${f}).
 
-In effect we are running the command `ls ~/Day_3/0_rawData/fastq/*fastq.gz`, which if you try yourself will return our sample files.
-The results of this ls command are themselves assigned to a new variable called `INFILES` by wrapping the ls command within `$()`, as in `INFILES=$(ls ${INDIR}/*fastq.gz)`.
-The variable `INFILES` therefore contains a list of file names and these are accessed individually in the next bash script section using for: `for f in ${INFILES}`.
-This assigns the first file to a variable `f` then carrys out the operation following it in the `do ... done` block before assigning the next file to the variable `f`.
-In the `do .... done` block example we are running the `echo` command which outputs text strings, and creating a string by joining `"Found ` with the variable `${f}`.
-As we have not redirected the output of echo to another application, the output defaults to text on the screen of the user.
+We are simply using an `echo` command to illustrate what is happening with a `for` loop before we start implementing commands for processing the FASTQ files for real.
 
-In summary the script uses `ls` to look in the folder we assigned it, collects a list of files matching the pattern `*fastq.gz`, and prints out the filenames individually to the screen.
+Try changing line 9 (the `echo` line) to the following and rerun the script.
 
-
-Try changing the second to last line to be the following
-
-```
-    echo "Found $(basename ${f})" 
+```bash
+  echo "Found $(basename ${f})"
 ```
 
 **What was the difference?**
 
-The program `basename`, takes a pathname and remove any prefixes up to the last slash.
-This effectively removes the input folder we provided at the beginning of the script and the `echo` command will only output the file names themselves to the screen.
-Hopefully it will be clear to you that this simple script offers us opportunities to build much more powerful automated tools to run over a group of files.
+The program `basename`, takes a filepath/directory and remove all but the last element of the path.
+In this case, it strips off all the leading directories from the filepath of each FASTQ file.
 
-Now that we've figured how to find our input files and remove the input directory from their names, let's see if we can create new names for output files.
+Now that we've figured how to loop over our input FASTQ files let's try to generate a variable which contains the path of one our intended AdapterRemoval output files.
+
 Change your script to be the following.
 
-```
+```bash
 #!/bin/bash
 
-# Setup our input directory, then look for the files we need
 INDIR=~/Day_3/0_rawData/fastq
-INFILES=$(ls ${INDIR}/*fastq.gz)
 
 # Define our output parent directory
 OUTDIR=~/Day_3/1_trimmedData
 
-# Check our output directory exists
-if [ ! -d "$OUTDIR" ]; then
+# Check our output directory exists before going any further
+if [ ! -d "${OUTDIR}" ]; then
     # If the directory doesn't exist, exit with a message and an error
-    echo "$OUTDIR does not exist"
+    echo "${OUTDIR} does not exist"
     exit 1
 fi
 
-# Check that we have found the correct files
-for f in ${INFILES}
+
+# Loop over out FASTQ files
+for f in ${INDIR}/*.fastq.gz
 do
-    echo "Found ${f}"
-    OUTFILE=${OUTDIR}/fastq/$(basename ${f})
-    echo "Trimmed reads will be written to ${OUTFILE}"
+  # Echo what file(s) we found
+  echo "Found $(basename ${f})"
+  
+  # Define the filepath for out trimmed reads
+  OUTFILE=${OUTDIR}/fastq/$(basename ${f})
+  echo "Trimmed reads will be written to ${OUTFILE}"
 done
 ```
+
 #### Script explanation
 
 We have introduced a couple of new concepts in this script. The `if ... fi` block only executes if the condition within the square brackets `[]` resolves to `TRUE`.
-To check if a folder exists we use the construction `if [ -d foldername ];` where -d tells the script we are checking for the existence of a directory called foldername.
-As we are interested in reporting if the directory doesn't exist, we use the operator `!` (NOT) so the construction evaluates to TRUE if the directory is not found `if [ ! -d "$OUTDIR" ]`.
-By the way take careful note of the spaces in the square brackets as these are necessary and will easily trip up new users if they are missed.
+To check if a directory exists we use the construction `if [ -d foldername ];` where `-d` tells the script we are checking for the existence of a directory called foldername.
+As we are interested in reporting if the directory doesn't exist, we use the operator `!` (NOT) so the construction evaluates to TRUE if the directory is not found `if [ ! -d "${OUTDIR}" ]`.
+
+***Take careful note of the spaces in the square brackets as these are necessary and will easily trip up new users if they are missed.***
+
 The `exit 1` command will exit out of the script without any further actions, which saves time if the input files are missing and prevents resources being wasted on later processes.
-The informative error outputed using `echo` on the line above is also helpful when you want to know why your script failed.
+The informative error message output by `echo` on the line above is helpful when you want to know why your script failed.
 
 In the `do ... done` block we can see how the `OUTFILE`, or the filename to be created as output, is constructed.
 The variable for the output directory `OUTDIR` is appended with the fastq directory name, `/fastq/`, and the filename, provided by `$(basename ${f})`.
-As you can see, the `basename` program is used to remove the input directory and leave only the filename itself.
 
-Now you've seen how specify the output file, by using the input file we're nearly there.
+Now you've seen how to construct the filepath for an output file, we are close to being able to place the AdapterRemoval command within the script.
+
 **What else do you think we need to specify?**
 
 Add the following lines to your script on a new blank line immediately before our final `done` command.
 If you're having trouble with any of this please call a tutor over too!
 
-```
-    DISCARDED=${OUTDIR}/fastq/$(basename ${f%.fastq.gz}.discarded.gz)
-    echo "Discarded reads will be written to ${DISCARDED}"
+```bash
+  DISCARDED=${OUTDIR}/fastq/$(basename ${f/%.fastq.gz/.discarded.gz})
+  echo "Discarded reads will be written to ${DISCARDED}"
 ```
 
-Note that in the above we used the `%` sign like a pair of scissors that snipped off the suffix `fastq.gz`, and we then replaced it with the new suffix `discarded.gz`.
-Clearly, the next file we need to specify will be our log or settings file.
+Note that in the above we used the bash `${string/%substring/replacement}` substring replacement syntax to replace the `.fastq.gz` suffix with `.discarded.gz`.
 
-```
-    SETTINGS=${OUTDIR}/log/$(basename ${f%.fastq.gz}.settings)
-    echo "AdapterRemoval settings file will be written to ${SETTINGS}"
+We still need to specify the settings file.
+
+```bash
+  SETTINGS=${OUTDIR}/log/$(basename ${f/%.fastq.gz/.settings/})
+  echo "AdapterRemoval settings file will be written to ${SETTINGS}"
 ```
 
 Now we have all the information we need to run `AdapterRemoval` on every input file!
-We'll leave it up to you to write the complete script, but please call for help when you need it.
+
+We'll leave it up to you to complete the script by adding in the `AdapterRemoval` command inside the `for` loop.
+***Don't forget to use the variables (`${f}`, `${OUTFILE}`, `${DISCARDED}` and `${SETTINGS}`) for the input and output files!***
+If you have trouble, don't forget to shout out for help.
 
 **Can you think of anything important we skipped over in the above?**<details>
 We didn't check for the existence of the output directories for the trimmed fastq files, or for the settings files
 </details>
 
-The complete script should run in about 10 minutes.
-
-
+The complete script should complete in about 10 minutes.

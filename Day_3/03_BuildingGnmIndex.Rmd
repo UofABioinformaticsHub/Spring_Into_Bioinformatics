@@ -2,7 +2,7 @@
 title: "Spring Into Bioinformatics"
 subtitle: "Building a Genome Index"
 author: "Mark Armstrong"
-date: "03/10/2019"
+date: "04/10/2019"
 output: 
   html_document:
     toc: true
@@ -23,42 +23,44 @@ if (interactive()) setwd(here::here("Day_3"))
 
 ### FastQC on Trimmed Data
 
-Now that we've run `AdapterRemoval` on our complete set of files, we'll need to check what impact it's had on our libraries.
-An intelligent approach would be to include a call to `FastQC` as the final step in the script from session 2.
-To completed that script, add the following line and run it all again.
-Otherwise you just run this command interactively to achieve the same effect.
+Now that we've run `AdapterRemoval` on our complete set of FASTQ files, we'll need to check what impact it's had on the quality of our sequencing library files.
 
-Remember to create the `FastQC` directory within the `1_trimmedData` folder, and to make a check for its presence in the script if you are placing the command in there.
+Add the following line the the `removeAdapters.sh` file and rerun it.
+Alternatively, run this `fastqc` command directly in the terminal.
 
+```bash
+# Create the FastQC output dir ahead of time
+mkdir ~/Day_3/1_trimmedData/FastQC
+
+# Run FastQC
+fastqc \
+  --threads 2 \
+  --outdir ~/Day_3/1_trimmedData/FastQC/ \
+  ~/Day_3/1_trimmedData/fastq/*.fastq.gz
 ```
-fastqc -t 2 -o 1_trimmedData/FastQC/ 1_trimmedData/fastq/*fastq.gz
-```
 
-Once this completes, use RStudio to manually inspect a report, then use the function `writeHtmlReport` from the R package `ngsReports` to write the default summary across all files.
+Once this completes, use `ngsReports` to aggregate all the FastQC reports for the trimmed FASTQ files:
 
-```
+```r
 library(ngsReports)
-writeHtmlReport("1_trimmedData/FastQC/", species="Mmusculus")
+writeHtmlReport("~/Day_3/1_trimmedData/FastQC/", species="Mmusculus")
 ```
 
-By comparing this new report to the original report, **are you happy with the improvements to the data?**
-
+Compare this aggregated report for the trimmed data with that generated for the raw data, **are you happy with the improvements to the data?**
 
 # Sequence Alignment
 
-Once we have cleaned our data of any contaminating sequences, and removed the bases which are more likely to contain errors, we can more confidently align our reads to a reference.
-Different experiments may have different reference sequences depending on the context.
-For example, if we have a sub-sample of the genome associated with restriction sites like RAD-Seq, we would probably align to a reference genome, or if we have RNA-Seq we might choose to align to the transcriptome instead of the whole genome.
-Alternatively, we might be interested in *de novo* genome/transcriptome assembly where we have no reference genome to compare our data to.
+Once we have cleaned our data of any contaminating adapter sequences and removed low quality bases which might affect our downstream analyses, we can more confidently move onto aligning the reads to a reference.
+
+For the purposes of this workshop we will perform an alignment of our RAN-seq reads to the genome.
+This requires using a tool capable of performing "spliced alignment", tha ability to align the two ends of a read across an intron.
 
 ## How Aligning Works
 
-Most fast aligners in widespread public use are based on a technique called the Burrows-Wheeler Transform, which is essentially a way of restructuring, or *indexing*, the genome to allow very rapid searching.
-This technique comes from computer science and is really beyond the scope of what most of us need to know.
-The essence of it is that we have a very fast searching method, and most aligners use a seed sequence within each read to begin the searching.
-These seeds are then expanded outwards to give the best mapping to a sequence.
-There are many different alignment tools available today and each one will have a particular strength.
-For example, `bowtie` is very good for mapping very short reads, whilst `bowtie2` or `bwa` are more suited to reads longer than 50bp.
+Modern read alignment software tools require the reference genome to be "indexed".
+Much like a telephone book index, a reference genome index facilitates the rapid lookup of information from the reference genome.
+More specifically, we can rapidly identify all the locations in the genome which have a perfect match to a short number of bases (a k-mer of length k base-pairs) extracted from a read.
+These positions identified in the genome are used to "seed" a more computationally intensive step of looking for an complete alignment of the whole read to the regions where the seed(s) were identified.
 
 ### What’s the difference
 
@@ -77,7 +79,7 @@ Here is a selection of commonly used aligners.
 | [kallisto](https://pachterlab.github.io/kallisto/about) | RNA | short read |
 | [HISAT2](https://ccb.jhu.edu/software/hisat2/manual.shtml) | RNA/DNA | short read |
 
-## Aligning our RNA Seq reads
+## Aligning our RNA-Seq reads
 
 ### Downloading a Reference Genome
 
@@ -86,68 +88,63 @@ To align any reads, we first need to download the appropriate (_i.e._ latest) ge
 Let's download the reference, but first we'll need to create a directory to hold it.
 As this may be useful in multiple experiments, it makes sense to place it in a directory outside our current project.
 
-```
-mkdir -p ~/genomes/Mmusculus
-cd ~/genomes/Mmusculus
+```bash
+mkdir --parents ~/Day_3/genomes/Mmusculus
+cd ~/Day_3/genomes/Mmusculus
 ```
 
-**Note**: If you want the reference genome sequence you can use the command-line program `curl` to download the *M. musculus* genome sequence from the ftp server at [Ensembl](ftp://ftp.ensembl.org/pub/release-96/fasta/mus_musculus/dna/). 
-The file you would normally need is Mus_musculus.GRCm38.dna.primary_assembly.fa.gz, however, today we have only given you the reads which map to Chromosome 1.
-(Restricting ourselves to just this chromosome will make the genome indexing step much faster, and will also allow us to align everything in the time we have.)
-Copy the link for the file Mus_musculus.GRCm38.dna.chromosome.1.fa.gz from your web browser and use `curl` to download this file to your `genomes/Drerio` directory.
-Please make sure you keep the filename the same as the source filename.
-This way we'll all be able to use the same commands below.
+We have only provided you with reads which align to chromosome 1.
+This is so that compute processing times are fast enough to be completed in a reasonable amount of time. ***Normally, you would align to the whole genome.***
 
-```
-curl 'ftp://ftp.ensembl.org/pub/release-96/fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna.chromosome.1.fa.gz' -o ~/genomes/Mmusculus/Mus_musculus.GRCm38.dna.chromosome.1.fa.gz
+Use `curl` to download the *M. musculus* chromosome 1 file via the terminal:
+
+```bash
+curl "ftp://ftp.ensembl.org/pub/release-96/fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna.chromosome.1.fa.gz" \
+  --output ~/Day_3/genomes/Mmusculus/Mus_musculus.GRCm38.dna.chromosome.1.fa.gz
 ```
 
 The `curl` command above copies a file from an ftp server.
-You need to specify exactly where you want the file to go and what to call it with the `-o` argument.
-In this example we are calling it the same as the source file from Ensembl.
-We would also often supply `curl` with a user and password using the `-u` argument, but this is a freely available dataset from Ensembl with no restrictions on its access.
+You need to specify exactly where you want the file to go and what to call it with the `--output` argument.
 
-```
+```bash
 # Have a look at the first few lines
-zcat Mus_musculus.GRCm38.dna.chromosome.1.fa.gz | head
+zcat ~/Day_3/genomes/Mmusculus/Mus_musculus.GRCm38.dna.chromosome.1.fa.gz | head
 ```
 
-Note that the first line describes the following sequence and begins with a > symbol and the rest contains all the sequence information.
+Note that the first line describes the following sequence and begins with a `>` symbol and the rest contains all the sequence information.
 This assembly has an awful lot of unknown nucleotides, represented with `NNNNN` at the beginning of the chromosome, which is fairly common as these regions are usually quite difficult to sequence properly due to very long stretches of duplicated nucleotides.
 The `N` values act as placeholders for later assemblies to fill in.
 
 If you would like to see where the sequenced part of Chromosome 1 begins in this assembly, you can use `zgrep` to search for any line beginning with A,C,G or T.
 
-```
- zgrep -n1 "^[ACTG]" Mus_musculus.GRCm38.dna.chromosome.1.fa.gz | head
+```bash
+zgrep -n1 "^[ACTG]" ~/Day_3/genomes/Mmusculus/Mus_musculus.GRCm38.dna.chromosome.1.fa.gz | head
 ```
 
-The `-n1` argument tells zgrep that we also want to see the line before the one on which the known sequencing begins.
+The `-n1` argument tells zgrep that we also want to see the line before the one on which the match is found.
 We are also piping the results to `head` so we only see 10 lines of interest from this area.
-This should all look quite familiar really. 
-Unfortunately, when building an index, STAR (which we'll be using today) needs an extracted fasta file, so we'll have to extract this file now
 
-```
-gunzip Mus_musculus.GRCm38.dna.chromosome.1.fa.gz
-```
-
-
-## Building an Index
+### Building an Index for STAR
 
 As mentioned above read aligners achieve their performance by constructing an index of the reference genome so that initial seed locations can be rapidly found for alignment extension.
 The process of constructing an index can take a significant amount of time, although only needs to be performed once for each genome being used and so becomes less of a burden if you're reusing the same genome over a period of time.
 
-We're not too concerned with the details of this step as many references can be obtained, or are provided with a prebuilt index.
-On phoenix, a very incomplete collection is the in the folder `/data/biorefs` and we are working to populate this more thoroughly.
-Just copy and paste the following, which should complete within about 5 minutes, and gives us an index that STAR will be able to use when running alignments.
+Unfortunately, when building an index, STAR (which we'll be using today) needs an extracted fasta file, so we'll have to extract this file now
 
+```bash
+gunzip Mus_musculus.GRCm38.dna.chromosome.1.fa.gz
 ```
+
+Index the decompressed chromosome 1 FASTA file.
+
+```bash
 STAR \
-    --runMode genomeGenerate \
-    --runThreadN 2 \
-    --genomeDir ~/genomes/Mmusculus \
-    --genomeSAindexNbases 12 \
-    --genomeFastaFiles ~/genomes/Mmusculus/Mus_musculus.GRCm38.dna.chromosome.1.fa
+  --runMode genomeGenerate \
+  --runThreadN 2 \
+  --genomeDir ~/Day_3/genomes/Mmusculus \
+  --genomeSAindexNbases 12 \
+  --genomeFastaFiles \
+  ~/Day_3/genomes/Mmusculus/Mus_musculus.GRCm38.dna.chromosome.1.fa
 ```
 
-With this complete, we are now ready to align our samples to the genome
+With this complete, we are now ready to align the reads from our samples to the indexed genome.

@@ -595,7 +595,7 @@ ls ~/Day_3/0_rawData/fastq</code></pre>
 <pre class="bash"><code>cd ~/Day_3/0_rawData/fastq
 zcat SRR945375.skm.fastq.gz | head</code></pre>
 <p>Using the argument <code>--lines</code> we can modify the behaviour of head to return a specified number of lines, for example <code>--lines 8</code> will return the first 8 lines of a file.</p>
-<pre class="bash"><code>zcat SRR945375.skm.fastq.gz | head -lines 8</code></pre>
+<pre class="bash"><code>zcat SRR945375.skm.fastq.gz | head --lines 8</code></pre>
 <p>You may also remember the pipe symbol <code>|</code> from the above command from day 2. In this example we have taken the output of the zcat command (<code>zcat SRR945375.skm.fastq.gz</code>) and redirected it to another command (<code>head</code>). There are no limits to the number of commands we can string together using pipe commands, allowing us to create pipelines for data from a source through to a destination via different transformations.</p>
 <p>In the output from the above terminal command, we have obtained the first 8 lines of the gzipped fastq file. This gives a clear view of the fastq file format, where each individual read spans four lines. These lines are:</p>
 <pre><code>1. The read identifier

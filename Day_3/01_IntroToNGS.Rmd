@@ -307,7 +307,7 @@ zcat SRR945375.skm.fastq.gz | head
 Using the argument `--lines` we can modify the behaviour of head to return a specified number of lines, for example `--lines 8` will return the first 8 lines of a file.
 
 ```bash
-zcat SRR945375.skm.fastq.gz | head -lines 8
+zcat SRR945375.skm.fastq.gz | head --lines 8
 ```
 
 You may also remember the pipe symbol `|` from the above command from day 2.
